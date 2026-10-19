@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Digital Health Alert — James Mitsubishi Greece | CLIKdata</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;color:#1e293b;}
+.inner{max-width:960px;margin:0 auto;padding:0 28px;}
+
+/* HEADER */
+.report-header{background:#0f172a;padding:18px 0;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.header-logo{height:54px;object-fit:contain;}
+.header-title{font-size:1.45rem;font-weight:900;color:#fff;letter-spacing:.07em;text-transform:uppercase;text-align:center;flex:1;}
+.header-badge{background:rgba(220,38,38,.18);border:1px solid rgba(220,38,38,.5);border-radius:5px;padding:7px 16px;font-size:.7rem;font-weight:800;color:#fca5a5;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;}
+
+/* IDENTITY STRIP */
+.identity-strip{background:#1e293b;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.strip-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.id-name{font-size:1.25rem;font-weight:800;color:#fff;}
+.id-meta{font-size:.84rem;color:rgba(255,255,255,.7);margin-top:5px;}
+.id-right{text-align:right;}
+.audit-id{font-size:.76rem;color:#4ade80;font-family:'Courier New',monospace;line-height:1.9;letter-spacing:.04em;}
+.live-badge{display:inline-block;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.45);border-radius:4px;padding:4px 12px;font-size:.76rem;font-weight:800;color:#4ade80;letter-spacing:.1em;text-transform:uppercase;margin-top:7px;font-family:'Courier New',monospace;}
+
+/* CRITICAL BANNER — dark navy so red POPS */
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.35);}50%{box-shadow:0 0 0 9px rgba(239,68,68,.1);}}
+.critical-banner{background:linear-gradient(135deg,#edf0f4 0%,#e2e8f0 100%);padding:32px 0 26px;border-bottom:3px solid #dc2626;}
+.alert-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.alert-dot{width:12px;height:12px;border-radius:50%;background:#ef4444;animation:pulse-dot 2s infinite;flex-shrink:0;}
+.alert-lbl{font-size:.7rem;font-weight:800;letter-spacing:.18em;color:#dc2626;text-transform:uppercase;}
+.banner-row{display:flex;align-items:flex-end;gap:36px;flex-wrap:wrap;}
+.score-block{flex-shrink:0;}
+.score-big{font-size:5.8rem;font-weight:900;color:#dc2626;line-height:1;letter-spacing:-.04em;}
+.score-denom{font-size:2rem;font-weight:600;color:#94a3b8;}
+.banner-right{flex:1;min-width:220px;}
+.verdict-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.verdict-label{font-family:'Courier New',Courier,monospace;font-size:2.6rem;font-weight:900;color:#dc2626;letter-spacing:.05em;line-height:1;}
+.verdict-label .br{color:#0f172a;}
+.banner-sub{font-size:1rem;color:#0f172a;font-weight:400;line-height:1.7;max-width:880px;}
+.score-track{position:relative;background:rgba(0,0,0,.12);border-radius:6px;height:12px;overflow:hidden;}
+.score-track::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:3px;margin-left:-1px;background:#ea580c;}
+.score-fill{height:100%;width:53%;background:linear-gradient(90deg,#ef4444,#dc2626);border-radius:6px;}
+.score-scale{position:relative;height:1.7rem;margin-top:8px;font-size:1rem;font-weight:900;letter-spacing:.02em;}
+.score-scale span{position:absolute;top:0;white-space:nowrap;}
+.score-scale .s0{left:0;color:#dc2626;}
+.score-scale .s5{left:50%;padding-left:8px;color:#ea580c;}
+.score-scale .s10{right:0;color:#15803d;}
+
+
+
+
+/* SCORE ROW */
+.score-row{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:20px;}
+.slider-col{width:100%;}
+
+/* DOS / TERMINAL DEFINITIONS CARD */
+.term-card{margin-top:26px;background:#0b1220;border:1px solid #1e293b;border-radius:10px;overflow:hidden;box-shadow:0 6px 22px rgba(15,23,42,.35);font-family:'Courier New',Courier,monospace;}
+.term-bar{display:flex;align-items:center;gap:10px;background:#1e293b;padding:10px 16px;border-bottom:1px solid rgba(74,222,128,.25);}
+.term-dots{display:flex;gap:6px;}
+.term-dots i{width:10px;height:10px;border-radius:50%;display:block;}
+.term-dots i:nth-child(1){background:#ef4444;}.term-dots i:nth-child(2){background:#fbbf24;}.term-dots i:nth-child(3){background:#4ade80;}
+.term-title{font-size:.78rem;font-weight:800;color:#4ade80;letter-spacing:.1em;text-transform:uppercase;}
+.term-body{padding:18px 20px 16px;background-image:repeating-linear-gradient(0deg,rgba(74,222,128,.035) 0,rgba(74,222,128,.035) 1px,transparent 1px,transparent 3px);}
+.term-line{font-size:.95rem;line-height:1.65;color:#bbf7d0;font-weight:700;margin-bottom:12px;}
+.term-line:last-of-type{margin-bottom:6px;}
+.term-line .pr{color:#4ade80;font-weight:900;}
+.term-line .k{color:#4ade80;font-weight:900;text-transform:uppercase;letter-spacing:.06em;text-shadow:0 0 8px rgba(74,222,128,.45);}
+.term-prompt{font-size:.9rem;color:#4ade80;font-weight:900;margin-top:10px;}
+@keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+.term-cursor{display:inline-block;width:9px;height:1em;background:#4ade80;vertical-align:text-bottom;margin-left:3px;animation:blink 1s infinite;}
+
+
+/* TERMINAL STAT CARDS */
+.t-stat{position:relative;overflow:hidden;text-align:left;background:#0b1220;border:1px solid rgba(74,222,128,.45);border-radius:10px;padding:14px 14px 16px;font-family:'Courier New',Courier,monospace;box-shadow:0 0 0 1px rgba(74,222,128,.08),0 0 20px rgba(74,222,128,.14);background-image:repeating-linear-gradient(0deg,rgba(74,222,128,.04) 0,rgba(74,222,128,.04) 1px,transparent 1px,transparent 3px);}
+.t-head{font-size:.74rem;font-weight:900;color:#4ade80;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed rgba(74,222,128,.35);white-space:nowrap;}
+.t-num{font-size:2.6rem;font-weight:900;color:#fbbf24;line-height:1;margin-bottom:10px;letter-spacing:-.02em;text-shadow:0 0 16px rgba(251,191,36,.55);font-variant-numeric:tabular-nums;}
+.t-cap{font-size:.84rem;color:#bbf7d0;line-height:1.5;font-weight:700;min-height:2.6em;}
+.t-bar{height:5px;background:rgba(74,222,128,.15);border-radius:3px;margin-top:12px;overflow:hidden;}
+.t-bar i{display:block;height:100%;width:100%;background:#fbbf24;}
+.t-bar.run i{background:#4ade80;}
+.t-status{font-size:.7rem;font-weight:800;color:#4ade80;margin-top:9px;letter-spacing:.06em;text-transform:uppercase;}
+.t-status b{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5);}
+
+
+@media(max-width:820px){
+  .score-scale{display:grid;grid-template-columns:1fr 1fr 1fr;height:auto;font-size:.9rem;gap:6px;}
+  .score-scale span{position:static;white-space:normal;padding-left:0;}
+  .score-scale .s0{text-align:left;}
+  .score-scale .s5{text-align:center;}
+  .score-scale .s10{text-align:right;}
+}
+@media(max-width:420px){
+  .score-scale{font-size:.74rem;}
+  .impact-stats{grid-template-columns:1fr !important;}
+}
+
+/* BODY */
+.body-wrap{max-width:960px;margin:0 auto;padding:30px 28px 38px;}
+.section-lbl{font-size:.78rem;font-weight:900;letter-spacing:.18em;color:#0f172a;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:3px solid #0f172a;}
+
+/* KPI TILES */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px;}
+.kpi-tile{background:#fff;border-radius:10px;border:1px solid #e2e8f0;border-left:4px solid #e2e8f0;padding:20px 18px;}
+.kpi-tile.alarm{border-left-color:#dc2626;border-top:1px solid #fecaca;}
+.kpi-tile.warn{border-left-color:#ea580c;border-top:1px solid #fed7aa;}
+.kpi-icon{font-size:1.5rem;margin-bottom:10px;}
+.kpi-val{font-size:2.3rem;font-weight:900;line-height:1;margin-bottom:7px;}
+.kpi-val.red{color:#dc2626;}
+.kpi-val.orange{color:#ea580c;}
+.kpi-val.sm{font-size:1.4rem;padding-top:4px;}
+.kpi-lbl{font-size:.8rem;font-weight:800;color:#1e293b;line-height:1.4;margin-bottom:7px;}
+.kpi-sub{font-size:.74rem;color:#64748b;line-height:1.55;margin-bottom:10px;}
+.kpi-badge{display:inline-block;padding:3px 9px;border-radius:3px;font-size:.63rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+.kpi-badge.crit{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+.kpi-badge.major{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;}
+
+/* REVENUE IMPACT */
+.impact-box{background:#0f172a;border-radius:12px;padding:28px 30px;margin-bottom:28px;border-left:5px solid #dc2626;position:relative;overflow:hidden;}
+.impact-box::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:rgba(220,38,38,.05);}
+.impact-eyebrow{font-size:.92rem;font-weight:900;letter-spacing:.18em;color:#fbbf24;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.impact-headline{font-size:1.08rem;font-weight:600;color:#f1f5f9;line-height:1.78;margin-bottom:22px;}
+.impact-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+
+/* CTA CARD */
+.cta-card{background:#fff;border-radius:12px;border:2px solid #fecaca;overflow:hidden;box-shadow:0 6px 28px rgba(220,38,38,.13);}
+.cta-top{background:linear-gradient(135deg,#fef2f2,#fff5f5);padding:26px 28px;border-bottom:1px solid #fecaca;}
+.cta-alarm-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.cta-alarm-icon{font-size:1.5rem;}
+.cta-headline{font-size:1.25rem;font-weight:900;color:#dc2626;}
+.cta-sub{font-size:.86rem;color:#1e293b;line-height:1.72;margin-top:7px;}
+
+/* BLURRED FINDINGS */
+.cta-locked{background:#f8fafc;padding:22px 26px;border-bottom:1px solid #e2e8f0;position:relative;min-height:180px;}
+.blurred-findings{filter:blur(5px);pointer-events:none;user-select:none;opacity:.65;}
+.bf-row{display:flex;align-items:flex-start;gap:13px;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+.bf-row:last-child{border-bottom:none;}
+.bf-num{font-size:.7rem;font-weight:900;color:#dc2626;min-width:22px;font-family:'Courier New',monospace;padding-top:2px;}
+.bf-icon{font-size:.95rem;flex-shrink:0;padding-top:1px;}
+.bf-title{font-size:.87rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
+.bf-detail{font-size:.75rem;color:#64748b;line-height:1.55;}
+.lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);backdrop-filter:blur(2px);}
+.lock-inner{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 22px;box-shadow:0 4px 18px rgba(0,0,0,.1);}
+.lock-icon{font-size:1.2rem;}
+.lock-text{font-size:.8rem;color:#475569;font-weight:700;}
+
+.cta-bottom{padding:26px 28px;}
+.cta-body{font-size:.87rem;color:#000;font-weight:600;line-height:1.78;margin-bottom:20px;}
+.cta-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:17px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;letter-spacing:.015em;transition:background .2s;}
+.cta-btn:hover{background:#b91c1c;}
+.cta-note{font-size:.7rem;color:#475569;text-align:center;margin-top:14px;line-height:1.75;font-weight:500;}
+
+/* FOOTER */
+.report-footer{text-align:center;padding:26px 20px;font-size:.7rem;color:#475569;line-height:1.9;font-weight:500;}
+
+@media(max-width:680px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .impact-stats{grid-template-columns:repeat(2,1fr);}
+  .banner-row{flex-direction:column;align-items:flex-start;gap:14px;}
+  .score-row{flex-direction:column;align-items:stretch;gap:14px;}
+  .verdict-label{font-size:2rem;}
+  .term-line{font-size:.82rem;}
+  .score-big{font-size:4rem;}
+  .header-title{font-size:1rem;}
+  .strip-inner{flex-direction:column;align-items:flex-start;}
+  .id-right{text-align:left;}
+  .inner{padding:0 18px;}
+  .body-wrap{padding:22px 18px 30px;}
+}
+
+/* ===== 3-SCREEN BREADCRUMB FLOW ===== */
+.js .screen{display:none;}
+.js .screen.active{display:block;animation:screenin .45s ease;}
+@keyframes screenin{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.crumbs{background:#0b1220;border-bottom:1px solid rgba(74,222,128,.3);font-family:'Courier New',Courier,monospace;}
+.crumbs-inner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:960px;margin:0 auto;padding:10px 28px;}
+.crumb{background:none;border:1px solid transparent;color:#94a3b8;font-family:inherit;font-size:.8rem;font-weight:900;letter-spacing:.06em;padding:6px 11px;border-radius:5px;text-transform:uppercase;cursor:default;}
+.crumb.done{color:#4ade80;cursor:pointer;}
+.crumb.done:hover{border-color:rgba(74,222,128,.55);}
+.crumb.active{color:#0b1220;background:#4ade80;box-shadow:0 0 14px rgba(74,222,128,.55);}
+.crumb-sep{color:#64748b;font-weight:900;}
+.crumb-step{margin-left:auto;font-size:.74rem;font-weight:800;letter-spacing:.1em;color:#4ade80;}
+.step-cta-wrap{max-width:960px;margin:0 auto;padding:26px 28px 34px;text-align:center;}
+.body-wrap .step-cta-wrap{padding:6px 0 4px;}
+.step-teaser{font-family:'Courier New',Courier,monospace;font-size:.92rem;font-weight:800;color:#0f172a;margin-bottom:14px;letter-spacing:.02em;}
+.step-teaser b{color:#dc2626;}
+@keyframes btnglow{0%,100%{box-shadow:0 0 0 1px rgba(74,222,128,.2),0 0 18px rgba(74,222,128,.3);}50%{box-shadow:0 0 0 1px rgba(74,222,128,.4),0 0 34px rgba(74,222,128,.6);}}
+.step-btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:560px;padding:20px 24px;background:#0b1220;color:#4ade80;border:2px solid #4ade80;border-radius:10px;font-family:'Courier New',Courier,monospace;font-size:1.2rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;text-shadow:0 0 10px rgba(74,222,128,.6);animation:btnglow 2.2s ease-in-out infinite;transition:background .2s,color .2s,transform .2s;}
+.step-btn:hover{background:#4ade80;color:#0b1220;text-shadow:none;transform:translateY(-1px);}
+.step-btn .cur{display:inline-block;width:10px;height:1.1em;background:currentColor;animation:blink 1s infinite;}
+.step-back{display:block;margin:18px auto 0;background:none;border:none;font-family:'Courier New',Courier,monospace;font-size:.82rem;font-weight:800;color:#475569;text-decoration:underline;cursor:pointer;}
+.go-block{background:#f0fdf4;border:2px solid #16a34a;border-left-width:6px;border-radius:10px;padding:20px 22px;margin-bottom:22px;}
+.go-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+@keyframes gopulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.5);opacity:1;}50%{box-shadow:0 0 0 12px rgba(34,197,94,.07);opacity:.5;}}
+.go-dot{width:16px;height:16px;border-radius:50%;background:#22c55e;animation:gopulse 1.2s infinite;flex-shrink:0;}
+.go-title{font-size:1.15rem;font-weight:900;color:#000;line-height:1.3;}
+.go-title span{color:#15803d;}
+.go-lead{font-size:.95rem;font-weight:600;color:#000;margin:0 0 10px;line-height:1.55;}
+.go-list{list-style:none;margin:0 0 14px;padding:0;}
+.go-list li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;font-weight:600;color:#000;line-height:1.5;padding:5px 0;}
+.go-list li i{font-style:normal;color:#16a34a;font-weight:900;flex-shrink:0;}
+.go-urgent{font-size:.95rem;font-weight:700;color:#000;border-top:1px dashed #86efac;padding-top:12px;line-height:1.55;}
+.go-urgent b{color:#dc2626;font-weight:900;}
+@media(max-width:680px){
+  .crumbs-inner{padding:10px 18px;gap:5px;}
+  .crumb{font-size:.68rem;padding:5px 7px;}
+  .crumb-step{display:none;}
+  .step-cta-wrap{padding:22px 18px 28px;}
+  .step-btn{font-size:1rem;padding:17px 14px;}
+  .go-title{font-size:1.02rem;}
+}
+
+/* ===== "MORE GAPS" SEQUENTIAL LIST ===== */
+.gap-list{list-style:none;margin:12px 0 8px;padding:0;}
+.gap-item{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:1rem;font-weight:500;color:#0f172a;line-height:1.4;}
+.gx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#dc2626;color:#fff;font-size:.78rem;font-weight:900;line-height:1;flex-shrink:0;box-shadow:0 0 0 3px rgba(220,38,38,.18);}
+.gap-end{display:block;margin-top:4px;font-weight:500;color:#0f172a;}
+.js .gap-item{opacity:0;transform:translateX(-12px);transition:opacity .4s ease,transform .4s ease;}
+.js .gap-item.on{opacity:1;transform:none;}
+@keyframes gxpop{0%{transform:scale(.3);}60%{transform:scale(1.25);}100%{transform:scale(1);}}
+.js .gap-item.on .gx{animation:gxpop .45s ease;}
+.score-method{margin-top:10px;font-size:.74rem;font-style:italic;font-weight:600;color:#334155;line-height:1.45;}
+</style>
+<script>document.documentElement.className+=" js";</script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="report-header">
+  <div class="inner">
+    <div class="header-inner">
+      <img src="https://assets.cdn.filesafe.space/E1a3Kiox27Z6n5KNmx1O/media/6aac055cff484614db0e483a.png" class="header-logo" alt="CLIKdata"/>
+      <div class="header-title" style="color:#fbbf24;">Digital Health Alert</div>
+      <div class="header-badge">&#128274; Confidential</div>
+    </div>
+  </div>
+</header>
+
+<!-- IDENTITY STRIP -->
+<div class="identity-strip">
+  <div class="inner">
+    <div class="strip-inner">
+      <div>
+        <div class="id-name">James Mitsubishi Greece &mdash; Greece, NY</div>
+        <div class="id-meta">Google Business Profile &amp; Local Presence Audit &nbsp;&bull;&nbsp; October 2026</div>
+      </div>
+      <div class="id-right">
+        <div class="audit-id">REPORT ID: GBP-JMGNY-1026</div>
+        <div class="audit-id">Prepared by CLIKdata Analytics</div>
+        <div><span class="live-badge">&#9679;&nbsp; Live Audit Data</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<nav class="crumbs" aria-label="Report progress"><div class="crumbs-inner">
+  <button type="button" class="crumb active" data-go="1">01 &middot; Critical Alert</button><span class="crumb-sep">&rsaquo;</span>
+  <button type="button" class="crumb" data-go="2" disabled>02 &middot; All Alerts</button><span class="crumb-sep">&rsaquo;</span>
+  <button type="button" class="crumb" data-go="3" disabled>03 &middot; Revenue Impact</button>
+  <span class="crumb-step" id="crumbStep">STEP 1 OF 3</span>
+</div></nav>
+
+<div class="screen active" id="s1">
+<!-- CRITICAL BANNER -->
+<div class="critical-banner">
+  <div class="inner">
+    <div class="alert-eyebrow">
+      <div class="alert-dot"></div>
+      <div class="alert-lbl">Critical Alert &mdash; Immediate Attention Required</div>
+    </div>
+
+    <div class="verdict-row">
+      <span class="verdict-label"><span class="br">[</span>CRITICAL<span class="br">]</span></span>
+    </div>
+    <div class="banner-sub"><span style="display:block;">Significant vulnerabilities confirmed across <strong style="font-weight:900;">GBP structure, schema completeness, local authority, and AI search visibility</strong>. <span style="font-size:.78rem;font-style:italic;font-weight:400;">(defined below)</span></span><span style="display:block;margin-top:12px;">Multiple revenue-impacting gaps identified by direct audit &mdash;</span><span style="display:block;margin-top:12px;">This dealership is losing local search ground every single day these issues remain unresolved.</span></div>
+
+    <div class="score-row">
+      <div class="score-block">
+        <span class="score-big">5.3</span><span class="score-denom">&thinsp;/10</span>
+      </div>
+      <div class="slider-col">
+        <div class="score-track"><div class="score-fill"></div></div>
+        <div class="score-scale"><span class="s0">0 &mdash; Critical</span><span class="s5">5 &mdash; Major Issues</span><span class="s10">10 &mdash; Fully Optimized</span></div>
+        <div class="score-method">Overall = average of 8 audited categories &middot; any category at 2/10 or lower sets the status to CRITICAL (GBP Posts: 1/10)</div>
+      </div>
+    </div>
+
+    <div class="term-card">
+      <div class="term-bar">
+        <div class="term-dots"><i></i><i></i><i></i></div>
+        <div class="term-title">C:\CLIKDATA\AUDIT\KPI_DEFINITIONS.TXT</div>
+      </div>
+      <div class="term-body">
+        <div class="term-line"><span class="pr">&gt;</span> <span class="k">GBP Structure:</span> How completely your Google Business Profile is built: categories, department profiles, services, attributes, and hours.</div>
+        <div class="term-line"><span class="pr">&gt;</span> <span class="k">Schema Completeness:</span> How fully structured data on your site describes your business, location, services, and links to your other profiles.</div>
+        <div class="term-line"><span class="pr">&gt;</span> <span class="k">Local Authority:</span> How well-known and trusted your business is locally, measured by reviews, links, and citations.</div>
+        <div class="term-line"><span class="pr">&gt;</span> <span class="k">AI Search Visibility:</span> How often AI answers (Google AI Overviews, ChatGPT, Perplexity) cite or recommend your business.</div>
+        <div class="term-prompt">C:\&gt; <span style="color:#fbbf24;font-weight:900;">Critical Alerts Identified</span><span class="term-cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="step-cta-wrap">
+  <div class="step-teaser">&gt; Score logged: <b>5.3/10 &mdash; CRITICAL</b>. Next: the 6 alerts behind it.</div>
+  <a href="#s2" class="step-btn" data-go="2">SEE ALL ALERTS &rarr; <span class="cur"></span></a>
+</div>
+</div>
+
+<div class="screen" id="s2">
+<div class="body-wrap">
+  <!-- KPI ROW 1 — GBP Activity: fire emojis -->
+  <div class="section-lbl" style="margin-top:4px;">GBP Activity &amp; Profile Status</div>
+  <div class="kpi-grid">
+    <div class="kpi-tile alarm">
+      <div class="kpi-icon">&#128680;</div>
+      <div class="kpi-val red">7 Mo.</div>
+      <div class="kpi-lbl">&#128683; GBP Post Silence</div>
+      <div class="kpi-sub">Last post: March 17, 2026. Zero content published since &mdash; profile is algorithmically dormant.</div>
+      <span class="kpi-badge crit">Content Dead</span>
+    </div>
+    <div class="kpi-tile alarm">
+      <div class="kpi-icon">&#128680;</div>
+      <div class="kpi-val red">2</div>
+      <div class="kpi-lbl">&#128203; Revenue Depts. Missing on Google</div>
+      <div class="kpi-sub">No Service GBP profile. No Parts GBP profile. Both departments: not findable on Google.</div>
+      <span class="kpi-badge crit">Profiles Missing</span>
+    </div>
+    <div class="kpi-tile alarm">
+      <div class="kpi-icon">&#128680;</div>
+      <div class="kpi-val red">None</div>
+      <div class="kpi-lbl">&#9940; Reviews Not Shown on Website</div>
+      <div class="kpi-sub">1,579 Google reviews at 4.5&#9733; &mdash; none appear on the dealership&rsquo;s homepage, and the site has no reviews page.</div>
+      <span class="kpi-badge crit">Not Displayed</span>
+    </div>
+  </div>
+
+  <!-- KPI ROW 2 — Visibility: warning on Facebook -->
+  <div class="section-lbl">Visibility, Reputation &amp; Authority</div>
+  <div class="kpi-grid">
+    <div class="kpi-tile alarm">
+      <div class="kpi-icon">&#128680;</div>
+      <div class="kpi-val red sm">CRITICAL</div>
+      <div class="kpi-lbl">&#129302; AI Search Visibility</div>
+      <div class="kpi-sub">4 confirmed structural gaps blocking AI Overviews, ChatGPT &amp; Perplexity indexing.</div>
+      <span class="kpi-badge crit">AI&ndash;Invisible</span>
+    </div>
+    <div class="kpi-tile warn">
+      <div class="kpi-icon">&#9888;&#65039;</div>
+      <div class="kpi-val orange">3.6&#9733;</div>
+      <div class="kpi-lbl">&#9888;&#65039; Facebook Reputation</div>
+      <div class="kpi-sub">Only 73 reviews vs. Google&rsquo;s 1,579. Severe cross-platform gap &mdash; no active review campaign.</div>
+      <span class="kpi-badge major">Reputation Gap</span>
+    </div>
+    <div class="kpi-tile alarm">
+      <div class="kpi-icon">&#128680;</div>
+      <div class="kpi-val red sm">None</div>
+      <div class="kpi-lbl">&#127759; Directory Syndication</div>
+      <div class="kpi-sub">60+ directories unsynced. NAP inconsistencies compounding silently across the web.</div>
+      <span class="kpi-badge crit">Not Deployed</span>
+    </div>
+  </div>
+
+<div class="step-cta-wrap">
+  <div class="step-teaser">&gt; 6 alerts confirmed by direct audit. Next: what they cost the dealership.</div>
+  <a href="#s3" class="step-btn" data-go="3">SEE REVENUE IMPACT &rarr; <span class="cur"></span></a>
+</div>
+  <button type="button" class="step-back" data-go="1">&larr; Back to Critical Alert</button>
+</div>
+</div>
+
+<div class="screen" id="s3">
+<div class="body-wrap">
+  <!-- REVENUE IMPACT — yellow eyebrow, white stat boxes -->
+  <div class="impact-box">
+    <div class="impact-eyebrow"><span>&#9888;&#65039;</span>&nbsp;Revenue Impact Assessment</div>
+    <div class="impact-headline"><span style="display:block;">Every unanswered search query for Mitsubishi service, parts, or financing in Greece, NY is a call, a lead, and a direction request this dealership is NOT getting.</span><span style="display:block;margin-top:16px;">With two revenue departments missing from Google, nearly seven months of content silence, and no Google Business Profile link in the website&rsquo;s sameAs schema, this dealership is surrendering the local search position it should own every single day.</span><span style="display:block;margin-top:18px;font-size:1.3rem;font-weight:900;letter-spacing:.03em;color:#fbbf24;">Result: &#9888;&#65039; MASSIVE REVENUE LEAK</span></div>
+    <div class="impact-stats">
+      <div class="t-stat" data-target="2" data-suffix="" data-comma="0">
+        <div class="t-head">&gt; DEPTS_MISSING</div>
+        <div class="t-num"><span class="t-val">2</span></div>
+        <div class="t-cap">Revenue Depts.<br/>Not on Google</div>
+        <div class="t-bar"><i></i></div>
+        <div class="t-status">&gt; Status: <b>Critical</b></div>
+      </div>
+      <div class="t-stat" data-target="7" data-suffix=" Mo." data-comma="0">
+        <div class="t-head">&gt; GBP_INACTIVITY</div>
+        <div class="t-num"><span class="t-val">7 Mo.</span></div>
+        <div class="t-cap">Zero GBP<br/>Activity</div>
+        <div class="t-bar"><i></i></div>
+        <div class="t-status">&gt; Status: <b>Critical</b></div>
+      </div>
+      <div class="t-stat" data-target="0" data-suffix="" data-comma="0">
+        <div class="t-head">&gt; SAMEAS_LINKS</div>
+        <div class="t-num"><span class="t-val">0</span></div>
+        <div class="t-cap">Google Profile Links<br/>in sameAs Schema</div>
+        <div class="t-bar"><i></i></div>
+        <div class="t-status">&gt; Status: <b>Critical</b></div>
+      </div>
+      <div class="t-stat" data-target="3" data-suffix="" data-comma="0">
+        <div class="t-head">&gt; AI_VIS_GAPS</div>
+        <div class="t-num"><span class="t-val">3</span></div>
+        <div class="t-cap">AI Visibility<br/>Structural Gaps</div>
+        <div class="t-bar"><i></i></div>
+        <div class="t-status">&gt; Status: <b>Critical</b></div>
+      </div>
+    </div>
+  </div>
+
+<!-- CTA -->
+  <div class="cta-card">
+    <div class="cta-top">
+      <div class="cta-alarm-row">
+        <div class="cta-alarm-icon">&#128680;</div>
+        <div class="cta-headline">Unfortunately, there&rsquo;s more.</div>
+      </div>
+      <div class="cta-sub"><strong style="font-weight:900;">These findings represent only the highest-priority issues surfaced in this audit.</strong> Your full Digital Health Analysis covers 8 audit categories and reveals additional critical gaps in:<ul class="gap-list"><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>GBP structure</span></li><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>schema completeness</span></li><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>AI visibility</span></li><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>entity authority</span></li><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>NAP consistency</span></li><li class="gap-item"><span class="gx" aria-hidden="true">&#10005;</span><span>cross-platform reputation</span></li></ul><span class="gap-end">&mdash; All Confirmed by Direct Audit.</span></div>
+    </div>
+
+    <!-- BLURRED FINDINGS — real content, locked -->
+    <div class="cta-locked">
+      <div class="blurred-findings">
+        <div class="bf-row">
+          <div class="bf-num">06</div>
+          <div class="bf-icon">&#128308;</div>
+          <div>
+            <div class="bf-title">Entity Authority: sameAs Links to Facebook Only &mdash; Knowledge Graph Signals Are Critically Thin</div>
+            <div class="bf-detail">sameAs is how a site&rsquo;s structured data points to a business&rsquo;s other official profiles. This dealership&rsquo;s lists Facebook only &mdash; the Google Business Profile isn&rsquo;t among the linked profiles &mdash; so the site&rsquo;s entity data is thinner than a fully built profile set.</div>
+          </div>
+        </div>
+        <div class="bf-row">
+          <div class="bf-num">07</div>
+          <div class="bf-icon">&#128308;</div>
+          <div>
+            <div class="bf-title">Market Reach Undefined: No areaServed in Site Schema &mdash; Surrounding Markets Not Stated</div>
+            <div class="bf-detail">The site&rsquo;s structured data defines no areaServed property, so it never states which cities this dealership serves. Greece, NY sits within a large metro market &mdash; every city left unstated is a missed chance to say where the dealership competes.</div>
+          </div>
+        </div>
+        <div class="bf-row">
+          <div class="bf-num">08</div>
+          <div class="bf-icon">&#9888;&#65039;</div>
+          <div>
+            <div class="bf-title">GBP Category Configuration Not Fully Optimized &mdash; High-Value Queries Being Missed</div>
+            <div class="bf-detail">Category selection directly determines which searches trigger a GBP listing. Outdated or incomplete configurations suppress visibility for the highest-value transactional queries &mdash; financing, service, parts, and new vehicle searches.</div>
+          </div>
+        </div>
+      </div>
+      <div class="lock-overlay">
+        <div class="lock-inner">
+          <span class="lock-icon">&#128274;</span>
+          <span class="lock-text">Additional findings locked &mdash; access full report to view</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-bottom">
+      <div class="go-block">
+        <div class="go-head"><span class="go-dot"></span><div class="go-title">Every Alert on this page is Fixable &mdash; Fast.</div></div>
+        <p class="go-lead">The alerts are only half the story. Your full report shows you how to fix them:</p>
+        <ul class="go-list">
+          <li><i>&#10004;</i><span><strong>Insider secrets &amp; quick-win hacks</strong> to win back local visibility</span></li>
+          <li><i>&#10004;</i><span><strong>Master-level SEO, GEO &amp; AEO optimizations</strong>, step by step</span></li>
+          <li><i>&#10004;</i><span><strong>A fix for every alert</strong> you just saw, prioritized</span></li>
+          <li><i>&#10004;</i><span><strong>The 3 locked findings</strong> &mdash; unlocked inside the report</span></li>
+        </ul>
+        <div class="go-urgent">Every day these gaps stay open, local searches and revenue go to someone else.<br><b>Click now to access your full report.</b></div>
+      </div>
+      <a href="https://clikdatamarketing.com/james-mitsubishi-greece-digital-health-analysis-proposal-page" class="cta-btn" target="_blank" rel="noopener">
+        &#128196;&nbsp; ACCESS THE FULL REPORT &nbsp;&rarr;
+      </a>
+      <div class="cta-note">Prepared exclusively for James Mitsubishi Greece &nbsp;&bull;&nbsp; CLIKdata Digital Health Alert&trade; &nbsp;&bull;&nbsp; October 2026<br/>Report ID: GBP-JMGNY-1026 &nbsp;&bull;&nbsp; Confidential &mdash; Not for distribution</div>
+    </div>
+  </div>
+
+
+  <button type="button" class="step-back" data-go="2">&larr; Back to All Alerts</button>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="report-footer">
+  &copy; 2026 CLIKdata &nbsp;&bull;&nbsp; Digital Health Alert&trade; &nbsp;&bull;&nbsp; Confidential &mdash; Prepared exclusively for James Mitsubishi Greece, Greece NY<br/>
+  This report is based on a direct audit of publicly available GBP, schema, and local search data conducted in October 2026.
+</div>
+
+<script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('.t-stat'));
+  if(!cards.length) return;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fmt(n,c){return c.getAttribute('data-comma')==='1'?n.toLocaleString('en-US'):String(n);}
+  function reset(c){
+    c.querySelector('.t-val').textContent='0'+(c.getAttribute('data-suffix')||'');
+    c.querySelector('.t-bar').className='t-bar run';
+    c.querySelector('.t-bar i').style.width='0%';
+    c.querySelector('.t-status').innerHTML='&gt; Computing<span class="dots">...</span>';
+  }
+  function finish(c){
+    c.querySelector('.t-val').textContent=fmt(+c.getAttribute('data-target'),c)+(c.getAttribute('data-suffix')||'');
+    c.querySelector('.t-bar').className='t-bar';
+    c.querySelector('.t-bar i').style.width='100%';
+    c.querySelector('.t-status').innerHTML='&gt; Status: <b>Critical</b>';
+  }
+  function run(c,delay){
+    setTimeout(function(){
+      var target=+c.getAttribute('data-target'), suf=c.getAttribute('data-suffix')||'';
+      var val=c.querySelector('.t-val'), bar=c.querySelector('.t-bar i'), dur=1700, t0=null;
+      function step(ts){
+        if(t0===null) t0=ts;
+        var p=Math.min((ts-t0)/dur,1), e=1-Math.pow(1-p,3);
+        val.textContent=fmt(Math.round(target*e),c)+suf;
+        bar.style.width=Math.round(p*100)+'%';
+        if(p<1){requestAnimationFrame(step);} else {finish(c);}
+      }
+      requestAnimationFrame(step);
+    },delay);
+  }
+  function start(){cards.forEach(function(c,i){run(c,i*350);});}
+  if(reduce || !('IntersectionObserver' in window)){return;}
+  cards.forEach(reset);
+  var box=document.querySelector('.impact-box'), done=false;
+  var io=new IntersectionObserver(function(en){
+    en.forEach(function(x){ if(x.isIntersecting && !done){done=true; start(); io.disconnect();} });
+  },{threshold:0.35});
+  io.observe(box);
+})();
+</script>
+<script>
+(function(){
+  var screens=[document.getElementById('s1'),document.getElementById('s2'),document.getElementById('s3')];
+  var crumbs=[].slice.call(document.querySelectorAll('.crumb'));
+  var lbl=document.getElementById('crumbStep');
+  var reached=1;
+  function show(n){
+    if(n>reached) reached=n;
+    screens.forEach(function(s,i){ s.classList.toggle('active', i===n-1); });
+    crumbs.forEach(function(c,i){
+      var k=i+1;
+      c.classList.toggle('active',k===n);
+      c.classList.toggle('done',k<=reached && k!==n);
+      c.disabled = k>reached;
+    });
+    if(lbl) lbl.textContent='STEP '+n+' OF 3';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.addEventListener('click',function(e){
+    var go=e.target.closest ? e.target.closest('[data-go]') : null;
+    if(!go) return;
+    e.preventDefault();
+    var n=parseInt(go.getAttribute('data-go'),10);
+    if(n>reached+1) return;
+    show(n);
+  });
+  show(1);
+})();
+</script>
+<script>
+(function(){
+  var list=document.querySelector('.gap-list'); if(!list) return;
+  var items=[].slice.call(list.querySelectorAll('.gap-item'));
+  function all(){ items.forEach(function(i){ i.classList.add('on'); }); }
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce || !('IntersectionObserver' in window)){ all(); return; }
+  var done=false;
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting && !done){
+        done=true; io.disconnect();
+        items.forEach(function(it,i){ setTimeout(function(){ it.classList.add('on'); }, 450+i*600); });
+      }
+    });
+  },{threshold:0.5});
+  io.observe(list);
+})();
+</script>
+</body>
+</html>
