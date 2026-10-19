@@ -1,0 +1,260 @@
+# DHAP GBP — v12.1 (public repository edition of v12, Oct 19 2026) — SINGLE SOURCE OF TRUTH
+Current builds: **James Mitsubishi Greece DHAP v18 · Digital Health Alert hot sheet v25.** This body supersedes all earlier notes. If anything elsewhere conflicts with this body, this body wins.
+**Placeholders:** this public edition writes the knowledge base id as `{{KB_ID}}` and the sub-account id as `{{LOCATION_ID}}`. The private loader skill inside Ask AI supplies the real values (the location id is also in the session context). Never write the real values into this file.
+
+## Trigger
+> `Run DHAP GBP for [Business Name], [City, State], a [type of business]. [website URL]`
+(Say "DHAP GBP" — the older "Create Digital Health Analysis & Proposal (DHAP)" skill is a different, unchanged skill.)
+
+## 🔒 GOVERNANCE — MANDATORY (no drift between users)
+1. This skill is the only source of truth for DHAP GBP work. Never keep parallel copies; never follow a stale copy.
+2. **At the start of every run state the revision**: "Using DHAP GBP v12.1."
+3. Edit this skill ONLY when the user explicitly asks ("update the skill", "lock this in") or states a new standing rule. Never edit silently mid-run.
+4. Every edit: bump the version (v12.1 → v12.2 …), update the header line above, and append an entry to the change log (`CHANGELOG.md` in the repository) (date · version · what changed · who asked). If two people's instructions conflict, stop and ask rather than choose.
+5. Preferences that must apply to everyone live HERE, not in personal memory (memory is per-user and not shared).
+6. Re-runs of any past DHAP use the CURRENT rules in full. Queen City Mitsubishi (Sept 21, v5) and Gerry Raymond Chevrolet (Oct 7) predate most rules (still contain a review-markup finding, no mobile layout, old score) — rebuild both on their next revision with everything below (Gerry: non-Mitsubishi → no widget, no RULE I).
+7. In the repository edition, rule changes are made only by pull request in the repository (see README); never edit the rules from a chat.
+
+---
+
+## ⚠️ CONTENT AUTHORITY — MANDATORY
+KB ID: `{{KB_ID}}` (Mitsubishi CLIKsearch Knowledge Base is the ultimate authority for service facts).
+```json
+{"knowledgeBaseIds": ["{{KB_ID}}"], "query": "...", "limit": 8, "locationId": "{{LOCATION_ID}}"}
+```
+The KB's schema example shows an `aggregateRating`, but the KB does NOT say the actual Custom Local Dealership Website Schema build includes review markup (and says nothing on hasMap/sameAs). Never use that example to recommend review markup; never claim the build adds it. Don't name a CLIKsearch product as the fix for a gap the KB doesn't confirm it fixes.
+
+## ⚠️ PLATFORM FACTS — MANDATORY
+1. No GBP Q&A — never mention or audit Q&A.
+2. Low reviews → CLIKsearch Reputation Review Reactivation Builder Campaign.
+3. Setup $399 one-time · Month 1 total $1,398 · Ongoing $999/mo · MiDS eligible (Mitsubishi only). Dollar amounts live ONLY in the Investment tab table (not the Why Act Now banner).
+4. Go-live **72 hours** from onboarding. **Results in 90 days** (verified commitment); Day-1 optimizations (profile setup, NAP sync, categories, nesting Service + Parts) have immediate impact; content/GEO posts/photos compound.
+5. **Omni-Social Post Distribution** — standard in every plan, **IN ADDITION to GBP posts, never instead**: Facebook, Instagram, Threads, LinkedIn, Pinterest, Bluesky; platform-native versions; FB/IG auto engagement comments; custom visuals weekly; only GBP service offering this.
+6. Wording: never "SGE" → **SEO/AEO/GEO**. Program name **"MiDS"** (lowercase i) everywhere.
+
+## ⚠️ BOOKING URLS — MANDATORY
+| Context | URL |
+|---|---|
+| Mitsubishi dealers (Travis Roberts calendar) | `https://link.clikdata.com/widget/booking/NFUUlCg9iGQP81LNAScN` |
+| Non-Mitsubishi / all other dealers | `https://link.clikdata.com/widget/booking/1faZ2E03QZKt9LQamuF9` |
+
+## ⚠️ NON-MITSUBISHI ADAPTATION
+"CLIKsearch™ Dealer 3-Pack" · "Get Found. Get Chosen. — Fully Managed · 24/7" · remove mids-box and all RULE I callouts/green pills · 4-column Investment table (no MiDS Status) · "CLIKsearch Auto Dealer Results" · "Built for franchise auto dealers" · Why Act Now banner without MiDS language ("CLIKsearch handles everything from Day 1 — go live in 72 hours. Results in 90 days.") · pricing identical · omni-social identical · **no Jessica widget (RULE H)** · standard booking URL. Keep the mobile layout (RULE J), score method and all audit rules.
+
+## ✅ VERIFIED LOGO / IMAGE URLS
+```
+CLIKDATA_LOGO = "https://storage.googleapis.com/crm-conversations-ai-production/ask-ai-attachments/pD1xrcLAci2kVYlEsUSa/E1a3Kiox27Z6n5KNmx1O/kdKQLwzGTkPvz8og4h4y/4f6e3ef5-54c9-4210-ab7a-8fb3428263cc.png"
+CLIKDATA_LOGO_WHITE_TEXT = "https://assets.cdn.filesafe.space/E1a3Kiox27Z6n5KNmx1O/media/6aac055cff484614db0e483a.png"   # dark headers (hot sheet)
+MITS_LOGO = "https://storage.googleapis.com/crm-conversations-ai-production/ask-ai-attachments/pD1xrcLAci2kVYlEsUSa/E1a3Kiox27Z6n5KNmx1O/kdKQLwzGTkPvz8og4h4y/c3567bcd-fe66-4a7e-b00d-119bd43fa5cd.png"
+JESSICA_PHOTO = "https://assets.cdn.filesafe.space/E1a3Kiox27Z6n5KNmx1O/media/66edd4a08a6ce149d536893a.jpeg"   # widget avatar
+```
+(These image links already appear in the public report pages.)
+
+---
+
+## ⚠️ AUDIT RULES — MANDATORY (all reports)
+
+### Evidence tags
+**Audit Verified** (`tag-green-sm`: bg #dcfce7, color #15803d, border rgba(21,128,61,.25)) = directly confirmed by browser/page-source/schema audit. **Inferred** (`tag-amber-sm`: bg #fff3cd, color #92400e) = logical conclusion, not tested. Competitor claims always carry `<em style="color:#6b7280;">(Competitor [activity] not directly audited — industry pattern.)</em>`. Language: "photos were updated at time of audit" (never "today"); stats strip "Averages from active CLIKsearch [Mitsubishi/Auto] dealer accounts — not projections specific to [Dealer Name]."
+
+### REVIEW-MARKUP RULE
+**Never list missing aggregateRating/review markup as a gap and never recommend adding it for a business's own reviews** (deliberate omission is correct for LocalBusiness/Organization sites — director of GBP's standard). Banned everywhere (tiles, stat cards, paragraphs, definitions, scorecard rows, hero facts, AI Visibility, Findings, Opportunities, Solution, Why Act Now): any "review markup / review-rating markup / aggregateRating absent" finding; "machine-readable"; "reviews excluded from rich results"; "invisible to Google"; "highest-impact schema fix". Never claim review markup yields stars, rich results, CTR or AI benefit. If a client's schema already contains aggregateRating/review for its own reviews → flag as a RISK to the director, never a selling point. Do not count it toward AI_VIS_GAPS.
+Verified vs undocumented (checked against Google's official docs Oct 18 2026): own-business/widget reviews are "self-serving", ineligible for star results — **supported**; "gains nothing visible" — partly; markup mismatch → manual action — partly (documented consequence = page loses rich-result eligibility, not necessarily the whole site); local-pack stars come from the Business Profile — partly/not explicit; hasMap + sameAs "link the entity to its GBP" — **not documented by Google** (state effects as Inferred only; never say Google's Knowledge Graph "uses sameAs" or thin sameAs "reduces AI confidence" as fact).
+
+### DIRECTOR'S CHECKS — run every time, record method + date
+1. **Visible reviews on the RENDERED site** (browser; static HTML can't see script widgets). Visible display is fine and recommended — never marked up.
+2. **`hasMap` AND legacy `map`/`maps`** — per entity (top level and each department). Say "no hasMap" only for that property name; describe `map` separately.
+3. **`sameAs`** — does it include the GBP/Google Maps URL plus other official profiles? Say "sameAs" explicitly in sameAs statements.
+4. **areaServed and department entities from the parsed JSON-LD of EVERY key page** (home, About, Service, Parts, Directions) — never only the homepage; state findings only from pages actually checked, naming pages + date. Dealer sites may block repeat static fetches after the first request → use the browser (view-source) for multi-page checks.
+Recommendation wording for hasMap/sameAs: "link the site to the profile — add hasMap and sameAs pointing to the Google Business Profile URL" **with no stated benefit**; effect = Inferred.
+
+### BOTH VIEWS — departments
+Always report as two separate facts: (1) **website schema** — which department entities exist (Sales/Service/Parts) and what each links to (url, telephone, map/hasMap, sameAs, areaServed); (2) **GBP listings** — which department profiles exist. Never infer one from the other; where they differ say so. Findings for missing Service/Parts profiles end with "Both views: the website's schema already describes a Service|Parts department (audited [date]) — what is missing is the Google Business Profile listing for it." Opportunity wording: connect each department to its own GBP profile (don't say "build department entities" when they exist).
+
+### Never restate a number you can't source
+Counts and claims come from the audit or a tool result. Unverified inherited claims (e.g. an unsourced "4 cities") are never repeated.
+
+### OVERALL SCORE METHOD
+- **Overall = equal-weight average of the scorecard category rows, 1 decimal.** Compute in code; update EVERY occurrence (DHAP summary `score-num`, scorecard OVERALL row + bar width = score×10 %, hot sheet `score-big`, teaser "Score logged: X/10", slider `.score-fill` width = score×10 %).
+- **Weakest-link status rule:** any category ≤ 2/10 sets the overall status to **Critical** regardless of the average. Otherwise bands: <5 Critical · 5–6.9 Major Issues · 7+ Needs Improvement/Strong.
+- State the method on the pages — DHAP scorecard footnote: "Category ratings are qualitative assessments based on direct audit findings. The overall score is the equal-weight average of the eight categories; any category at 2/10 or lower sets the overall status to Critical." OVERALL status cell appends "(any category at 2/10 or lower sets the status to Critical — GBP Posts is 1/10)" (name the actual low row). Hot sheet caption under slider (`.score-method`, .74rem italic 600 #334155): "Overall = average of 8 audited categories · any category at 2/10 or lower sets the status to CRITICAL (GBP Posts: 1/10)".
+- Re-rate/add/remove a row → recompute and re-check the weakest-link rule. James: rows 9, 5, 7, 6, 1, 7, 4, 3.5 → 42.5/8 = **5.3**, Critical (GBP Posts 1/10).
+
+### FRESHNESS RULE
+Every (re)send in a new period refreshes all time-sensitive copy in BOTH files: months of silence computed with the date tool (never from memory; "nearly N months" when a few days short; short labels "N Mo."; update every occurrence incl. count-up `data-target`); audit month/year in headers/footers/notes; **Report ID carries MMYY** (e.g. `GBP-JMGNY-1026`); re-check drifting counts (review totals, last-post date, directory counts) or keep "at time of audit"; then grep for OLD month name / Report ID / counts and assert none remain. Report ID appears on the hot sheet only (not in the full DHAP).
+
+### Spelling check before every delivery
+Extract visible text of both files and spell-check (allow-list: CLIK*, GBP, SEO, AEO, GEO, MiDS, MMNA, schema terms such as areaServed/sameAs/hasMap, hot-sheet labels such as DEPTS_MISSING/SAMEAS_LINKS). Scan "MIDS" vs "MiDS" and straight vs curly apostrophes.
+
+---
+
+## Steps
+1. Collect business info · 2. Query KB · 3. Audit GBP · Maps · Schema (no Q&A) incl. ALL director's checks + both views · 4. Compile findings (never a review-markup finding) · 5. Chat report · 6. Build HTML (python → code_block): DHAP + hot sheet · 7. Run assertions + mobile probe (RULE J) + spell check · 8. Review & publish (funnel Custom Code; hard-refresh and test desktop + phone) · 9. Skill update only per GOVERNANCE.
+
+---
+
+## 🔒 CANONICAL DHAP SPEC (v18)
+Reference: https://clikdatamarketing.com/james-mitsubishi-greece-digital-health-analysis-proposal-page
+**Tab order (8):** Summary · Scorecard · AI Visibility · Findings · Opportunities · Solution · Why Act Now · Investment. One self-contained HTML document (Doctype → `</html>`), delivered as a code_block with copy button; user pastes it OVER the whole custom-code element.
+**Scorecard rows (8 + OVERALL):** GBP Claimed & Verified · Profile Completeness · Photos & Visual Presence · Reviews & Reputation · GBP Posts & Engagement · Google Maps / NAP Consistency · LocalBusiness Schema · Schema Field Completeness · OVERALL (no review-markup row).
+**Summary / AI Visibility hero fact + bullet:** "None / Google Link in sameAs Schema"; "No Google Business Profile link in sameAs — site schema lists Facebook only" (only when audit confirms).
+**Findings (verified James set):** sameAs finding ("…cross-references only the Facebook page… no hasMap property; a Google Maps link (map) appears on the Sales department entry only (audited [date]). (Effect on entity recognition inferred, not tested.)") · "No areaServed in Site Schema" ("does not define areaServed at all — checked on the homepage and four other pages on [date]… Defining areaServed lets the schema state that full market. (Effect on local rankings inferred, not tested.)") · **"Google Reviews Aren't Shown on the Website"** (no visible reviews on the rendered homepage, no Reviews/Testimonials page — browser check [date]; reviews can be shown visibly without review markup; no product named as the fix) · missing Service/Parts profile cards with "Both views:" line · omni-social missed-opportunity card (RULE G).
+
+### RULE A — Summary hero-sub: red + orange bold callouts
+`<div class="hero-sub">[Context] — but <strong style="color:#e82b39;">[critical gaps]</strong> mean [consequence]. Meanwhile, <strong style="color:#f97316;">[competitor advantage].</strong> <em style="color:#6b7280;">(Competitor GBP activity in [Market] not directly audited — industry pattern.)</em> CLIKsearch closes every gap — fully managed, 24/7.</div>`
+
+### RULE B — Opportunities table
+Every pill carries the Mitsubishi logo; labels use SEO/AEO. Entity row: "Build complete dealership structured data — [departments connected to own GBP profiles], expanded sameAs (including the Google Business Profile link), full areaServed" (no review/reputation-signal language; hasMap only as link-to-profile with no stated benefit). Omni-Social row second-to-last, ACT NOW last:
+```html
+<tr><td><strong>Omni-Social Post Distribution</strong></td><td>&#9889; Force Multiplier</td>
+  <td><div class="roi-tag"><span>&#9654;</span><span>In addition to every GBP post, simultaneously distribute content to Facebook, Instagram, Threads, LinkedIn, Pinterest &amp; Bluesky &mdash; each rewritten for that platform&rsquo;s audience. GBP posts stay. Social reach gets added on top. 6&times; the signals, zero additional effort.</span></div></td>
+  <td><span class="pill pill-blue"><img src="{MITS_LOGO}" style="height:12px;vertical-align:middle;margin-right:3px;"> CLIKsearch</span></td></tr>
+<tr><td><strong style="color:#d97706;">ACT NOW</strong></td><td><strong style="color:#d97706;">DEPARTMENT REVENUE GAINS</strong></td>
+  <td><strong style="color:#d97706;">Full CLIKsearch 3-Pack Deployment &mdash; Sales &bull; Service &bull; Parts</strong></td>
+  <td><span class="pill pill-green"><img src="{MITS_LOGO}" style="height:12px;vertical-align:middle;margin-right:3px;"> CLIKsearch 3-Pack</span></td></tr>
+```
+
+### RULE C — Why Act Now
+Title "CLIKsearch Mitsubishi Client Results" + italic disclaimer line + snap-grid (green `#16a34a`): +62% More Local Search Traffic · +62.4% Increase in Website Traffic · +47.8% Increase in Direction Requests · +28.7% Increase in Phone Calls · +29% Increase in Website Visits · 60+ Directory Listings Syndicated. Then "Why [Dealer Name] Must Act Now": dealer-specific cards (never review markup), omni-social force-multiplier card (RULE G) last, then the Investment banner (RULE I) — no dollar amounts.
+
+### RULE D — Solution tab
+Intro paragraph (omni-social additive): "CLIKsearch turns your GBP into a high-performing "second website" — driving more calls, direction requests, and showroom visits. Built exclusively for Mitsubishi dealers and powered by AI automation, the 3-Pack covers your Sales, Service, and Parts profiles simultaneously with 24/7 management, weekly content, and reputation automation. On top of weekly GBP posts, CLIKsearch also simultaneously distributes every piece of content to **Facebook, Instagram, Threads, LinkedIn, Pinterest, and Bluesky** — each version written for how people engage on that platform. Your GBP posts don't stop — they go further."
+Feature list (17): Sales Profile — fully managed & optimized · Service Profile (Nested) — … · Parts Profile (Nested) — … · Up to 8 Sales Posts & Photos/month · Up to 4 Service Posts & Photos/month · Up to 4 Parts Posts & Photos/month · AI-Powered Review Answering — 24/7 · Reputation Review Reactivation Builder Campaign · 60+ Directory Listing Syndication · Custom Local Dealership Website Schema · Full GBP Optimization & 24/7 Monitoring · GEO-Optimized Photo Posts · SEO/AEO/GEO-focused content strategy · Map Pack Management & Local SEO · Omni-Social Distribution (in addition to GBP posts) — FB · IG · Threads · LinkedIn · Pinterest · Bluesky · Platform-Native Content — each post rewritten for its channel · Auto Engagement Comments — Facebook & Instagram.
+Pitfall list (9): Months between GBP posts — or none at all · Stale, outdated photos on all three profiles · Unanswered customer reviews (positive & negative) · NAP inconsistencies compounding across directories · Schema left unconfigured or partially implemented · No review campaigns — reputation growth left to chance · Service & Parts GBP profiles never created or abandoned · No GEO/SEO content strategy — just generic posts · GBP posts go nowhere else — zero social platform distribution beyond Google.
+Benefit tags: ⏰ Man-Hours #dbeafe/#1d4ed8 · ✓ No Staff #dcfce7/#15803d · Weakness #fee2e2/#b91c1c · ⚡ Compound #fef9c3/#92400e. Amber/gold callout: bg #fef9c3 · border 2px solid #f59e0b · border-left 5px solid #d97706 · text #78350f · .88rem.
+
+### RULE E — Investment tab
+Mitsubishi: 5-column table (Program · Profiles Covered · Amount · Type · MiDS Status) with `tag-green` "Up to 100% Reimbursable" pills (exactly 2). What's Included (13): Sales, Service & Parts GBP profiles · 16 monthly posts + photos (all 3 profiles) · Full GBP optimization & 24/7 monitoring · AI-powered review answering · Reputation Review Reactivation Builder Campaign · 60+ directory listing syndication · Custom dealership website schema build · GEO-optimized photo posts · SEO/AEO/GEO content strategy · Enhanced KPI reporting dashboard · Omni-social distribution — every GBP post also goes to 6 social platforms · Platform-native content for each social channel · Auto engagement comments — Facebook & Instagram. Closes with the "Conservative Monthly Search Recovery" banner (+62% Local Search Traffic) and strategy-call CTA (Mitsubishi booking URL).
+
+### RULE F — AI Visibility tab
+Panel `aivisibility` between Scorecard and Findings. Hero (CRITICAL label, no numeric score; "Key Gaps — Verified From Audit" bullets — never review markup) → methodology card (purple #7c3aed, "How This Assessment Was Built — Read This First": each signal rated qualitatively; Audit Verified = confirmed by audit; Inferred = logical conclusion, not tested on every platform) → 8-signal table → Verified Critical Gaps → Inferred Major Gaps → Verified Strengths → CLIKsearch closing box.
+Signals/default basis: Google AI Overview Eligibility (Inferred; Critical if site schema thin — never review markup) · GBP Completeness for AI (Verified; Critical if profiles missing) · Structured Data Quality (Verified; Major if DDC disabled/thin sameAs/no GBP link) · GEO/AEO Content Freshness (Verified; Critical if >3 months dormant) · Entity Authority & Knowledge Graph (Verified; Partial if KP active but thin sameAs) · Multi-Platform AI Discovery (Inferred; Major if no directory syndication) · AI Review Signal Strength (Verified; based on cross-platform review disparity and whether reviews are VISIBLE on the site — never missing aggregateRating) · Answer Engine Optimization (Inferred; Critical if no AEO content).
+
+### RULE G — Omni-social
+Always additive ("On top of weekly GBP posts…", "GBP posts don't stop — they go further."). Appears in: Findings missed-opportunity card "No Cross-Platform Social Distribution" (Mitsubishi-logo pill) · Opportunities row · Why Act Now card "CLIKsearch Is the Only GBP Service With 6-Platform Social Distribution" (finding-card major, purple left border, last before banner) · Solution intro/features 15–17/pitfall 9 · Investment items 11–13 · AI Visibility Entity Authority note.
+
+### RULE H — Floating "Live Support" (Jessica) widget — Mitsubishi/MiDS dealers ONLY
+One block (style + markup + script) just before `</body>`, outside all tab panels (`position:fixed; z-index:2147483000`). Red `#e82b39` pill launcher, 48px circular photo (JESSICA_PHOTO, white ring, object-position center top), pulsing green dot, label **"Live Support"** (hidden ≤480px), tip after 5s "Questions about your report? **Get live support.**" Panel: dark header with 54px photo, "Jessica · MiDS AI Assistant · CLIKdata"; "Hi, I'm Jessica. I can help you:" + 4 ticks (book an appointment to get started · fix the issues in this report right away · walk through the report and learn more · answer questions about the CLIKsearch GBP MiDS program); green **Call Jessica now** (`tel:+17273538321`); "or dial (727) 353-8321"; "Prefer a person? Schedule a strategy call →" (Mitsubishi URL); footer **"Jessica is an AI assistant."** — always; "Live Support" must never imply a human.
+Agent: Voice AI "Jessica MiDS Specialist"; inbound +17273538321 (active, read back Oct 16 2026); the MiDS knowledge base ({{KB_ID}}) attached; transfer only on explicit request; booking → "MiDS MMNA CLIKsearch Discovery Call – with Travis Roberts" (id NFUUlCg9iGQP81LNAScN). Inbound welcome: "Hi, you've reached Jessica, the MiDS AI assistant for CLIKdata. I can help with your Digital Health Analysis report. What would you like help with?" Rules: book first; explain fixes then move to booking; program answers ONLY from the KB; confirm name, dealership, callback number before booking; no ranking/lead/guarantee promises; no GBP Q&A; no competitors. Another voice agent in the same sub-account must never be touched. API lesson: a Voice AI agent update body must NOT contain `agentId` or `locationId`.
+**Open caveats:** the welcome message is one shared field (outbound may use the inbound greeting); program answers not yet test-called; booking-action collected fields not confirmed by read-back.
+
+### RULE I — MiDS / 100% Reimbursement callouts (Mitsubishi ONLY)
+1. Solution tab MiDS box: title `🏆 MiDS Approved — 100% REIMBURSEMENT` (`.mids-title`, 1.7rem, 900, **color #15803d**; darker green because the box is light blue #dbeafe); body "Making this the highest-impact, lowest net-cost digital program available to MMNA dealers." (1.25rem, 600, #1f2937).
+2. Why Act Now → CLIKsearch Investment banner: eyebrow "CLIKsearch Investment"; headline **"APPROVED - 100% REIMBURSEMENT"** (`.roi-amount`, **color #16a34a**); copy "Your Mitsubishi GBP 3-Pack — Sales · Service · Parts profiles are fully managed for you 24/7. No long-term contracts, month-to-month. Your fast-start optimizations take effect immediately and deliver real, quantifiable results in 90 days."; no dollar amounts.
+3. Investment tab: both "Up to 100% Reimbursable" pills `tag-green`.
+Open decision: headlines say "100% REIMBURSEMENT"/"APPROVED" without "up to/eligible" while the rest says "up to 100%" — qualifier undecided.
+
+### RULE J — MOBILE LAYOUT (mandatory for every full DHAP)
+Why: unfixed, the page is ~1,004px wide on a 390px phone (non-scrolling nowrap tab bar) and three tables overflow. Insert verbatim just before `</head>`:
+```html
+<style>
+/* ===== MOBILE LAYOUT (phones <= 680px) ===== */
+@media(max-width:680px){
+  .nav{padding:0 8px;gap:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .nav::-webkit-scrollbar{display:none;}
+  .nav>*{flex-shrink:0;}
+  .nav img{max-height:30px;width:auto;margin-right:8px;}
+  .tab-btn{padding:14px 12px;font-size:.8rem;}
+  .tab-panel{padding:16px 12px;}
+  .hero-card{padding:20px 16px;}
+  .hero-title{font-size:1.4rem;line-height:1.25;}
+  .hero-sub{font-size:.9rem;line-height:1.65;}
+  .hero-fact{padding:12px 6px;}
+  .hero-fact-num{font-size:1.7rem;}
+  .score-banner{padding:18px 16px;gap:14px;}
+  .score-banner-context{min-width:0!important;flex-basis:100%!important;}
+  .score-label{font-size:1.6rem!important;}
+  .finding-card{padding:16px 14px;}
+  .solution-body{padding:16px 14px;}
+  .roi-banner{padding:18px 16px;}
+  .roi-amount{font-size:1.45rem;line-height:1.2;}
+  .mids-title{font-size:1.3rem!important;line-height:1.25!important;}
+  .mids-body{font-size:1.02rem!important;}
+  .section-title{font-size:1.05rem;}
+  .score-table,.opp-table,.invest-table{display:block;border:none;background:transparent;border-radius:0;overflow:visible;}
+  .score-table thead,.opp-table thead,.invest-table thead{display:none;}
+  .score-table tbody,.opp-table tbody,.invest-table tbody{display:block;}
+  .score-table tr,.opp-table tr,.invest-table tr{display:block;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .score-table td,.opp-table td,.invest-table td{display:block;border:none!important;padding:5px 0!important;white-space:normal!important;width:auto!important;background:transparent!important;font-size:.85rem;}
+  .score-table td:first-child,.opp-table td:first-child,.invest-table td:first-child{font-size:.95rem;padding-bottom:6px!important;}
+  .score-table td[data-label]:not(:first-child)::before,.opp-table td[data-label]:not(:first-child)::before,.invest-table td[data-label]:not(:first-child)::before{content:attr(data-label);display:block;font-size:.64rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
+  .bar-wrap{width:120px;}
+  img[alt="Mitsubishi Motors"][style*="position:absolute"]{position:static!important;display:block;height:40px!important;margin:0 0 12px auto!important;}
+  body{padding-bottom:88px;}
+}
+</style>
+```
+Script: `showTab` must `btn.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})` and, when `innerWidth<=680`, `window.scrollTo({top:0,behavior:'smooth'})`; plus one IIFE copying each `thead th` text into `data-label` on the matching `td` of every `.score-table,.opp-table,.invest-table` row.
+**Mobile probe — required before delivery:** Playwright + headless Chromium in the sandbox (if missing: `pip install playwright`; `python3 -m playwright install chromium`; `python3 -m playwright install-deps chromium`). At widths 360/390/430 (`is_mobile`, touch) click all 8 tabs; assert `document.documentElement.scrollWidth == viewport` and zero elements in any tab panel extend past the viewport (nav scrolls internally). Screenshot tabs → copy PNGs into `/workspace/deliverables/…` → `view_pages`. Expected: no findings except the fixed Live Support photo (by design).
+
+---
+
+## 🚨 DIGITAL HEALTH ALERT — 3-SCREEN BREADCRUMB HOT SHEET (v25)
+Separate fear/urgency report walking the prospect to the full DHAP. ONE self-contained HTML file for the funnel Custom Code editor; delivered as a code_block with copy button. `<meta name="robots" content="noindex,nofollow">` (hides from search only — links are NOT private). **No CLIKsearch product names or pricing, no guarantees, no fake deadlines** — the fix is teased, never sold. Dates, Report ID and months-of-silence must match the DHAP.
+**Persistent:** dark navy header (white-text CLIKdata logo 54px, title **"Digital Health Alert" in yellow #fbbf24, no ™ in the headline**, CONFIDENTIAL badge) · identity strip (dealer, subtitle, green monospace Report ID + "Prepared by", "● Live Audit Data") · breadcrumb bar (#0b1220, green monospace `01 · Critical Alert › 02 · All Alerts › 03 · Revenue Impact` + "STEP n OF 3"; only visited steps clickable) · footer. (The CTA note and footer still read "Digital Health Alert™".)
+**Screen 1 — Critical Alert:** light-gray banner: pulsing red alert eyebrow → **`[CRITICAL]`** (Courier New 900) → three-line subhead (`.banner-sub`, weight 400, each line a block span, 12px gap): (1) "Significant vulnerabilities confirmed across **GBP structure, schema completeness, local authority, and AI search visibility**. *(defined below)*" — only those four terms bold (900), "(defined below)" small italic; (2) "Multiple revenue-impacting gaps identified by direct audit —"; (3) "This dealership is losing local search ground every single day these issues remain unresolved." → **score (calculated, e.g. 5.3 /10, red)** → slider (fill = score×10 %, orange tick at 50 %, labels `0 — Critical` / `5 — Major Issues` / `10 — Fully Optimized`) → method caption (`.score-method`) → DOS definitions card (`C:\CLIKDATA\AUDIT\KPI_DEFINITIONS.TXT`, mint #bbf7d0 text) whose **final flashing line reads `C:\> Critical Alerts Identified▮`** ("Critical Alerts Identified" yellow #fbbf24 900; prompt and blinking cursor green) → teaser "Score logged: X/10 — CRITICAL. Next: the 6 alerts behind it." + terminal button **"SEE ALL ALERTS →"**.
+**Screen 2 — All Alerts:** six KPI tiles; tile 6 = **"⛔ Reviews Not Shown on Website"** (val "None"; "1,579 Google reviews at 4.5★ — none appear on the dealership's homepage, and the site has no reviews page."; badge "Not Displayed") — use only when the rendered-site check confirms no visible reviews, otherwise another verified alert; **never a review-markup tile**. Then **"SEE REVENUE IMPACT →"**; Back link.
+**Screen 3 — Revenue Impact:** black box (yellow #fbbf24 eyebrow "⚠️ REVENUE IMPACT ASSESSMENT") → three airy blocks: (1) "Every unanswered search query for Mitsubishi service, parts, or financing in [City, ST] is a call, a lead, and a direction request this dealership is NOT getting." (2) "With [N] revenue departments missing from Google, nearly [N] months of content silence, and no Google Business Profile link in the website's sameAs schema, this dealership is surrendering the local search position it should own every single day." (3) **"Result: ⚠️ MASSIVE REVENUE LEAK"** (1.3rem, 900, yellow) → four terminal stat cards with count-up: `DEPTS_MISSING`, `GBP_INACTIVITY` (suffix " Mo."), `SAMEAS_LINKS` (0, "Google Profile Links in sameAs Schema"), `AI_VIS_GAPS` (= number of "Key Gaps" bullets on the AI Visibility hero; James = 3) (numbers + CRITICAL yellow; headers ≤18 chars incl. `> `) → "Unfortunately, there's more." card: bold lead-in "These findings represent only the highest-priority issues surfaced in this audit." + regular "Your full Digital Health Analysis covers 8 audit categories and reveals additional critical gaps in:" + sequential list (red #dc2626 circle ✕ each; GBP structure · schema completeness · AI visibility · entity authority · NAP consistency · cross-platform reputation; fills one by one on scroll — 450ms start, 600ms apart; reduced-motion = all at once) + "— All Confirmed by Direct Audit." → blurred locked findings 06–08 (06 sameAs: "sameAs is how a site's structured data points to a business's other official profiles. This dealership's lists Facebook only — the Google Business Profile isn't among the linked profiles — so the site's entity data is thinner than a fully built profile set."; 07: "Market Reach Undefined: No areaServed in Site Schema — Surrounding Markets Not Stated" — "The site's structured data defines no areaServed property, so it never states which cities this dealership serves. [City, ST] sits within a large metro market — every city left unstated is a missed chance to say where the dealership competes.") → green box: flashing green dot + **"Every Alert on this page is Fixable — Fast."** + "The alerts are only half the story. Your full report shows you how to fix them:" + ✔ insider secrets & quick-win hacks to win back local visibility · ✔ master-level SEO, GEO & AEO optimizations, step by step · ✔ a fix for every alert you just saw, prioritized · ✔ the 3 locked findings — unlocked inside the report + two-line closer "Every day these gaps stay open, local searches and revenue go to someone else." / bold red **"Click now to access your full report."** → red **"ACCESS THE FULL REPORT →"** (to the DHAP funnel link) → gray note; Back link.
+**Mechanics:** `<head>` adds class `js` (non-JS visitors see all screens stacked); screens `#s1 #s2 #s3`; `data-go` buttons/crumbs; forward jumps blocked; scroll to top on change; count-up when screen 3 visible; gap-list fills on scroll (IntersectionObserver).
+**DOS KPI definitions:** GBP Structure — How completely your Google Business Profile is built: categories, department profiles, services, attributes, and hours. · Schema Completeness — How fully structured data on your site describes your business, location, services, and links to your other profiles. · Local Authority — How well-known and trusted your business is locally, measured by reviews, links, and citations. (Not an official Google term; Google's term is "prominence".) · AI Search Visibility — How often AI answers (Google AI Overviews, ChatGPT, Perplexity) cite or recommend your business. (Industry-consensus definition.)
+**Colors:** yellow #fbbf24 · terminal greens #4ade80/#bbf7d0 · terminal bg #0b1220 · banner dark text #0f172a · alert red #dc2626 · orange #ea580c · green #15803d · report success green #16a34a · brand red #e82b39 · Gray #333333 · White · Black. No maroon or red-on-red; bold near-black copy in the lower card.
+
+## Python helpers
+```python
+def mits_pill(label="CLIKsearch"):
+    return f'<span class="pill pill-blue"><img src="{MITS_LOGO}" style="height:12px;vertical-align:middle;margin-right:3px;"> {label}</span>'
+def mits_pill_green(label="CLIKsearch 3-Pack"):
+    return f'<span class="pill pill-green"><img src="{MITS_LOGO}" style="height:12px;vertical-align:middle;margin-right:3px;"> {label}</span>'
+def audit_verified_tag(): return '<span class="tag-green-sm">Audit Verified</span>'
+def inferred_tag(): return '<span class="tag-amber-sm">Inferred</span>'
+def overall(rows): return round(sum(rows)/len(rows),1)
+```
+
+## Assertion suite (run before delivery)
+```python
+import re
+assert div_depth(html)==0 and 'noindex,nofollow' in html          # hot sheet noindex; DHAP depth only
+assert 'SGE' not in html and 'MIDS' not in html
+chk=html.replace('without any review markup in the structured data','')   # the visible-reviews finding may say this
+for banned in ['aggregateRating','AggregateRating','Review Markup','REVIEWS_UNMARKED','Markup Missing','review-rating','Review-rating',
+               'machine-readable','Schema-Invisible','review guidelines','reputation signal','excluded from schema-based rich results',
+               'invisible to Google','review-enhanced','highest-impact schema fix','Deploy aggregateRating','Reviews Out of Rich Results',
+               'Review Schema Deployed','4 cities']:
+    assert banned not in chk, banned
+# score method
+assert score_dhap_banner==score_hotsheet_big==scorecard_overall_value==overall(rows); fill_width==round(score*10)
+# DHAP
+assert 'Google Link in' in html and 'No areaServed in Site Schema' in html and 'MOBILE LAYOUT' in html
+assert 'color:#e82b39;">' in html and 'color:#f97316;">' in html
+opp=html[html.find('id="opportunities"'):html.find('id="solution"')]
+assert 'Omni-Social Post Distribution' in opp and 'Force Multiplier' in opp and 'Department Revenue Gains' in opp
+for p in re.findall(r'class="pill pill-blue">(.*?)</span>', opp): assert 'img src=' in p
+wa=html[html.find('id="whyact"'):html.find('id="investment"')]
+assert '$399' not in wa and '$999' not in wa and '+62%' in wa and 'not projections specific to' in wa
+assert '6-Platform Social Distribution' in wa and 'APPROVED - 100% REIMBURSEMENT' in wa
+sol=html[html.find('id="solution"'):html.find('id="whyact"')]
+assert 'On top of weekly GBP posts' in sol and 'GBP posts go nowhere else' in sol
+assert 'MiDS Approved — 100% REIMBURSEMENT' in sol and 'color:#15803d' in sol
+inv=html[html.find('id="investment"'):]
+assert 'Results in 90 days' in inv and inv.count('<span class="tag-green">Up to 100% Reimbursable</span>')==2
+ai=html[html.find('id="aivisibility"'):html.find('id="findings"')]
+assert 'Audit Verified' in ai and 'Inferred' in ai and 'Read This First' in ai
+assert 'No Cross-Platform Social Distribution' in html and "Google Reviews Aren't Shown" in html.replace('&rsquo;',"'")
+assert 'id="jw-launch"' in html and 'tel:+17273538321' in html and 'Jessica is an AI assistant' in html and 'Live Support' in html
+assert html.count('66edd4a08a6ce149d536893a.jpeg')==2 and '__JESSICA' not in html
+```
+Hot sheet: div depth 0 · `#s1 #s2 #s3 #crumbStep` · exactly 2 `.step-btn` ("SEE ALL ALERTS", "SEE REVENUE IMPACT") · "ACCESS THE FULL REPORT" · header-title color #fbbf24 with no `&trade;` · term-prompt contains yellow "Critical Alerts Identified" before `.term-cursor` · `.score-method` caption present · tile 6 "Reviews Not Shown on Website" · go-title exactly "Every Alert on this page is Fixable — Fast." (no "GREEN LIGHT") · 6 `gap-item` with ✕ · `SAMEAS_LINKS` card, `AI_VIS_GAPS` data-target == AI Visibility key-gap bullets · banner-sub weight 400, one bold run + "(defined below)" · "Result: ⚠️ MASSIVE REVENUE LEAK" yellow · "local searches and revenue go to someone else.<br>" · no banned phrases · no "CLIKsearch" · dates/Report ID/months identical to the DHAP · every `.t-head` ≤ 18 chars · scripts parse (click all 3 screens in a browser).
+
+## Reference run — James Mitsubishi Greece (Oct 18 2026) — LOCKED CANONICAL
+Live DHAP: https://clikdatamarketing.com/james-mitsubishi-greece-digital-health-analysis-proposal-page · site https://www.jamesmitsubishigreece.com/ · Report ID GBP-JMGNY-1026 · (585) 563-2029.
+Facts: 1,579 Google reviews / 4.5★ · 73 Facebook / 3.6★ · last GBP post March 17 2026 (212 days = nearly 7 months as of Oct 15 2026) · Service + Parts GBP profiles missing, Sales profile exists · 6 GBP categories · Knowledge Panel active · #1 organic brand ranking · overall **5.3/10 Critical** (weakest link: GBP Posts 1/10).
+Schema (Oct 18 2026; homepage curl + parse AND browser view-source of home/About/Service/Parts/Directions): only the homepage has JSON-LD (1 block, AutomotiveBusiness); sameAs = Facebook only; no hasMap; the Sales (AutoDealer) department carries `map` = a Google Maps place URL, Service (AutoRepair) and Parts (AutoPartsStore) carry none; department entities exist (url = homepage, same phone); **areaServed on 0 of 5 pages**; no aggregateRating/review (correct). An earlier "areaServed = 4 cities" reading is unsupported — never restate it.
+Rendered site: no visible reviews/testimonials on the homepage, no reviews page in nav/footer/sitemap, no social icons; the address link is a Google Maps search URL (not a Business Profile).
+Booking: Travis Roberts (Mitsubishi URL). Next refresh trigger: any resend in a later month → recompute months of silence, bump MMYY, update dates in both files.
+Other published runs (OUTDATED — rebuild with this body on next revision): Queen City Mitsubishi (Sept 21 2026, v5; 8415 South Blvd, Charlotte NC 28273; queencitymitsubishi.com; 4.1/10); Gerry Raymond Chevrolet (Oct 7 2026; 1069 Canton Rd, Wintersville OH 43953; 3.4/10; non-Mitsubishi).
+
+## Open items (as of v12.1)
+- Jessica: test-call MiDS pricing/reimbursement answers; confirm booking-action collected fields; check whether outbound calls use the inbound greeting.
+- Decide an "up to/eligible" qualifier near the 100% REIMBURSEMENT headlines.
+- Rebuild Queen City Mitsubishi and Gerry Raymond Chevrolet with this version on their next revision.
+- Optional: remove the remaining ™ in the hot sheet footer/CTA note if requested; add the two reference pages to templates/.
