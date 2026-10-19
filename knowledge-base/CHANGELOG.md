@@ -1,5 +1,11 @@
 # Knowledge base Q&A set — changelog
 
+## 1.1 — 2026-10-19
+Set grows from 60 to 71 entries to match the live knowledge base.
+- 11 new entries for the v13 scoring rubrics: what Profile Completeness is, what makes a 10, its checklist, Sales-only and combined-listing cases, the Departments line, how Photos and Posts, Reviews, NAP and the two schema categories are scored, and what a 10 means.
+- 1 entry reworded: "How were the category ratings decided?" now says categories are scored from audit findings against a fixed rubric.
+- 1 entry reworded: "Does the report guarantee results?" now says the figures are results across 21 Mitsubishi dealer locations.
+
 ## 1.0 — 2026-10-19
 Initial set: 60 entries.
 - 35 report entries: report basics, score method, definitions, findings, next steps.

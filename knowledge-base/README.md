@@ -1,4 +1,4 @@
-# Jessica knowledge base — Q&A set (v1.0)
+# Jessica knowledge base — Q&A set (v1.1)
 
 This folder is the record of the Q&A entries written for Jessica's knowledge base: the voice assistant that answers Mitsubishi / MiDS dealers who call from their Digital Health Analysis report. The live knowledge base is the working copy. This folder is the versioned record, so changes are reviewed and nothing drifts.
 
@@ -7,7 +7,7 @@ This folder is the record of the Q&A entries written for Jessica's knowledge bas
 ## What is in here
 | File | What it is |
 |---|---|
-| `jessica-kb-qa.json` | 60 entries in seven topics: Report basics, Score, Definitions, Findings, Product features, Results, Next steps. Each has a topic, a question and a short spoken answer. |
+| `jessica-kb-qa.json` | 71 entries in seven topics: Report basics, Score, Definitions, Findings, Product features, Results, Next steps. Each has a topic, a question and a short spoken answer. |
 | `CHANGELOG.md` | One entry per change to the set. |
 
 Not included: four older entries managed in the knowledge base itself (pricing, reimbursement, the Google Business Profile Q&A question, and the three-listings question).
