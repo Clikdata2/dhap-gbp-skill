@@ -37,6 +37,7 @@ if f"Using DHAP GBP v{version}." not in skill:
 
 # ---- 2. public hygiene: nothing internal in a public repository ---------------------
 LEAKS = ["H6HvdoUbQOSKh6FgJZBP", "17275944068", "sean@clikdata.com", '"locationId": "E1a3']
+KEY_PATTERNS = [("Google", r"AIza[0-9A-Za-z_-]{35}"), ("TypeSafe", r"apikey_[0-9a-f]{20,}_[0-9a-f]{20,}"), ("OpenRouter", r"sk-or-v1-[0-9a-f]{32,}")]
 for f in root.rglob("*"):
     if f.is_file() and ".git/" not in str(f) and f.name != "validate.py":
         try:
@@ -46,6 +47,10 @@ for f in root.rglob("*"):
         for leak in LEAKS:
             if leak in t:
                 errors.append(f"{f.relative_to(root)}: internal value must not be public: {leak!r}")
+        # API keys (Google, TypeSafe, OpenRouter) belong in the environment, never in this repository
+        for kind, pat in KEY_PATTERNS:
+            if re.search(pat, t):
+                errors.append(f"{f.relative_to(root)}: looks like a real {kind} API key; keep keys out of the repository")
 
 # ---- 3. locked rules in the reference templates (skipped until templates are added) ----
 BANNED = ["aggregateRating", "AggregateRating", "Review Markup", "REVIEWS_UNMARKED", "Markup Missing",

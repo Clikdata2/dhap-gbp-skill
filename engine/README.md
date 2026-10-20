@@ -38,8 +38,9 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `build.py` | Builds the full report and the health alert from the templates in `templates/` |
 | `check_all.py` | Runs all seven checks |
 | `jev.py` | Optional second opinion on post types (see below) |
+| `places.py` | Optional Google Places cross-check of the Maps collector (see below) |
 | `probe_mobile.py`, `spellcheck.py` | Checks 6 and 7 |
-| `examples/` | Two real dealers: James Mitsubishi Greece (the locked reference) and Vacaville Mitsubishi |
+| `examples/` | James Mitsubishi Greece (the locked reference) and Vacaville Mitsubishi, plus live Chrome readings for those two and Music City Mitsubishi |
 | `tests/` | Stress tests (below) |
 
 ## Optional: JEV second opinion
@@ -51,9 +52,16 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 - It needs `TYPESAFE_API_KEY` set on your computer (a key from typesafe.ai). **Never put the key in this repository.** Without a key it is skipped, and the audit goes on.
 - Cost: $0.042 per million word pieces it reads (input tokens), so about $0.00003 per listing. The answer is free.
 
-## Google Places API: not used
+## Optional: Google Places cross-check
 
-Places can give the rating, the review count, hours and phone. The Maps collector already reads those for free. Places cannot give what the rubric needs most: posts, photo dates, the newest-first reviews, or owner replies. So it would add cost ($17–20 per 1,000 calls) without removing the Chrome step.
+`places.py` looks the listing up in Google's Places API (New) and compares it with what the Maps collector read in Chrome: name, rating, review count, phone, street address and website.
+
+- **It never changes a score or the evidence.** Any difference is listed for a person to look at: a misread page, a listing that just changed, or the wrong listing.
+- It also returns the weekly hours Google shows, which the collector does not read. Use them for the hours checks.
+- It cannot see posts, photo dates, newest-first reviews or owner replies, so the Chrome step is still needed.
+- It needs `GOOGLE_PLACES_API_KEY` set on your computer (a Google Cloud key with "Places API (New)" turned on). **Never put the key in this repository.** Without a key it is skipped, and the audit goes on.
+- Cost: finding the listing is free. Reading it is one call; the first 1,000 a month are free, then $0.02 each.
+- Run: `python3 engine/places.py "Dealer, street, city, state" maps.json` (maps.json = the collector's answer).
 
 ## Ways to keep a run cheap
 
@@ -78,5 +86,6 @@ bash engine/run_tests.sh
 | `test_split_posts.js`, `test_post_variety.js` | Splitting the posts page into single posts, and judging offers, events and calls to action on real post text |
 | `test_paste_files.py` | The pasted `.min.js` files must match their source exactly |
 | `test_jev.py` | Every way the JEV call can fail (no key, wrong key, garbage reply, missing answers, bad numbers, a server that hangs, too many or too long posts), plus live checks on real posts when a key is set |
+| `test_places.py` | Every way the Places lookup can fail, address / phone / website matching rules, a wrong listing, a closed business, plus live lookups of James, Vacaville and Music City when a key is set |
 
 The test websites are made up. One copies the structure of a real dealer site, but every name, phone number and address in it is fake.
