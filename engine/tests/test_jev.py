@@ -1,5 +1,5 @@
 """Stress test for jev.py: real JEV calls on real post texts, plus every way the call can fail.
-Live cases need OPENROUTER_API_KEY; without it they are reported as SKIPPED (never as passed).
+Live cases need TYPESAFE_API_KEY; without it they are reported as SKIPPED (never as passed).
 Run: python3 tests/test_jev.py [rounds]"""
 import http.server, json, os, pathlib, sys, threading, time
 ENG = pathlib.Path(__file__).resolve().parent.parent; sys.path.insert(0, str(ENG))
@@ -31,7 +31,7 @@ class Fake(http.server.BaseHTTPRequestHandler):
         elif mode == "badnum": data = json.dumps({"answers": {q: {"type": "noul", "noul": 1.7} for q in body["questions"]}}).encode()
         elif mode == "half": data = json.dumps({"answers": {q: {"type": "noul", "noul": 0.5} for q in body["questions"]}}).encode()
         elif mode == "missing": data = json.dumps({"answers": {"p0_offer": {"type": "noul", "noul": 0.9}}}).encode()
-        else: data = json.dumps({"answers": {q: {"type": "noul", "noul": 0.05} for q in body["questions"]}, "usage": {"cost": 0}}).encode()
+        else: data = json.dumps({"answers": {q: {"type": "noul", "noul": 0.05} for q in body["questions"]}, "usage": {"input_tokens": 1000000, "output_tokens": 5}}).encode()
         self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers()
         try: self.wfile.write(data)
         except BrokenPipeError: pass
@@ -57,14 +57,15 @@ def round_once(n):
     st = Fake.last["state"]
     ok("20 posts capped to 12; a 6,000-letter post trimmed to 1,500", len(st) == 12 and len(st["post_0"]) == 1500 and len(Fake.last["questions"]) == 24, (len(st), len(st["post_0"])))
     ok("fake 'all no' with rules 'no' -> agree", r["status"] == "ok" and r["agree"], r)
+    ok("cost is worked out from input tokens (1M tokens = $0.042)", abs(r["cost_usd"] - 0.042) < 1e-9, r["cost_usd"])
     r = J.second_opinion(VAC[:1], {"offers": True, "events": False}, key="k", url=F + "ok")
     ok("JEV no vs rules yes -> flagged for a person", r["status"] == "ok" and not r["agree"] and any("offers: rules say yes" in x for x in r["review"]), r)
     r = J.second_opinion(VAC[:2], {"offers": True, "events": False}, key="k", url=F + "half")
     ok("JEV unsure on every post -> flagged, not guessed", r["status"] == "ok" and not r["agree"] and r["listing"] == {"offers": "unsure", "events": "unsure"}, r)
-    # live JEV (real network calls; skipped without a key so the automatic check never depends on OpenRouter being up)
-    if not os.environ.get("OPENROUTER_API_KEY"):
-        print("SKIPPED live JEV cases (no OPENROUTER_API_KEY)"); skipped += 1; return None
-    r = J.second_opinion(VAC[:1], {"offers": True, "events": False}, key="sk-or-v1-not-a-real-key", timeout=15)
+    # live JEV (real network calls; skipped without a key so the automatic check never depends on TypeSafe being up)
+    if not os.environ.get("TYPESAFE_API_KEY"):
+        print("SKIPPED live JEV cases (no TYPESAFE_API_KEY)"); skipped += 1; return None
+    r = J.second_opinion(VAC[:1], {"offers": True, "events": False}, key="apikey_not_a_real_key", timeout=15)
     ok("wrong key -> skipped (HTTP 401)", r["status"] == "skipped" and "HTTP 4" in r["reason"], r)
     r = J.second_opinion(VAC, {"offers": True, "events": True}); spent += r["cost_usd"]
     ok("Vacaville 5 posts: call works", r["status"] == "ok", r)

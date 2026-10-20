@@ -44,12 +44,12 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 
 ## Optional: JEV second opinion
 
-`jev.py` asks JEV (a decision model from TypeSafe, reached through OpenRouter) whether each recent post is an offer or an event.
+`jev.py` asks JEV (a decision model from TypeSafe, called directly at api.typesafe.ai) whether each recent post is an offer or an event.
 
 - **The score never comes from JEV.** The score always uses the fixed rules, so the same evidence always gives the same score.
 - If JEV disagrees with the rules, or is unsure, the listing is flagged for a person to look at.
-- It needs `OPENROUTER_API_KEY` set on your computer. **Never put the key in this repository.** Without a key it is skipped, and the audit goes on.
-- Cost: about $0.0001 per listing.
+- It needs `TYPESAFE_API_KEY` set on your computer (a key from typesafe.ai). **Never put the key in this repository.** Without a key it is skipped, and the audit goes on.
+- Cost: $0.042 per million word pieces it reads (input tokens), so about $0.00003 per listing. The answer is free.
 
 ## Google Places API: not used
 

@@ -2,18 +2,19 @@
 """DHAP GBP engine — optional JEV second opinion on post variety (offers / events).
 
 The SCORE always uses the rule-based answer from the Maps collector, so the same evidence gives the same score every
-run. JEV (TypeSafe's decision model, called through OpenRouter's Decisions API) reads each recent post on its own and
+run. JEV (TypeSafe's decision model, called directly on TypeSafe's System One API) reads each recent post on its own and
 answers two yes/no questions. Where JEV and the rules disagree, or JEV is unsure, the post is listed for a person to
 look at before the variety points are recorded. JEV never changes a number by itself.
 Calls to action are not sent to JEV: they are button labels, which the rules read exactly.
-Needs OPENROUTER_API_KEY in the environment. With no key, no network, a bad reply or a timeout, it returns
+Needs TYPESAFE_API_KEY in the environment (never in the repository). With no key, no network, a bad reply or a timeout, it returns
 status "skipped" with the reason, and the audit goes on with the rules alone.
 Usage: python3 jev.py posts.json      (posts.json = {"rules": {"offers":..,"events":..}, "posts": ["text", ...]})
 """
 import json, os, sys, urllib.error, urllib.request
 
-URL = "https://openrouter.ai/api/alpha/decisions"
-MODEL = "typesafe/jev-1.14"   # pinned so answers do not drift when a new Jev is released
+URL = "https://api.typesafe.ai/v1/systemone"
+MODEL = "jev-1.14.0"          # pinned so answers do not drift when a new Jev is released
+PRICE_PER_M_INPUT = 0.042     # US$ per million input tokens (docs.typesafe.ai/models); output tokens are not billed
 YES, NO = 0.7, 0.3            # noul >= 0.7 is yes, <= 0.3 is no, anything between is "unsure"
 MAX_POSTS, MAX_CHARS = 12, 1500
 QUESTIONS = {
@@ -38,11 +39,11 @@ def _ask(posts, key, timeout, url):
 
 def second_opinion(posts, rules, key=None, timeout=20, url=None):
     """posts: texts of the posts from the last 30 days; rules: {"offers": bool, "events": bool} from the collector."""
-    key = key if key is not None else os.environ.get("OPENROUTER_API_KEY", "")
+    key = key if key is not None else os.environ.get("TYPESAFE_API_KEY", "")
     out = {"status": "skipped", "model": MODEL, "rules": {k: rules.get(k) for k in ("offers", "events")}, "posts": [], "review": [], "cost_usd": 0.0}
     posts = [str(p) for p in posts if str(p).strip()][:MAX_POSTS]
     if not posts: out["reason"] = "no posts from the last 30 days"; return out
-    if not key: out["reason"] = "OPENROUTER_API_KEY not set"; return out
+    if not key: out["reason"] = "TYPESAFE_API_KEY not set"; return out
     try: resp = _ask(posts, key, timeout, url or URL)
     except urllib.error.HTTPError as e: out["reason"] = f"HTTP {e.code}"; return out
     except Exception as e: out["reason"] = f"{type(e).__name__}: {str(e)[:120]}"; return out
@@ -58,7 +59,7 @@ def second_opinion(posts, rules, key=None, timeout=20, url=None):
             out["posts"].append(row)
     except (KeyError, TypeError, ValueError) as e:
         out["posts"] = []; out["reason"] = f"reply missing or bad answer ({type(e).__name__})"; return out
-    out["status"] = "ok"; out["cost_usd"] = float((resp.get("usage") or {}).get("cost") or 0)
+    out["status"] = "ok"; out["cost_usd"] = round(float((resp.get("usage") or {}).get("input_tokens") or 0) * PRICE_PER_M_INPUT / 1e6, 8)
     out["model_served"] = resp.get("model")
     # The rubric asks one thing per listing: is there ANY offer / ANY event in the last 30 days. Decide at that level:
     # one clear "yes" settles it, so a borderline post elsewhere does not raise a flag that cannot change the answer.
