@@ -1,6 +1,6 @@
-# DHAP GBP — v14.1 (public repository edition, Oct 19 2026) — SINGLE SOURCE OF TRUTH
+# DHAP GBP — v14.2 (public repository edition, Oct 20 2026) — SINGLE SOURCE OF TRUTH
 Current builds: **James Mitsubishi Greece DHAP v20 · Digital Health Alert hot sheet v27** — built from the Oct 19 2026 audit under the v13 rubrics and the v14 status rule. This body supersedes all earlier notes. If anything elsewhere conflicts with this body, this body wins.
-**Placeholders:** this public edition writes the knowledge base id as `{{KB_ID}}` and the sub-account id as `{{LOCATION_ID}}`. The private loader skill inside Ask AI supplies the real values (the location id is also in the session context). Never write the real values into this file.
+**Running this skill — nothing to install.** Anyone starts a run by pasting the one-line run prompt from the repository README; Ask AI then reads this file fresh from the repository, so every user is on the same version. This public edition writes the knowledge base id as `{{KB_ID}}` and the sub-account id as `{{LOCATION_ID}}`. **Resolve them at run time:** `{{LOCATION_ID}}` = this sub-account's location id from the session context; `{{KB_ID}}` = the id of the knowledge base named "Mitsubishi CLIKsearch" (description "MiDS program-specific details and pricing") — list the sub-account's knowledge bases and pick it by name; if none or more than one match, STOP and tell the user. Never write real ids into this file or into any page.
 
 ## Trigger
 > `Run DHAP GBP for [Business Name], [City, State], a [type of business]. [website URL]`
@@ -8,7 +8,7 @@ Current builds: **James Mitsubishi Greece DHAP v20 · Digital Health Alert hot s
 
 ## 🔒 GOVERNANCE — MANDATORY (no drift between users)
 1. This skill is the only source of truth for DHAP GBP work. Never keep parallel copies; never follow a stale copy.
-2. **At the start of every run state the revision**: "Using DHAP GBP v14.1."
+2. **At the start of every run state the revision**: "Using DHAP GBP v14.2." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
 3. Edit this skill ONLY when the user explicitly asks ("update the skill", "lock this in") or states a new standing rule. Never edit silently mid-run.
 4. Every edit: bump the version (v13 → v13.1 …), update the header line above, and append an entry to the change log (`CHANGELOG.md` in the repository) (date · version · what changed · who asked). If two people's instructions conflict, stop and ask rather than choose.
 5. Preferences that must apply to everyone live HERE, not in personal memory (memory is per-user and not shared).
@@ -261,7 +261,7 @@ assert 'No Cross-Platform Social Distribution' in html and "Google Reviews Aren'
 assert 'id="jw-launch"' in html and 'tel:+17273538321' in html and 'Jessica is an AI assistant' in html and 'Live Support' in html
 assert html.count('66edd4a08a6ce149d536893a.jpeg')==2 and '__JESSICA' not in html
 ```
-Hot sheet: div depth 0 · `#s1 #s2 #s3 #crumbStep` · exactly 2 `.step-btn` ("SEE ALL ALERTS", "SEE REVENUE IMPACT") · "ACCESS THE FULL REPORT" · header-title color #fbbf24 with no `&trade;` · term-prompt contains yellow "Critical Alerts Identified" before `.term-cursor` · `.score-method` caption present · tile 6 "Reviews Not Shown on Website" · go-title exactly "Every Alert on this page is Fixable — Fast." (no "GREEN LIGHT") · 6 `gap-item` with ✕ · `SAMEAS_LINKS` card, `AI_VIS_GAPS` data-target == AI Visibility key-gap bullets · banner-sub weight 400, one bold run + "(defined below)" · "Result: ⚠️ MASSIVE REVENUE LEAK" yellow · "local searches and revenue go to someone else.<br>" · no banned phrases · no "CLIKsearch" · dates/Report ID/months identical to the DHAP · every `.t-head` ≤ 18 chars · scripts parse (click all 3 screens in a browser).
+Hot sheet: div depth 0 · `#s1 #s2 #s3 #crumbStep` · exactly 2 `.step-btn` ("SEE ALL ALERTS", "SEE REVENUE IMPACT") · "ACCESS THE FULL REPORT" · header-title color #fbbf24 with no `&trade;` · term-prompt contains yellow "Critical Alerts Identified" before `.term-cursor` · `.score-method` caption present · tile 6 "Reviews Not Shown on Website" · go-title exactly "Every Alert on this page is Fixable — Fast." (no "GREEN LIGHT") · 6 `gap-item` with ✕ · `SAMEAS_LINKS` card, `AI_VIS_GAPS` data-target == AI Visibility key-gap bullets · banner-sub weight 400, one bold run + "(defined below)" · "Result: ⚠️ MASSIVE REVENUE LEAK" yellow · "local searches and revenue go to someone else.<br>" · no banned phrases · no "CLIKsearch" · dates/Report ID/months identical to the DHAP · every `.t-head` ≤18 chars · scripts parse (click all 3 screens in a browser).
 
 ## Reference run — James Mitsubishi Greece (re-audited Oct 19 2026) — LOCKED CANONICAL
 Live DHAP: https://clikdatamarketing.com/james-mitsubishi-greece-digital-health-analysis-proposal-page · site https://www.jamesmitsubishigreece.com/ · Report ID GBP-JMGNY-1026 · (585) 563-2029.
