@@ -1,4 +1,4 @@
-# Jessica knowledge base — Q&A set (v1.1)
+# Jessica knowledge base — Q&A set (v1.2)
 
 This folder is the record of the Q&A entries written for Jessica's knowledge base: the voice assistant that answers Mitsubishi / MiDS dealers who call from their Digital Health Analysis report. The live knowledge base is the working copy. This folder is the versioned record, so changes are reviewed and nothing drifts.
 

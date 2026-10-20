@@ -1,5 +1,12 @@
 # Knowledge base Q&A set — changelog
 
+## 1.2 — 2026-10-19
+Set stays at 71 entries; four answers reworded to match the v14 overall-status rule (status follows the lowest category; the score is still the equal-weight average).
+- "Why does my status say Critical if my average is above 5?" now explains that the status comes from the lowest category: 5.0 or below is Critical.
+- "What does the overall score mean?" keeps the equal-weight average and uses the four v14 status bands.
+- "What does the slider on the first screen show?" now lists the marks at 0, 5, 7 and 9 with their labels.
+- "What does a 10 mean in the report?" drops the old "2 or lower" trigger and says status follows the lowest category.
+
 ## 1.1 — 2026-10-19
 Set grows from 60 to 71 entries to match the live knowledge base.
 - 11 new entries for the v13 scoring rubrics: what Profile Completeness is, what makes a 10, its checklist, Sales-only and combined-listing cases, the Departments line, how Photos and Posts, Reviews, NAP and the two schema categories are scored, and what a 10 means.
