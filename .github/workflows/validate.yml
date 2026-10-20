@@ -13,3 +13,19 @@ jobs:
           python-version: "3.x"
       - name: Check versions and locked rules
         run: python3 scripts/validate.py
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install engine test tools
+        run: |
+          pip install -r engine/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Engine tests (stress tests repeat 3 rounds; live JEV cases skipped without a key)
+        run: bash engine/run_tests.sh

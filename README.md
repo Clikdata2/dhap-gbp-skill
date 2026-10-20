@@ -31,8 +31,9 @@ That is all. A change merged here reaches everyone on their next run. (A web cop
 | `CHANGELOG.md` | One entry per release. |
 | `knowledge-base/` | The question-and-answer set behind the voice assistant, with its own change log. |
 | `templates/` | Reference pages (full report and hot sheet) that the automatic check holds to the locked rules. |
+| `engine/` | Optional tools that run the same rules faster: Chrome collectors, scorer, facts gate, page builder, one-command checks, and tests. See `engine/README.md`. Never put API keys here. |
 | `loader/ASKAI_LOADER_SKILL.md` | Optional shortcut only: a thin skill that lets someone type "Run DHAP GBP" without pasting the block above. Not needed. |
-| `scripts/validate.py` + `.github/workflows/validate.yml` | Automatic check on every change: versions agree, no internal values leak, templates follow the locked rules. |
+| `scripts/validate.py` + `.github/workflows/validate.yml` | Automatic check on every change: versions agree, no internal values leak, templates follow the locked rules, and the engine tests pass. |
 | `.github/CODEOWNERS`, `.github/pull_request_template.md` | Review owner and release checklist. |
 
 ## Rules of the road

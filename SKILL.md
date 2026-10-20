@@ -1,4 +1,4 @@
-# DHAP GBP — v14.2 (public repository edition, Oct 20 2026) — SINGLE SOURCE OF TRUTH
+# DHAP GBP — v14.3 (public repository edition, Oct 20 2026) — SINGLE SOURCE OF TRUTH
 Current builds: **James Mitsubishi Greece DHAP v20 · Digital Health Alert hot sheet v27** — built from the Oct 19 2026 audit under the v13 rubrics and the v14 status rule. This body supersedes all earlier notes. If anything elsewhere conflicts with this body, this body wins.
 **Running this skill — nothing to install.** Anyone starts a run by pasting the one-line run prompt from the repository README; Ask AI then reads this file fresh from the repository, so every user is on the same version. This public edition writes the knowledge base id as `{{KB_ID}}` and the sub-account id as `{{LOCATION_ID}}`. **Resolve them at run time:** `{{LOCATION_ID}}` = this sub-account's location id from the session context; `{{KB_ID}}` = the id of the knowledge base named "Mitsubishi CLIKsearch" (description "MiDS program-specific details and pricing") — list the sub-account's knowledge bases and pick it by name; if none or more than one match, STOP and tell the user. Never write real ids into this file or into any page.
 
@@ -8,7 +8,7 @@ Current builds: **James Mitsubishi Greece DHAP v20 · Digital Health Alert hot s
 
 ## 🔒 GOVERNANCE — MANDATORY (no drift between users)
 1. This skill is the only source of truth for DHAP GBP work. Never keep parallel copies; never follow a stale copy.
-2. **At the start of every run state the revision**: "Using DHAP GBP v14.2." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
+2. **At the start of every run state the revision**: "Using DHAP GBP v14.3." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
 3. Edit this skill ONLY when the user explicitly asks ("update the skill", "lock this in") or states a new standing rule. Never edit silently mid-run.
 4. Every edit: bump the version (v13 → v13.1 …), update the header line above, and append an entry to the change log (`CHANGELOG.md` in the repository) (date · version · what changed · who asked). If two people's instructions conflict, stop and ask rather than choose.
 5. Preferences that must apply to everyone live HERE, not in personal memory (memory is per-user and not shared).
@@ -105,6 +105,8 @@ Extract visible text of both files and spell-check (allow-list: CLIK*, GBP, SEO,
 
 ## Steps
 1. Collect business info · 2. Query KB · 3. Audit GBP · Maps · Schema (no Q&A) incl. ALL director's checks + both views + the v13 evidence capture · 4. Compile findings (never a review-markup finding) · 5. Chat report · 6. Build HTML (python → code_block): DHAP + hot sheet · 7. Run assertions + mobile probe (RULE J) + spell check · 8. Review & publish (funnel Custom Code; hard-refresh and test desktop + phone) · 9. Skill update only per GOVERNANCE.
+
+**Engine (optional fast path — same rules, fewer steps).** When the run can execute code (for example Claude Code with Python), use `engine/` in this repository for steps 3, 6 and 7 instead of hand-written scripts — see `engine/README.md`. Step 3: paste `engine/collectors/schema_collect.min.js` and `engine/collectors/maps_collect.min.js` into the signed-in Chrome page (read-only: they refuse to click Claim, Suggest an edit, Write a review, Add photos, Post, Save or Share) and record the answers as evidence JSON with a method and date for every group. Steps 6–7: `python3 engine/check_all.py --evidence … --content … --out …` runs the rules guard, evidence check, facts gate (every number and phone must trace to the evidence), build, this assertion suite, the phone-width probe and the spell check, and stops at the first failure. The engine reads this file at run time; if OVERALL SCORE METHOD or CATEGORY RUBRICS change, it STOPS until `engine/score.py` is updated in the same pull request. Optional: with `OPENROUTER_API_KEY` set (never committed), `engine/jev.py` gives a second opinion on post variety; it only flags posts for a person to check and never changes a score. Run each audit in a fresh chat session: a long session re-reads all earlier work on every step and costs several times more.
 
 ---
 
@@ -223,7 +225,8 @@ def mits_pill_green(label="CLIKsearch 3-Pack"):
     return f'<span class="pill pill-green"><img src="{MITS_LOGO}" style="height:12px;vertical-align:middle;margin-right:3px;"> {label}</span>'
 def audit_verified_tag(): return '<span class="tag-green-sm">Audit Verified</span>'
 def inferred_tag(): return '<span class="tag-amber-sm">Inferred</span>'
-def overall(rows): return round(sum(rows)/len(rows),1)
+from decimal import Decimal, ROUND_HALF_UP
+def overall(rows): return float(Decimal(repr(round(sum(rows)/len(rows), 9))).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))   # 5.85 -> 5.9; plain round() gives 5.8
 ```
 
 ## Assertion suite (run before delivery)
