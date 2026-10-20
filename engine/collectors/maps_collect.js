@@ -1,0 +1,154 @@
+// DHAP GBP — Google Maps listing collector (signed-in Chrome, read-only).
+// Open the listing's place page (maps/place/...), paste this whole file into ONE javascript_tool call, then run
+//   await dhapMaps()                      -> Overview + About + Posts + 10 newest Reviews, as one short JSON string
+//   await dhapMaps({skip:['reviews']})    -> leave a part out (parts: about, posts, reviews)
+// It only opens tabs, panels and the review sort menu (all read-only views). It never clicks Claim, Edit,
+// Suggest an edit, Write a review, Add photos, Post, Save or Share. Output avoids ? = & characters.
+function dhapPostVariety(texts) {
+  // Rule-based post-variety reader. Each post counts once; a "Sales Event" is an offer, not an event.
+  const v = { offers: false, events: false, cta: false };
+  for (const raw of texts) {
+    const x = raw.replace(/\s+/g, ' ');
+    if (/View Offer|Valid [A-Z][a-z]{2} \d|\d+% off|\$\d[\d,.]* off|save \$|\bAPR\b|rebate|special|coupon|\bdeals?\b|discount|free (oil|pumpkin|wash)/i.test(x)) v.offers = true;  // a bare price (raffle ticket) is not an offer
+    const ev = x.replace(/(year[- ]end |clearance |holiday )?sales? event/gi, '');
+    if (/\bevent\b|sponsor|join us|raffle|festival|celebrat|tickets|open house|costume|live dj|fundraiser|car show|grand opening/i.test(ev)) v.events = true;
+    if (/(^| )(Learn more|Call now|View Offer|Sign up|Buy|Book|Order online|Reserve|Get offer)( |$)/.test(x)) v.cta = true;
+  }
+  return v;
+}
+// Split the "See local posts" page text into one piece per post. Each post starts with a line that is only its date.
+// The date group must not capture: String.split adds captured text to the result as extra pieces.
+function dhapSplitPosts(pt) {
+  const date = '(?:(?:a|an|\\d+) (?:minute|hour|day|week|month|year)s? ago|[A-Z][a-z]{2} \\d{1,2}, 20\\d\\d)';
+  return pt.split(new RegExp('\\n(?=' + date + '(?:\\n|$))')).slice(1).map(c => { const i = c.indexOf('\n'); return { date: i < 0 ? c : c.slice(0, i), text: c }; });
+}
+async function dhapMaps(opts) {
+  opts = opts || {}; const skip = new Set(opts.skip || []);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const clean = s => String(s == null ? '' : s).replace(/[?=&]/g, '~').replace(/\s+/g, ' ').trim();
+  const main = () => document.querySelector('[role="main"]') || document.body;
+  const txt = () => main().innerText || '';
+  const SAFE = /^(Overview|About|Reviews|See local posts|Sort reviews|Newest|Latest)/i;
+  const FORBID = /claim|own this|suggest an edit|write a review|add photo|^post$|save|share|edit/i;
+  function click(el) {
+    if (!el) return false;
+    const label = (el.getAttribute('aria-label') || el.textContent || '').trim();
+    if (FORBID.test(label) && !SAFE.test(label)) throw new Error('refused to click: ' + label);
+    el.click(); return true;
+  }
+  const byAria = (sel, re) => [...document.querySelectorAll(sel)].find(e => re.test(e.getAttribute('aria-label') || e.textContent || ''));
+  async function waitFor(fn, ms) { const t0 = Date.now(); while (Date.now() - t0 < (ms || 6000)) { const v = fn(); if (v) return v; await sleep(250); } return null; }
+  function scroller() {
+    const cands = [...main().querySelectorAll('div')].filter(d => d.scrollHeight > d.clientHeight + 50 && /(auto|scroll)/.test(getComputedStyle(d).overflowY));
+    return cands.sort((a, b) => b.scrollHeight - a.scrollHeight)[0] || null;
+  }
+  async function scrollDown(times) { for (let i = 0; i < times; i++) { const s = scroller(); if (!s) break; s.scrollTop = s.scrollHeight; await sleep(700); } }
+  const now = new Date();
+  function ageDays(s) {
+    s = s.trim().replace(/^Edited\s+/i, '');
+    let m = s.match(/^(a|an|\d+)\s+(minute|hour|day|week|month|year)s?\s+ago$/i);
+    if (m) { const n = /^an?$/i.test(m[1]) ? 1 : +m[1]; const u = { minute: 0, hour: 0, day: 1, week: 7, month: 30, year: 365 }[m[2].toLowerCase()]; return n * u; }
+    m = s.match(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), (20\d\d)$/);
+    if (m) { const d = new Date(`${m[1]} ${m[2]}, ${m[3]}`); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); return Math.round((today - d) / 864e5); }  // whole calendar days
+    return null;
+  }
+  // a /maps/search link takes a few seconds to turn into the place page; never read a search-results list as a listing
+  if (!await waitFor(() => location.pathname.startsWith('/maps/place') && main().querySelector('h1'), 10000))
+    return JSON.stringify({ error: 'not on a single place page: open the listing itself, then run again' });
+  const out = { url_place: clean(location.pathname.split('/data')[0]), warnings: [] };
+  // ---------------- Overview
+  // the categories helper line is injected a few seconds after the page loads; wait for it (or give up after 6s)
+  await waitFor(() => /GMB Categories:|limited view of Google Maps/i.test(txt()), 6000);
+  const t = txt();
+  out.limited_view = /limited view of Google Maps/i.test(t);
+  if (out.limited_view) out.warnings.push('LIMITED VIEW: sign in to Google in this browser; About/Posts/Review sorting are hidden');
+  const h1 = main().querySelector('h1'); out.name = clean(h1 && h1.textContent);
+  let m = t.match(/\n(\d\.\d)\n\((\d[\d,]*)\)/); out.rating = m ? +m[1] : null; out.review_count = m ? +m[2].replace(/,/g, '') : 0;
+  m = t.match(/GMB Categories:\s*([^\n]+?)(?:\s*Find more|\n)/);
+  if (m) { out.categories = clean(m[1]).replace(/(?<=[a-z])(?=[A-Z])/g, '|').split('|').map(s => s.trim()).filter(Boolean); }
+  else { const c = t.match(/\n([^\n]*(?:dealer|shop|store|service|center|repair)[^\n]*)·/i); out.categories = c ? [clean(c[1])] : []; out.warnings.push('category count needs the categories helper line; only the primary category is visible'); }
+  const items = [...main().querySelectorAll('[data-item-id], button[aria-label], a[aria-label]')].map(e => ({ id: e.getAttribute('data-item-id') || '', label: e.getAttribute('aria-label') || '', href: e.getAttribute('href') || '' }));
+  const it = re => items.find(x => re.test(x.id) || re.test(x.label));
+  const addr = it(/^address|Address:/i); out.address = clean(addr && (addr.label.replace(/^Address:\s*/i, '')));
+  const ph = it(/^phone|Phone:/i); out.phone = clean(ph && ph.label.replace(/^Phone:\s*/i, ''));
+  const web = it(/^authority|Website:/i); out.website = clean(web && (web.label.replace(/^Website:\s*/i, '')));
+  const book = items.find(x => /booking|appointment|Open booking link|Book online/i.test(x.label + x.id)); out.booking_link = !!book;
+  const serv = items.find(x => /services link|Open services link|menu/i.test(x.label + x.id)); out.services_link = !!serv;
+  out.located_in = clean((t.match(/Located in:\s*([^\n]+)/) || [])[1]);
+  out.hours_shown = /\b(Open|Closed|Closes|Opens)\b/.test(t);
+  out.claim_link_visible = /Claim this business/i.test(t);
+  out.from_owner_post = /From the owner/.test(t);
+  const latest = byAria('[aria-label]', /^Latest/); out.photos_latest = clean(latest && latest.getAttribute('aria-label'));
+  out.photo_categories = [...new Set([...main().querySelectorAll('button[aria-label]')].map(b => b.getAttribute('aria-label')).filter(l => /^(Latest|Videos|Inside|Exterior|By owner|Workshop|Street View|Products|Logo)/i.test(l)).map(l => clean(l).split(' ')[0]))];
+  // ---------------- About
+  if (!skip.has('about')) {
+    const tab = byAria('[role="tab"]', /^About/i);
+    if (click(tab)) {
+      await sleep(1500);
+      const a = txt(); const lines = a.split('\n').map(s => s.trim()).filter(s => /[A-Za-z]/.test(s));
+      const start = lines.indexOf('About'); const body = lines.slice(start + 1);
+      const heads = ['Accessibility', 'Service options', 'Offerings', 'Amenities', 'Crowd', 'Planning', 'Payments', 'Parking', 'Highlights', 'From the business', 'Children'];
+      const sec = {}; let cur = null;
+      body.forEach(l => { if (heads.includes(l)) { cur = l; sec[cur] = []; } else if (cur && l.length < 60) sec[cur].push(l); });
+      out.about = Object.fromEntries(Object.entries(sec).map(([k, v]) => [k, v.length]));
+      out.offerings = (sec['Offerings'] || []).map(clean);
+      out.description_on_maps = !!sec['From the business'];
+    } else out.warnings.push('About tab not found');
+    const ov = byAria('[role="tab"]', /^Overview/i); click(ov); await sleep(1200);
+  }
+  // ---------------- Posts
+  if (!skip.has('posts')) {
+    let btn = byAria('[aria-label]', /^See local posts/i);
+    for (let i = 0; !btn && i < 8; i++) { const s = scroller(); if (!s) break; s.scrollTop += 600; await sleep(500); btn = byAria('[aria-label]', /^See local posts/i); }
+    if (click(btn)) {
+      await sleep(2000); await scrollDown(4);
+      const pt = txt();
+      const dateAlt = '((?:a|an|\\d+) (?:minute|hour|day|week|month|year)s? ago|[A-Z][a-z]{2} \\d{1,2}, 20\\d\\d)';
+      const dateRe = new RegExp('\\n' + dateAlt + '\\n', 'g');
+      const ages = [...pt.matchAll(dateRe)].map(x => ageDays(x[1])).filter(x => x !== null);
+      out.posts = { dates_found: ages.length, ages_days: ages.slice(0, 12), within_30d: ages.filter(d => d <= 30).length, newest_days: ages.length ? Math.min(...ages) : null };
+      // split into one chunk per post (each starts at a date line) and judge variety ONLY on posts from the last 30 days
+      const recent = dhapSplitPosts(pt).map(c => ({ age: ageDays(c.date), text: c.text })).filter(c => c.age !== null && c.age <= 30);
+      out.posts.variety = dhapPostVariety(recent.map(c => c.text));
+      out.posts.recent_posts = recent.length;
+      out.posts.recent_texts = recent.map(c => clean(c.text).slice(0, 800));  // kept for the optional JEV second opinion
+      history.back(); await sleep(1500);
+    } else {
+      // Maps hides older owner posts entirely; "not found" is not the same as "none", so a person must check the Search panel
+      out.posts = { dates_found: 0, within_30d: 0, newest_days: null, manual: true };
+      out.warnings.push('POSTS NOT ON MAPS: no post in the last 30 days is shown, so cadence and recency score 0 either way; find the newest post date by hand only if the report names it');
+    }
+  }
+  // ---------------- Reviews (10 newest)
+  if (!skip.has('reviews') && out.review_count > 0) {
+    const tab = byAria('[role="tab"]', /^Reviews/i);
+    if (click(tab)) {
+      await sleep(1800);
+      const sort = byAria('button', /^Sort reviews|^Sort$/i);
+      if (click(sort)) {
+        const newest = await waitFor(() => [...document.querySelectorAll('[role="menuitemradio"],[role="menuitem"]')].find(e => /^Newest/.test(e.textContent.trim())), 4000);
+        if (click(newest)) { await sleep(2500); } else out.warnings.push('Newest sort option not found');
+      } else out.warnings.push('Sort button not found (only 1-2 reviews, or limited view)');
+      await scrollDown(Math.min(6, Math.ceil(Math.min(10, out.review_count) / 3) + 1));
+      // each review block: reviewer header ... age line ... text ... optional "Response from the owner <age>"
+      const rt = txt();
+      const blocks = rt.split(/\n(?=[^\n]{1,60}\n(?:Local Guide · )?\d+ reviews?(?: · \d+ photos?)?\n)/).slice(1);
+      const rows = blocks.map(b => {
+        const a = b.match(/\n((?:a|an|\d+) (?:minute|hour|day|week|month|year)s? ago|Edited (?:a|an|\d+) [a-z]+s? ago)/);
+        return { age: a ? ageDays(a[1]) : null, reply: /Response from the owner/.test(b) };
+      }).filter(r => r.age !== null).slice(0, 10);
+      out.reviews = { sampled: rows.length, ages_days: rows.map(r => r.age), owner_replies: rows.filter(r => r.reply).length, newest_days: rows.length ? Math.min(...rows.map(r => r.age)) : null };
+      const ov = byAria('[role="tab"]', /^Overview/i); click(ov);
+    }
+  }
+  // full result stays in the page (window.__dhapMaps); the reply is a compact summary that fits the tool limit
+  window.__dhapMaps = out;
+  const c = { name: out.name, limited: out.limited_view, rating: out.rating, n_reviews: out.review_count, cats: (out.categories || []).length,
+    addr: out.address, phone: out.phone, web: out.website, booking: out.booking_link, services: out.services_link, located_in: out.located_in,
+    hours: out.hours_shown, claim_link: out.claim_link_visible, latest_photo: (out.photos_latest || '').replace(/^Latest\s*·?\s*/, ''),
+    photo_cats: (out.photo_categories || []).join('/'), about: out.about, offerings: (out.offerings || []).length,
+    posts: out.posts && { n30: out.posts.within_30d, newest: out.posts.newest_days, ages: (out.posts.ages_days || []).join(','), var: out.posts.variety, judged: out.posts.recent_posts, manual: out.posts.manual },
+    reviews: out.reviews && { sampled: out.reviews.sampled, replies: out.reviews.owner_replies, newest: out.reviews.newest_days, ages: (out.reviews.ages_days || []).join(',') },
+    warn: out.warnings };
+  return JSON.stringify(c).replace(/[?=&]/g, '~');
+}

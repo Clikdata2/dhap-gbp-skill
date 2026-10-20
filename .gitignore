@@ -3,3 +3,5 @@ Thumbs.db
 *.zip
 __pycache__/
 .env
+engine/tests/out/
+.secrets/

@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""DHAP GBP engine — evidence checker + scorer.
+
+The RULES live only in SKILL.md of the Clikdata2/dhap-gbp-skill repository. This file turns recorded evidence into
+the eight rubric rows the way that SKILL.md describes them, so the arithmetic is identical every run.
+Three safety gates:
+  1. RULES GUARD  — fingerprints the "OVERALL SCORE METHOD" and "CATEGORY RUBRICS" sections of the repository's
+                    SKILL.md. If the text changed since this file was checked, it STOPS: a person must re-check the
+                    arithmetic against the new text and update KNOWN_RULES (a repository rule change is a pull request).
+  2. EVIDENCE CHECK — refuses to score when a field is missing, has the wrong type, is impossible, or has no source
+                    ("anything not recorded = audit incomplete: do not publish a score").
+  3. PROOF LEDGER — every evidence group must say how and when it was observed (method + date), so each score can
+                    be traced back without redoing the audit.
+Usage:
+  python3 score.py score evidence.json [--repo PATH]      -> rows, overall, status (JSON) or the list of problems
+  python3 score.py check evidence.json                     -> only the evidence check
+  python3 score.py rules [--repo PATH]                     -> show the rules fingerprint
+"""
+import hashlib, json, pathlib, re, sys
+
+def default_repo():
+    """The rules folder: the repository this engine/ folder sits in, else a local copy at ~/.cache/dhap-gbp-skill."""
+    here = pathlib.Path(__file__).resolve().parent.parent
+    return here if (here / "SKILL.md").exists() else pathlib.Path.home() / ".cache" / "dhap-gbp-skill"
+from decimal import Decimal, ROUND_HALF_UP
+
+def r1d(x):
+    """Round to 1 decimal the way people do (5.85 -> 5.9), not the way binary floats do (5.85 -> 5.8)."""
+    return float(Decimal(repr(round(x, 9))).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
+
+
+# fingerprints of the rules text this scorer was checked against (repository version -> section hashes)
+KNOWN_RULES = {
+    "14.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "fdd02b8ab2a92eaf"},
+}
+ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
+             "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
+BENCH_POSTS = {"sales": 8, "service": 4, "parts": 4}
+WEIGHT = {"sales": 50, "service": 25, "parts": 25}
+REVIEW_WINDOW = {"sales": (15, 1.5), "service": (30, .75), "parts": (90, .75)}
+LEDGER_GROUPS = ["website_schema", "google_listings", "reviews", "posts", "photos", "facebook", "directories"]
+
+# ----------------------------------------------------------------------------------------------- rules guard
+def rules_fingerprint(repo):
+    repo = pathlib.Path(repo).expanduser()
+    s = (repo / "SKILL.md").read_text(encoding="utf-8"); v = (repo / "VERSION").read_text().strip()
+    out = {}
+    for title in ("OVERALL SCORE METHOD", "CATEGORY RUBRICS"):
+        i = s.index("### " + title); j = s.index("\n### ", i + 5)
+        out[title] = hashlib.sha256(s[i:j].encode()).hexdigest()[:16]
+    return v, out
+
+def rules_guard(repo):
+    v, fp = rules_fingerprint(repo)
+    for kv, known in KNOWN_RULES.items():
+        if known == fp:
+            return v, kv
+    raise SystemExit(f"RULES GUARD STOP: the scoring rules in SKILL.md v{v} differ from the text this scorer was checked against "
+                     f"({fp}). Re-read OVERALL SCORE METHOD and CATEGORY RUBRICS, update score.py, add the new fingerprint to "
+                     f"KNOWN_RULES, run the tests, then score.")
+
+# ----------------------------------------------------------------------------------------------- evidence check
+def _num(x, lo=None, hi=None, integer=False):
+    if isinstance(x, bool) or not isinstance(x, (int, float)): return False
+    if integer and int(x) != x: return False
+    return (lo is None or x >= lo) and (hi is None or x <= hi)
+
+def check(ev):
+    """Return a list of problems. Empty list = OK to score."""
+    P = []
+    def need(path, ok, why):
+        if not ok: P.append(f"{path}: {why}")
+    need("dealer", isinstance(ev.get("dealer"), str) and ev["dealer"].strip(), "dealer name missing")
+    need("audit_date", isinstance(ev.get("audit_date"), str) and re.match(r"^\d{4}-\d{2}-\d{2}$", ev.get("audit_date", "")), "audit_date must be YYYY-MM-DD")
+    L = ev.get("listings")
+    if not isinstance(L, dict): return P + ["listings: missing"]
+    if L.get("combined") and (L.get("service") or L.get("parts")):
+        P.append("listings: a combined Service & Parts listing and a separate Service/Parts listing were both given — record which is which")
+    any_listing = False
+    for k in ("sales", "service", "parts", "combined"):
+        l = L.get(k)
+        if l is None: continue
+        any_listing = True; p = f"listings.{k}"
+        if not isinstance(l, dict): P.append(f"{p}: must be an object or null"); continue
+        need(p + ".claimed_verified", _num(l.get("claimed_verified"), 0, 1), "0..1 (1 = claimed and verified)")
+        tot = 8 if k in ("service", "combined") else 7
+        need(p + ".checklist_total", l.get("checklist_total") == tot, f"must be {tot} for a {k} listing")
+        need(p + ".checklist_done", _num(l.get("checklist_done"), 0, tot, True), f"whole number 0..{tot}")
+        for f in ("photos_30d", "posts_30d"): need(f"{p}.{f}", _num(l.get(f), 0, 500, True), "whole number >= 0")
+        need(p + ".last_post_days", l.get("last_post_days") is None or _num(l.get("last_post_days"), 0, 9999, True), "days >= 0, or null when there are no posts")
+        if l.get("last_post_days") is None and l.get("posts_30d", 0) > 0: P.append(f"{p}: posts_30d > 0 but last_post_days is null")
+        if _num(l.get("last_post_days"), 0) and l.get("posts_30d", 0) > 0 and l["last_post_days"] > 30:
+            P.append(f"{p}: posts_30d > 0 but the newest post is older than 30 days")
+        need(p + ".newest_review_days", l.get("newest_review_days") is None or _num(l.get("newest_review_days"), 0, 99999, True), "days >= 0, or null when the listing has no reviews")
+        for f in ("logo", "cover"): need(f"{p}.{f}", isinstance(l.get(f), bool), "true/false (was it SEEN in the audit)")
+        cov = l.get("coverage", {}); need(p + ".coverage", isinstance(cov, dict) and all(isinstance(cov.get(x), bool) for x in ("exterior", "interior_or_team", "department")), "exterior / interior_or_team / department true/false")
+        var = l.get("variety", {}); need(p + ".variety", isinstance(var, dict) and all(isinstance(var.get(x), bool) for x in ("offers", "events", "cta")), "offers / events / cta true/false")
+        if l.get("posts_30d") == 0 and isinstance(var, dict) and any(var.get(x) for x in ("offers", "events", "cta")):
+            P.append(f"{p}.variety: variety is judged on posts from the last 30 days, but posts_30d is 0")
+    need("listings", any_listing, "no Google listing recorded (row 2 is then 0; record that explicitly with listings_none: true)" ) if not ev.get("listings_none") else None
+    need("claimed.duplicate_or_unclaimed_found", isinstance(ev.get("claimed", {}).get("duplicate_or_unclaimed_found"), bool), "true/false")
+    R = ev.get("reviews", {})
+    need("reviews.google_rating", R.get("google_rating") is None or _num(R.get("google_rating"), 1, 5), "1.0..5.0, or null when there are no Google reviews")
+    need("reviews.owner_replies_of_10_newest", _num(R.get("owner_replies_of_10_newest"), 0, 10, True), "whole number 0..10")
+    fb = R.get("facebook", {}); need("reviews.facebook.mode", fb.get("mode") in ("stars", "percent", "none"), "stars | percent | none")
+    if fb.get("mode") == "stars": need("reviews.facebook.within_half", isinstance(fb.get("within_half"), bool), "true/false when Facebook shows stars")
+    need("reviews.real_reviews_visible_on_site", isinstance(R.get("real_reviews_visible_on_site"), bool), "true/false (rendered-site check)")
+    N = ev.get("nap", {})
+    need("nap.google_vs_site_fields_matching", _num(N.get("google_vs_site_fields_matching"), 0, 3, True), "0..3 (name, address, phone)")
+    d = N.get("directories_agree"); need("nap.directories_agree", isinstance(d, list) and len(d) == 5 and all(isinstance(x, bool) for x in d), "exactly 5 true/false: Apple Maps, Bing, Yelp, Facebook, Mitsubishi locator")
+    need("nap.dept_phones_ok", N.get("dept_phones_ok") in (True, False, None), "true/false, or null when there is no department listing")
+    need("nap.map_pin_ok", isinstance(N.get("map_pin_ok"), bool), "true/false")
+    S = ev.get("schema", {})
+    for f, lo, hi in (("pages_with_jsonld", 0, 5), ("department_entities", 0, 3), ("dept_own_page_address", 0, 3), ("dept_own_phone", 0, 3), ("core_fields", 0, 6)):
+        need("schema." + f, _num(S.get(f), lo, hi, True), f"whole number {lo}..{hi}")
+    for f in ("dept_own_page_address", "dept_own_phone"):
+        if _num(S.get(f)) and _num(S.get("department_entities")) and S[f] > S["department_entities"]:
+            P.append(f"schema.{f}: cannot be more than department_entities")
+    for f in ("business_type_ok", "parses_cleanly", "logo_or_image", "sameas_google", "sameas_other", "areaserved", "hasmap_or_map", "services_or_offers"):
+        need("schema." + f, isinstance(S.get(f), bool), "true/false")
+    led = ev.get("ledger", {})
+    for g in LEDGER_GROUPS:
+        e = led.get(g)
+        need("ledger." + g, isinstance(e, dict) and str(e.get("method", "")).strip() and re.match(r"^\d{4}-\d{2}-\d{2}", str(e.get("when", ""))),
+             "say HOW it was observed (method) and WHEN (YYYY-MM-DD) — proof ledger")
+    return [p for p in P if p]
+
+# ----------------------------------------------------------------------------------------------- scoring
+def _roles(L):
+    roles = {}
+    if L.get("sales"): roles["sales"] = L["sales"]
+    if L.get("service"): roles["service"] = L["service"]
+    if L.get("parts"): roles["parts"] = L["parts"]
+    if L.get("combined"): roles["service"] = L["combined"]; roles["parts"] = L["combined"]
+    return roles
+
+def score_rows(ev):
+    L = ev["listings"]; roles = _roles(L)
+    tot = sum(WEIGHT[r] for r in roles) or 1; w = {r: WEIGHT[r] / tot for r in roles}
+    def wavg(f): return sum(w[r] * f(roles[r], r) for r in roles)
+    uniq = list({id(v): v for v in roles.values()}.values())
+    # 1 Claimed & Verified (8 + 2)
+    r1 = (8 * (sum(l["claimed_verified"] for l in uniq) / len(uniq)) if uniq else 0) + (0 if ev["claimed"]["duplicate_or_unclaimed_found"] else 2)
+    # 2 Profile Completeness: structure 4 + information 6 (combined counts as BOTH Service and Parts)
+    struct = (2 if L.get("sales") else 0) + (1 if (L.get("service") or L.get("combined")) else 0) + (1 if (L.get("parts") or L.get("combined")) else 0)
+    pct = lambda l: l["checklist_done"] / l["checklist_total"]
+    info = (2 * pct(L["sales"]) if L.get("sales") else 0)
+    if L.get("combined"): info += 4 * pct(L["combined"])
+    else: info += (2 * pct(L["service"]) if L.get("service") else 0) + (2 * pct(L["parts"]) if L.get("parts") else 0)
+    r2 = struct + info if roles else 0
+    # 3 Photos: 6 cadence (one new photo a week) + 2 logo/cover (1 each, as seen) + 2 coverage
+    r3 = 6 * wavg(lambda l, r: min(l["photos_30d"] / 4, 1)) + wavg(lambda l, r: int(l["logo"]) + int(l["cover"])) \
+        + wavg(lambda l, r: 2 * sum(1 for k in ("exterior", "interior_or_team", "department") if l["coverage"][k]) / 3)
+    # 4 Reviews: 3 rating + 3 recent flow + 2 owner replies (10 newest) + 1 Facebook within 0.5 (stars only) + 1 visible on site
+    R = ev["reviews"]; rt = R["google_rating"] or 0
+    rating = 3 if rt >= 4.5 else 2 if rt >= 4.0 else 1 if rt >= 3.5 else 0
+    earned = mx = 0
+    for r in roles:
+        days, pts = REVIEW_WINDOW[r]; d = roles[r]["newest_review_days"]; mx += pts
+        earned += 0 if d is None else pts if d <= days else pts / 2 if d <= 2 * days else 0
+    flow = 3 * earned / mx if mx else 0
+    owner = 2 * R["owner_replies_of_10_newest"] / 10
+    fb = R["facebook"]; fbpt = 1 if (fb["mode"] == "stars" and fb.get("within_half")) else 0
+    r4 = rating + flow + owner + fbpt + (1 if R["real_reviews_visible_on_site"] else 0)
+    if fb["mode"] == "percent": r4 = (r4 - fbpt) / 9 * 10          # point dropped, row rescaled to 10
+    # 5 Posts: 6 cadence (8/4/4) + 2 recency (<=7d 2, <=14d 1) + 2 variety (offers, events, calls to action)
+    rec = lambda l: 0 if l["last_post_days"] is None else 2 if l["last_post_days"] <= 7 else 1 if l["last_post_days"] <= 14 else 0
+    r5 = 6 * wavg(lambda l, r: min(l["posts_30d"] / BENCH_POSTS[r], 1)) + wavg(lambda l, r: rec(l)) \
+        + wavg(lambda l, r: 2 * sum(1 for k in ("offers", "events", "cta") if l["variety"][k]) / 3)
+    # 6 NAP: 4 Google vs site + 4 five-directory sample + 1 department phones + 1 map pin
+    N = ev["nap"]
+    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + 4 * sum(N["directories_agree"]) / 5 + (1 if N["dept_phones_ok"] in (True, None) else 0) + (1 if N["map_pin_ok"] else 0)
+    # 7 Schema structure: 3 page coverage + 1 type + 3 department entities + 1 parses + 2 (own page address, own phone)
+    S = ev["schema"]
+    r7 = 3 * S["pages_with_jsonld"] / 5 + int(S["business_type_ok"]) + S["department_entities"] + int(S["parses_cleanly"]) \
+        + S["dept_own_page_address"] / 3 + S["dept_own_phone"] / 3
+    # 8 Schema fields: 3 core + 1 logo/image + 2 sameAs (Google, other) + 2 areaServed + 1 hasMap/map + 1 services/offers
+    r8 = 3 * S["core_fields"] / 6 + int(S["logo_or_image"]) + int(S["sameas_google"]) + int(S["sameas_other"]) + 2 * int(S["areaserved"]) \
+        + int(S["hasmap_or_map"]) + int(S["services_or_offers"])
+    raw = [r1, r2, r3, r4, r5, r6, r7, r8]
+    return raw, [r1d(x) for x in raw]
+
+def overall(rows): return r1d(sum(rows) / len(rows))
+
+def status(rows):
+    low = min(rows); name = ROW_NAMES[rows.index(low)]
+    if low <= 5.0: lab, icon, col = "Critical", "🔴", "#dc2626"
+    elif low < 7.0: lab, icon, col = "Major Issues", "🟠", "#ea580c"
+    elif low < 9.0: lab, icon, col = "Needs Improvement", "🟡", "#ca8a04"
+    else: lab, icon, col = "Fully Optimized", "🟢", "#15803d"
+    return {"label": lab, "icon": icon, "color": col, "lowest_row": name, "lowest_value": low}
+
+def edge_warnings(raw, rows):
+    """Flag scores sitting on a band edge, where one small fact flips the status."""
+    W = []
+    for n, r, x in zip(ROW_NAMES, raw, rows):
+        for edge in (5.0, 7.0, 9.0):
+            if abs(x - edge) <= 0.2: W.append(f"{n} is {r:.2f} (shown {x:.1f}), within 0.2 of the {edge} status edge")
+    return W
+
+def main():
+    a = sys.argv[1:]
+    repo = a[a.index("--repo") + 1] if "--repo" in a else default_repo()
+    if not a: print(__doc__); return
+    if a[0] == "rules":
+        print(json.dumps(dict(zip(("version", "fingerprint"), rules_fingerprint(repo))), indent=2)); return
+    ev = json.load(open(a[1]))
+    probs = check(ev)
+    if a[0] == "check":
+        print("EVIDENCE OK" if not probs else "EVIDENCE INCOMPLETE:\n  - " + "\n  - ".join(probs)); sys.exit(1 if probs else 0)
+    if a[0] == "score":
+        v, kv = rules_guard(repo)
+        if probs: print("NOT SCORED — evidence incomplete:\n  - " + "\n  - ".join(probs)); sys.exit(1)
+        raw, rows = score_rows(ev)
+        print(json.dumps({"rules_version": v, "rows": dict(zip(ROW_NAMES, rows)), "overall": overall(rows), "status": status(rows),
+                          "edge_warnings": edge_warnings(raw, rows), "raw": [round(x, 3) for x in raw]}, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__": main()

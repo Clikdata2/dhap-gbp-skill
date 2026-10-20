@@ -1,0 +1,6 @@
+{
+ "_note": "Maps collector answers read live in signed-in Chrome on Oct 20 2026 (3 identical runs each). Used by tests/test_places.py. Ratings and review counts change over time; the test expects them to match Places or be flagged.",
+ "James Mitsubishi Greece, 3800 W Ridge Rd, Greece, NY 14626": {"name": "James Mitsubishi Greece", "rating": 4.5, "n_reviews": 1599, "phone": "(585) 563-2029", "addr": "3800 W Ridge Rd, Greece, NY 14626", "web": "jamesmitsubishigreece.com"},
+ "Vacaville Mitsubishi, 681 Orange Dr, Vacaville, CA 95687": {"name": "Vacaville Mitsubishi", "rating": 4.9, "n_reviews": 172, "phone": "(707) 926-3135", "addr": "681 Orange Dr, Vacaville, CA 95687", "web": "vacavillemitsubishi.com"},
+ "Music City Mitsubishi, 1821 Gallatin Pike N, Madison, TN 37115": {"name": "Music City Mitsubishi", "rating": 4.8, "n_reviews": 382, "phone": "(615) 610-0628", "addr": "1821 Gallatin Pike N, Madison, TN 37115", "web": "musiccitymitsubishi.com"}
+}

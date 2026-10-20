@@ -1,0 +1,162 @@
+{
+ "dealer": "Vacaville Mitsubishi",
+ "audit_date": "2026-10-20",
+ "listings": {
+  "sales": {
+   "claimed_verified": 1.0,
+   "checklist_done": 7,
+   "checklist_total": 7,
+   "photos_30d": 4,
+   "logo": false,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": false
+   },
+   "posts_30d": 5,
+   "last_post_days": 0,
+   "variety": {
+    "offers": true,
+    "events": true,
+    "cta": true
+   },
+   "newest_review_days": 0
+  },
+  "service": null,
+  "parts": null,
+  "combined": {
+   "claimed_verified": 1.0,
+   "checklist_done": 4,
+   "checklist_total": 8,
+   "photos_30d": 1,
+   "logo": false,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": true
+   },
+   "posts_30d": 1,
+   "last_post_days": 14,
+   "variety": {
+    "offers": true,
+    "events": false,
+    "cta": true
+   },
+   "newest_review_days": 120
+  }
+ },
+ "claimed": {
+  "duplicate_or_unclaimed_found": false
+ },
+ "reviews": {
+  "google_rating": 4.9,
+  "owner_replies_of_10_newest": 10,
+  "facebook": {
+   "mode": "none",
+   "within_half": false
+  },
+  "real_reviews_visible_on_site": false
+ },
+ "nap": {
+  "google_vs_site_fields_matching": 2,
+  "directories_agree": [
+   true,
+   true,
+   false,
+   false,
+   false
+  ],
+  "dept_phones_ok": false,
+  "map_pin_ok": true
+ },
+ "schema": {
+  "pages_with_jsonld": 5,
+  "business_type_ok": true,
+  "department_entities": 2,
+  "parses_cleanly": true,
+  "dept_own_page_address": 2,
+  "dept_own_phone": 1,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": true,
+  "sameas_other": false,
+  "areaserved": true,
+  "hasmap_or_map": false,
+  "services_or_offers": true
+ },
+ "ledger": {
+  "website_schema": {
+   "method": "schema collector in signed-in Chrome, 5 key pages (same-origin fetch)",
+   "when": "2026-10-20"
+  },
+  "google_listings": {
+   "method": "Google Search panel + Maps collector, Sales and Service & Parts listings",
+   "when": "2026-10-20"
+  },
+  "reviews": {
+   "method": "Maps reviews sorted Newest, 10 newest + owner replies",
+   "when": "2026-10-20"
+  },
+  "posts": {
+   "method": "Maps 'See local posts' list, dates counted inside 30 days",
+   "when": "2026-10-20"
+  },
+  "photos": {
+   "method": "Maps Latest photos viewer, month labels; By owner avatar for logo",
+   "when": "2026-10-20"
+  },
+  "facebook": {
+   "method": "facebook.com/vacavillemitsubishi signed in: no star rating or recommend figure",
+   "when": "2026-10-20"
+  },
+  "directories": {
+   "method": "Apple Maps, Bing card, Yelp, Facebook, mitsubishicars.com locator (ZIP 95687)",
+   "when": "2026-10-20"
+  }
+ },
+ "facts": {
+  "phones": [
+   "707-532-2052",
+   "707-353-4579",
+   "707-475-0868",
+   "707-926-3135",
+   "707-348-0555",
+   "707-452-2500",
+   "707-513-4935"
+  ],
+  "numbers": [
+   4.9,
+   172,
+   7,
+   1,
+   5,
+   8,
+   4,
+   10,
+   14,
+   16,
+   3.3,
+   6,
+   2,
+   30,
+   120,
+   0,
+   5.0,
+   681,
+   95687
+  ],
+  "dates": [
+   "2026-10-20",
+   "2026-10-06"
+  ],
+  "times": [
+   "9:00",
+   "8:00",
+   "7:30",
+   "5:30",
+   "5:00"
+  ]
+ }
+}
