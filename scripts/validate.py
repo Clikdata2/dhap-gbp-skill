@@ -83,6 +83,10 @@ for f in templates:
             errors.append(f"{f.name}: hot sheet must not name CLIKsearch")
         if "color:#fbbf24;\">Digital Health Alert<" not in t:
             errors.append(f"{f.name}: header title must be yellow with no trademark mark")
+        if "6aac055cff484614db0e483a" in t:
+            errors.append(f"{f.name}: that logo link serves the Mitsubishi Motors logo; use CLIKDATA_LOGO on a white chip")
+        if ".banner-sub{" in t and "border-left:4px solid" not in t.split(".banner-sub{",1)[1].split("}",1)[0]:
+            errors.append(f"{f.name}: screen 1 subhead must be a status-coloured card (.banner-sub)")
         if "Critical Alerts Identified" not in t:
             errors.append(f"{f.name}: missing DOS card final line")
         if "SEE ALL ALERTS" not in t or "SEE REVENUE IMPACT" not in t or "ACCESS THE FULL REPORT" not in t:
@@ -90,6 +94,8 @@ for f in templates:
     else:
         if "MOBILE LAYOUT" not in t:
             errors.append(f"{f.name}: missing mobile layout block (RULE J)")
+        if "window.scrollTo({top:0,left:0,behavior:'auto'})" not in t:
+            errors.append(f"{f.name}: showTab must scroll to the top at every width (RULE J)")
         if "No areaServed in Site Schema" not in t:
             errors.append(f"{f.name}: missing the areaServed finding")
         if "mitsubishi" in f.name.lower():
@@ -97,6 +103,12 @@ for f in templates:
                 errors.append(f"{f.name}: Mitsubishi report needs the Live Support widget")
             if "__JESSICA" in t:
                 errors.append(f"{f.name}: unfilled widget placeholder")
+
+for rel in ("scripts/proof_popup.py", "scripts/check_proof_popups.py"):
+    if not (root / rel).exists():
+        errors.append(f"missing file: {rel} (RULE K evidence popups)")
+if "### RULE K" not in skill:
+    errors.append("SKILL.md must contain RULE K (evidence popups)")
 
 if errors:
     print("VALIDATION FAILED")
