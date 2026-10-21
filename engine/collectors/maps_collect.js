@@ -26,7 +26,8 @@ async function dhapMaps(opts) {
   opts = opts || {}; const skip = new Set(opts.skip || []);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const clean = s => String(s == null ? '' : s).replace(/[?=&]/g, '~').replace(/\s+/g, ' ').trim();
-  const main = () => document.querySelector('[role="main"]') || document.body;
+  // a results list and a place panel can both be role=main: use the one whose heading is the place, never the "Results" list
+  const main = () => { const ms = [...document.querySelectorAll('[role="main"]')]; return ms.find(m => { const h = m.querySelector('h1'); return h && !/^Results$/i.test(h.textContent.trim()); }) || ms[0] || document.body; };
   const txt = () => main().innerText || '';
   const SAFE = /^(Overview|About|Reviews|See local posts|Sort reviews|Newest|Latest)/i;
   const FORBID = /claim|own this|suggest an edit|write a review|add photo|^post$|save|share|edit/i;
@@ -113,6 +114,12 @@ async function dhapMaps(opts) {
       out.posts.recent_posts = recent.length;
       out.posts.recent_texts = recent.map(c => clean(c.text).slice(0, 800));  // kept for the optional JEV second opinion
       history.back(); await sleep(1500);
+    } else if (/From the owner/.test(txt())) {
+      // no posts list on this listing, but the Overview shows the newest owner post card: read its date (older posts stay hidden)
+      const fo = txt().match(/From the owner\n[\s\S]{0,1800}?\n((?:a|an|\d+) (?:minute|hour|day|week|month|year)s? ago|[A-Z][a-z]{2} \d{1,2}, 20\d\d)\n/);
+      const a = fo ? ageDays(fo[1]) : null;
+      out.posts = { dates_found: a === null ? 0 : 1, ages_days: a === null ? [] : [a], within_30d: a !== null && a <= 30 ? 1 : 0, newest_days: a, owner_card_only: true };
+      out.warnings.push('POSTS: only the From-the-owner card is visible (no posts list), newest owner post ' + (a === null ? 'date not read' : a + ' days old'));
     } else {
       // Maps hides older owner posts entirely; "not found" is not the same as "none", so a person must check the Search panel
       out.posts = { dates_found: 0, within_30d: 0, newest_days: null, manual: true };

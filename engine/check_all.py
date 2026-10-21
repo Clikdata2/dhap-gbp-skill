@@ -27,8 +27,14 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     m = re.search(r'OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:(\d+)%;[^"]*"></div></div>([\d.]+)/10', D)
     fill, sco = int(m.group(1)), float(m.group(2))
     assert int(re.search(r"\.score-fill\{height:100%;width:(\d+)%", HS).group(1)) == fill, "slider fill differs from the scorecard bar"
-    exec(blk, {"re": re, "html": D, "div_depth": lambda t: len(re.findall(r"<div[ >]", t)) - len(re.findall(r"</div>", t)), "overall": lambda r: S.overall(r),
-               "rows": rows, "score": ovr, "score_dhap_banner": sd, "score_hotsheet_big": sh, "scorecard_overall_value": sco, "fill_width": fill})
+    try:
+            exec(blk, {"re": re, "html": D, "div_depth": lambda t: len(re.findall(r"<div[ >]", t)) - len(re.findall(r"</div>", t)), "overall": lambda r: S.overall(r),
+                       "rows": rows, "score": ovr, "score_dhap_banner": sd, "score_hotsheet_big": sh, "scorecard_overall_value": sco, "fill_width": fill})
+    except AssertionError as e:   # the suite's bare asserts say nothing: name the failing line
+        tb = e.__traceback__
+        while tb and tb.tb_frame.f_code.co_filename != '<string>': tb = tb.tb_next
+        line = blk.splitlines()[tb.tb_lineno - 1].strip() if tb else '?'
+        raise AssertionError(f"{e or 'assertion failed'}  <- repository suite line {tb.tb_lineno if tb else '?'}: {line[:220]}")
     dd = lambda t: len(re.findall(r"<div[ >]", t)) - len(re.findall(r"</div>", t))
     BAN = ['aggregateRating','AggregateRating','Review Markup','REVIEWS_UNMARKED','Markup Missing','review-rating','Review-rating','machine-readable','Schema-Invisible',
            'review guidelines','reputation signal','excluded from schema-based rich results','invisible to Google','review-enhanced','highest-impact schema fix',
@@ -64,7 +70,8 @@ def main():
     ap.add_argument("--content", required=True); ap.add_argument("--out", required=True); ap.add_argument("--venv", default=None, help="python environment with Playwright; default: the one running this")
     ap.add_argument("--no-probe", action="store_true"); a = ap.parse_args()
     repo = pathlib.Path(a.repo).expanduser(); ev = json.load(open(a.evidence)); c = json.load(open(a.content))
-    py = str(pathlib.Path(a.venv).expanduser() / "bin" / "python") if a.venv else sys.executable; T = {}
+    venv = a.venv or (str(pathlib.Path.home() / ".dhap-gbp-venv") if (pathlib.Path.home() / ".dhap-gbp-venv" / "bin" / "python").exists() else None)   # step 2 of the run routine creates this
+    py = str(pathlib.Path(venv).expanduser() / "bin" / "python") if venv else sys.executable; T = {}
     def gate(name, fn):
         t0 = time.perf_counter()
         try: r = fn()

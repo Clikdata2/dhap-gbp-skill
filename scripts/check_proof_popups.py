@@ -18,7 +18,8 @@ def main(paths):
             if "hotsheet" in path or "health" in path:
                 pg.evaluate("document.querySelectorAll('.step').forEach(s=>s.style.display='block')")
             rows = pg.evaluate("""(sel)=>[...document.querySelectorAll(sel)].map(e=>{const l=e.querySelector('.kpi-lbl,.finding-title');
-                return [(l?l.textContent:e.textContent).replace(/\\s+/g,' ').trim().slice(0,70), e.dataset.proof||'']})""", SEL)
+                const c=(l||e).cloneNode(true); c.querySelectorAll('br').forEach(b=>b.replaceWith(' '));
+                return [c.textContent.replace(/\\s+/g,' ').trim().slice(0,70), e.dataset.proof||'']})""", SEL)
             print("==", path, f"({len(rows)} tiles/cards)")
             for label, key in rows:
                 if key: print(f"  ok   {key:<13} {label}")
