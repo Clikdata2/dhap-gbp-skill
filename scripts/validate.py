@@ -107,6 +107,10 @@ for f in templates:
 for rel in ("scripts/proof_popup.py", "scripts/check_proof_popups.py"):
     if not (root / rel).exists():
         errors.append(f"missing file: {rel} (RULE K evidence popups)")
+_pp = (root / "scripts/proof_popup.py").read_text(encoding="utf-8") if (root / "scripts/proof_popup.py").exists() else ""
+_sp = (root / "shot/proof_popup.py").read_text(encoding="utf-8") if (root / "shot/proof_popup.py").exists() else ""
+if _sp and _sp.split("\n", 1)[1] != _pp:
+    errors.append("shot/proof_popup.py must be an exact copy of scripts/proof_popup.py (after its first comment line)")
 if "### RULE K" not in skill:
     errors.append("SKILL.md must contain RULE K (evidence popups)")
 

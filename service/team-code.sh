@@ -38,6 +38,9 @@ printf %s "$UPDATED" | gcloud secrets versions add dhap-team-codes --data-file=-
 
 # start a fresh copy of the service so it reads the new list right away
 gcloud run services update "$NAME" --region="$REGION" --update-env-vars="CODES_UPDATED=$(date +%s)" --quiet >/dev/null
+if gcloud run services describe dhap-proof-service --region="$REGION" >/dev/null 2>&1; then
+  gcloud run services update dhap-proof-service --region="$REGION" --update-env-vars="CODES_UPDATED=$(date +%s)" --quiet >/dev/null
+fi
 
 if [ "$ACTION" = "add" ]; then
   URL="$(gcloud functions describe "$NAME" --gen2 --region="$REGION" --format='value(serviceConfig.uri)')"
