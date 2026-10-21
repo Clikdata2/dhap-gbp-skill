@@ -102,6 +102,17 @@ tag();
 """ % (json.dumps(imgs), json.dumps(kd), json.dumps(rules))
     return "<!-- PROOF POPUPS START (RULE K) -->\n" + css + js + "<!-- PROOF POPUPS END -->\n"
 
+
+def block_from_uris(keys_spec, image_uris, rules=None):
+    """Same block as block(), but images arrive as ready data URIs: {"name": "data:image/jpeg;base64,..."}."""
+    import tempfile, pathlib as _p
+    with tempfile.TemporaryDirectory() as d:
+        for n, u in (image_uris or {}).items():
+            if not str(u).startswith("data:image/"):
+                raise ValueError(f"image {n!r} must be a data:image URI")
+            (_p.Path(d) / f"{n}.jpg").write_bytes(base64.b64decode(str(u).split(",", 1)[1]))
+        return block(keys_spec, d, rules)
+
 if __name__ == "__main__":
     spec = json.load(open(sys.argv[1]))
     sys.stdout.write(block(spec["keys"], sys.argv[2], spec.get("rules")))

@@ -235,10 +235,40 @@ Open the service address with `/health` added at the end in any web browser, for
 
 ---
 
+## Part E — Proof service for Ask AI (CTO and GHL admin, one time)
+Ask AI can't take screenshots by itself. This small second service takes them for it, so Ask AI reports get the same hover proof as everyone else's. It uses the same team codes, so no new codes are needed.
+
+### E1. Deploy it (CTO, in Cloud Shell, about 8 minutes)
+1. Go to the setup folder and get the latest files:
+   ```
+   cd ~/dhap-key 2>/dev/null || cd ~/dhap-gbp-skill; git pull
+   ```
+2. Run:
+   ```
+   bash shot/deploy-shot.sh
+   ```
+3. Wait for the **DONE** box. It shows a **Proof service address** (starts with `https://`) and a health check that should say `"ok": true`.
+
+### E2. Test that it can take a picture (CTO, in Cloud Shell)
+Paste this, replacing `PROOF-ADDRESS` with the address from E1 and `YOUR-TEAM-CODE` with your own code:
+```
+curl -s -H "X-DHAP-Code: YOUR-TEAM-CODE" "PROOF-ADDRESS/screenshot?preset=gmaps_panel&url=https%3A%2F%2Fwww.google.com%2Fmaps%2Fsearch%2FJames%2BMitsubishi%2BGreece%2BNY" | python3 -c "import json,sys,base64; d=json.load(sys.stdin); print(d.get('status'), d.get('blocked_reason','')); open('test.jpg','wb').write(base64.b64decode(d['image'].split(',')[1])) if d.get('image') else None"
+```
+- It prints **ok** when it worked. To look at the picture, type `cloudshell download test.jpg` and press **Enter**. It downloads to your computer.
+- If it prints **blocked**, Google refused the cloud browser. That's fine. Ask AI then uses data proof for that card. Tell Travis what it printed.
+
+### E3. Tell Ask AI where it is (GHL admin)
+In GHL, **Settings → Custom Values → Add Custom Value**. Name: **DHAP Proof URL**. Value: the proof service address from E1. Save.
+
+✅ Done. Ask AI now builds hover proof on its own: pictures where the site allows them, exact source data where it doesn't.
+
+---
+
 ## For the technical reader
 - Code: `service/main.py`, a Google Cloud Run function (Python 3.12). Keys and codes live in Secret Manager as `dhap-places-key`, `dhap-typesafe-key` and `dhap-team-codes` (JSON `{name: code}`).
 - Routes: `GET /health` · `POST /places/v1/places:searchText` and `GET /places/v1/places/<id>` (forwarded to Places API (New), nothing else is allowed) · `POST /jev` (forwarded to TypeSafe System One, pinned model only) · `GET /lookup?q=` (one compact answer for Ask AI). Every route except `/health` needs a team code (`X-DHAP-Code` header; `?code=` is accepted on `/lookup` only). Logs record the team member's name and route, never keys or codes.
 - Engine: `engine/places.py` and `engine/jev.py` use the service when `DHAP_SERVICE_URL` and `DHAP_TEAM_CODE` are set. Otherwise they fall back to `GOOGLE_PLACES_API_KEY` / `TYPESAFE_API_KEY` on the machine. If neither is set, they skip, and the audit goes on.
 - Team codes: the master list is the secret `dhap-team-codes` (read by the service). Each person's copy is the secret `dhap-code-NAME` with only that person's Google account as Secret Accessor. No password manager is needed.
 - The service is open to the internet but useless without a team code. Max 3 instances; Places spending is capped by the budget alert and by Google's quotas.
+- Proof service (`shot/`): a Cloud Run service built from `shot/Dockerfile` (Playwright's Chromium image, 2 GiB, max 2 instances). Routes `/screenshot`, `/schema`, `/popup`; same team codes; refuses private and internal addresses; never signs in.
 - If `deploy.sh` stops with an error about **allUsers** or **allow-unauthenticated**, your organization blocks public services. An admin must allow it for this one service: Organization policy "Domain restricted sharing".
