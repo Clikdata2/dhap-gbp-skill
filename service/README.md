@@ -123,7 +123,7 @@ bash service/team-code.sh add askai ghl-admin@yourcompany.com
 
 ---
 
-## Part B — Set up a Mac for Claude Code and Codex (each employee, one time)
+## Part B — Set up a Mac or Windows PC for Claude Code and Codex (each employee, one time)
 
 **You need:** the message your CTO sent you, and your work Google account.
 
@@ -157,6 +157,22 @@ bash service/team-code.sh add askai ghl-admin@yourcompany.com
    You should see the service address. If the line is blank, run step 3 again.
 
 ✅ From now on, every DHAP run in Claude Code or Codex uses the key service on its own. Nothing else to do.
+
+**On a Windows PC instead of a Mac** (do the "get your code" steps above first):
+1. Open **PowerShell** (click Start, type **PowerShell**, press **Enter**).
+2. Download the setup files. Paste this and press **Enter**:
+   ```
+   git clone https://github.com/Clikdata2/dhap-gbp-skill.git $HOME\dhap-gbp-skill
+   ```
+   *(If it says git isn't found, install it from **git-scm.com**, then try again.)*
+3. Run the setup. Paste this and press **Enter**:
+   ```
+   powershell -ExecutionPolicy Bypass -File $HOME\dhap-gbp-skill\service\setup-employee.ps1
+   ```
+4. Paste the **service address**, press **Enter**. Paste **your team code**, press **Enter**.
+5. Wait for **"Connection works."** and **"Done."**
+6. **Quit and reopen** PowerShell, Claude Code and Codex.
+7. **Check it worked:** in a new PowerShell window, run `echo $env:DHAP_SERVICE_URL`. You should see the service address.
 
 **If something goes wrong**
 | You see | What it means | What to do |
