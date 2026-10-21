@@ -5,7 +5,8 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS="$HOME/.claude/skills"; mkdir -p "$SKILLS"
 if [ -e "$SKILLS/dhap-gbp-run" ] && [ ! -L "$SKILLS/dhap-gbp-run" ]; then
-  mv "$SKILLS/dhap-gbp-run" "$SKILLS/dhap-gbp-run.backup-$(date +%Y%m%d%H%M%S)"   # keep any older personal copy
+  mkdir -p "$HOME/.claude/skill-backups"   # outside the skills folder, so the old copy can't load as a second skill
+  mv "$SKILLS/dhap-gbp-run" "$HOME/.claude/skill-backups/dhap-gbp-run.backup-$(date +%Y%m%d%H%M%S)"
 fi
 ln -sfn "$REPO/run" "$SKILLS/dhap-gbp-run"          # Claude Code: the routine updates itself with every git pull
 mkdir -p "$HOME/.codex"; touch "$HOME/.codex/AGENTS.md"
