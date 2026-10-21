@@ -132,7 +132,7 @@ bash service/team-code.sh add askai ghl-admin@yourcompany.com
 2. If it asks you to accept terms or to **Authorize**, click to agree.
 3. Wait for the black window to show a line ending in **$**.
 4. Copy the line from your CTO's message (it starts with `gcloud secrets versions access`), paste it in, and press **Enter**.
-5. You'll see two lines: **Service address:** and **Team code:**. Keep this tab open. You'll copy from it in a moment.
+5. You'll see two lines: **Service address:** and **Team code:**. (If you see only the first line, run the line again with `; echo` added at the end.) Keep this tab open. You'll copy from it in a moment.
 
 **Then set up your Mac:**
 

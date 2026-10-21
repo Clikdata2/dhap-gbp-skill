@@ -44,9 +44,9 @@ if [ "$ACTION" = "add" ]; then
   CARD="Service address: $URL
 Team code: $NEW_CODE"
   if gcloud secrets describe "dhap-code-$WHO" >/dev/null 2>&1; then
-    printf %s "$CARD" | gcloud secrets versions add "dhap-code-$WHO" --data-file=- >/dev/null
+    printf '%s\n' "$CARD" | gcloud secrets versions add "dhap-code-$WHO" --data-file=- >/dev/null
   else
-    printf %s "$CARD" | gcloud secrets create "dhap-code-$WHO" --data-file=- --replication-policy=automatic >/dev/null
+    printf '%s\n' "$CARD" | gcloud secrets create "dhap-code-$WHO" --data-file=- --replication-policy=automatic >/dev/null
   fi
   gcloud secrets add-iam-policy-binding "dhap-code-$WHO" --member="user:$EMAIL" \
     --role=roles/secretmanager.secretAccessor --quiet >/dev/null
@@ -56,7 +56,7 @@ Team code: $NEW_CODE"
   echo "----------------------------------------------------------------"
   echo "Your DHAP team code is ready. Go to https://shell.cloud.google.com"
   echo "(sign in as $EMAIL), paste this line, and press Enter:"
-  echo "  gcloud secrets versions access latest --secret=dhap-code-$WHO --project=$PROJECT"
+  echo "  gcloud secrets versions access latest --secret=dhap-code-$WHO --project=$PROJECT; echo"
   echo "It shows your service address and team code. Then follow Part B of the setup guide."
   echo "----------------------------------------------------------------"
 else
