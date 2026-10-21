@@ -6,8 +6,9 @@ run. JEV (TypeSafe's decision model, called directly on TypeSafe's System One AP
 answers two yes/no questions. Where JEV and the rules disagree, or JEV is unsure, the post is listed for a person to
 look at before the variety points are recorded. JEV never changes a number by itself.
 Calls to action are not sent to JEV: they are button labels, which the rules read exactly.
-Needs TYPESAFE_API_KEY in the environment (never in the repository). With no key, no network, a bad reply or a timeout, it returns
-status "skipped" with the reason, and the audit goes on with the rules alone.
+Key: either the team key service (DHAP_SERVICE_URL + DHAP_TEAM_CODE in the environment; see service/) or, as a
+fallback, TYPESAFE_API_KEY on this machine. Never put either in the repository. With neither, no network, a bad reply or a
+timeout, it returns status "skipped" with the reason, and the audit goes on with the rules alone.
 Usage: python3 jev.py posts.json      (posts.json = {"rules": {"offers":..,"events":..}, "posts": ["text", ...]})
 """
 import json, os, sys, urllib.error, urllib.request
@@ -32,18 +33,22 @@ def _ask(posts, key, timeout, url):
     for i in range(len(posts)):
         for k, (ins, yes, no) in QUESTIONS.items():
             qs[f"p{i}_{k}"] = {"type": "noul", "instructions": f"About post_{i} only: {ins}", "criteria": {"true": yes, "false": no}}
+    auth = {"X-DHAP-Code": key[5:]} if key.startswith("team:") else {"Authorization": f"Bearer {key}"}
     req = urllib.request.Request(url, data=json.dumps({"model": MODEL, "state": state, "questions": qs}).encode(),
-                                 headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+                                 headers={**auth, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
 def second_opinion(posts, rules, key=None, timeout=20, url=None):
     """posts: texts of the posts from the last 30 days; rules: {"offers": bool, "events": bool} from the collector."""
+    if key is None and url is None:
+        s_url, s_code = os.environ.get("DHAP_SERVICE_URL", "").rstrip("/"), os.environ.get("DHAP_TEAM_CODE", "")
+        if s_url and s_code: url, key = s_url + "/jev", "team:" + s_code
     key = key if key is not None else os.environ.get("TYPESAFE_API_KEY", "")
     out = {"status": "skipped", "model": MODEL, "rules": {k: rules.get(k) for k in ("offers", "events")}, "posts": [], "review": [], "cost_usd": 0.0}
     posts = [str(p) for p in posts if str(p).strip()][:MAX_POSTS]
     if not posts: out["reason"] = "no posts from the last 30 days"; return out
-    if not key: out["reason"] = "TYPESAFE_API_KEY not set"; return out
+    if not key: out["reason"] = "TYPESAFE_API_KEY not set (and no team key service: DHAP_SERVICE_URL + DHAP_TEAM_CODE)"; return out
     try: resp = _ask(posts, key, timeout, url or URL)
     except urllib.error.HTTPError as e: out["reason"] = f"HTTP {e.code}"; return out
     except Exception as e: out["reason"] = f"{type(e).__name__}: {str(e)[:120]}"; return out

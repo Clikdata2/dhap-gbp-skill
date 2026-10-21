@@ -9,8 +9,9 @@ Places cannot see posts, photo dates, newest-first reviews or owner replies, so 
 
 Cost: finding the listing uses the free "IDs only" search; reading it is one Place Details Enterprise call
 (the first 1,000 a month are free, then $0.02 each).
-Needs GOOGLE_PLACES_API_KEY in the environment (never in the repository). With no key, no network, a bad reply
-or a timeout, it returns status "skipped" with the reason, and the audit goes on.
+Key: either the team key service (DHAP_SERVICE_URL + DHAP_TEAM_CODE in the environment; see service/) or, as a
+fallback, GOOGLE_PLACES_API_KEY on this machine. Never put either in the repository. With neither, no network, a bad
+reply or a timeout, it returns status "skipped" with the reason, and the audit goes on.
 Usage: python3 places.py "Dealer name, street, city, state" [maps.json]   (maps.json = the collector's answer)
 """
 import json, os, re, sys, urllib.error, urllib.parse, urllib.request
@@ -20,9 +21,15 @@ FIELDS = ("id,displayName,formattedAddress,nationalPhoneNumber,websiteUri,rating
           "googleMapsUri,regularOpeningHours.weekdayDescriptions")
 PRICE_DETAILS = 0.02   # US$ per Place Details Enterprise call after the monthly free calls
 
+def _service():
+    """(base URL, team code) for the team key service, or (None, None) when it is not set up on this machine."""
+    url, code = os.environ.get("DHAP_SERVICE_URL", "").rstrip("/"), os.environ.get("DHAP_TEAM_CODE", "")
+    return (url + "/places/v1", code) if url and code else (None, None)
+
 def _call(url, key, timeout, body=None, mask="id"):
+    auth = {"X-DHAP-Code": key[5:]} if key.startswith("team:") else {"X-Goog-Api-Key": key}
     req = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None,
-                                 headers={"X-Goog-Api-Key": key, "X-Goog-FieldMask": mask, "Content-Type": "application/json"})
+                                 headers={**auth, "X-Goog-FieldMask": mask, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
@@ -44,11 +51,14 @@ def _zip(s): m = re.search(r"\b(\d{5})(?:-\d{4})?\b(?!.*\b\d{5}\b)", str(s or ""
 
 def lookup(query, key=None, timeout=15, base=None):
     """Find the listing (free IDs-only search), then read it (one Enterprise call)."""
+    if key is None and base is None:
+        s_base, s_code = _service()
+        if s_base: base, key = s_base, "team:" + s_code
     base = base or BASE
     key = key if key is not None else os.environ.get("GOOGLE_PLACES_API_KEY", "")
     out = {"status": "skipped", "query": query, "calls": 0, "cost_usd": 0.0}
     if not str(query or "").strip(): out["reason"] = "no search text"; return out
-    if not key: out["reason"] = "GOOGLE_PLACES_API_KEY not set"; return out
+    if not key: out["reason"] = "GOOGLE_PLACES_API_KEY not set (and no team key service: DHAP_SERVICE_URL + DHAP_TEAM_CODE)"; return out
     try:
         found = _call(base + "/places:searchText", key, timeout, {"textQuery": query, "pageSize": 3}, "places.id")
         ids = [p.get("id") for p in (found.get("places") or []) if isinstance(p, dict) and p.get("id")]
