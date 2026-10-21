@@ -17,6 +17,7 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     skips = []
     if ev["schema"]["sameas_google"]: skips.append(("Google Link in", "the Google link IS in sameAs (evidence)"))
     if ev["schema"]["areaserved"]: skips.append(("No areaServed in Site Schema", "areaServed IS present (evidence)"))
+    elif ev["schema"].get("areaserved_elsewhere"): skips.append(("No areaServed in Site Schema", "areaServed appears in a block other than the dealership entity (evidence), so the finding is worded for the entity"))
     for tok, why in skips:
         pat = "'" + tok + "' in html"
         if pat not in blk: raise AssertionError(f"suite changed: {pat} not found")

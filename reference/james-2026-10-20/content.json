@@ -1,0 +1,478 @@
+{
+ "_note": "Report text for James Mitsubishi Greece, re-audit of October 20 2026.",
+ "dealer": "James Mitsubishi Greece",
+ "city_st": "Greece, NY",
+ "report_id": "GBP-JMGNY-1026",
+ "month_year": "October 2026",
+ "dhap_url": "https://clikdatamarketing.com/james-mitsubishi-greece-digital-health-analysis-proposal-page",
+ "summary": {
+  "title": "Has Significant Local Search Vulnerabilities",
+  "context": "James Mitsubishi Greece has a strong review foundation on Google",
+  "red": "critical gaps in GBP profile structure, no owner posts on the listing, and missing schema",
+  "consequence": "are limiting their local search visibility every single day. Two entire GBP profiles (Service and Parts) don&rsquo;t exist.",
+  "orange": "competitors actively managing their GBP are positioned to gain ground on every relevant search.",
+  "facts": [
+   [
+    "0",
+    "Owner Posts on<br/>the Listing",
+    "red"
+   ],
+   [
+    "2",
+    "GBP Profiles<br/>Missing (Svc &amp; Parts)",
+    "red"
+   ],
+   [
+    "None",
+    "Google Link in<br/>sameAs Schema",
+    "red"
+   ],
+   [
+    "72%",
+    "Facebook recommend<br/>(73 Reviews)",
+    "orange"
+   ]
+  ],
+  "bullets": [
+   [
+    "red",
+    "2 GBP profiles missing",
+    "Service &amp; Parts departments invisible on Google"
+   ],
+   [
+    "red",
+    "No owner posts on the Google listing",
+    "ranking ground lost to competitors every single week"
+   ],
+   [
+    "red",
+    "No Google Business Profile link in sameAs",
+    "site schema lists Facebook only"
+   ],
+   [
+    "orange",
+    "",
+    "Competitors are posting, optimizing &amp; growing reviews while this profile sits dormant"
+   ]
+  ]
+ },
+ "scorecard_notes": [
+  "✅ Sales listing claimed and verified; no duplicate Google listing found",
+  "⚠️ Sales listing only; Service and Parts Google listings are missing",
+  "⚠️ No owner photos in the last 30 days (newest owner photos date to 2019); logo and cover photo seen",
+  "✅ Google 4.5 stars / 1,599 reviews; newest 3 days old; owner replied to 9 of the 10 newest; Facebook 72% recommend / 73 reviews; reviews not visible on site",
+  "🔴 No owner posts visible on the Google listing",
+  "⚠️ Apple Maps, Bing, Yelp and Facebook match; Yelp and Apple Maps unclaimed; Mitsubishi locator phone differs; website schema opens 30 minutes later than Google",
+  "⚠️ JSON-LD on 2 of 5 key pages (the homepage entity and a small Service-page block); department entities use the homepage URL and the same phone",
+  "⚠️ Name, address, phone, URL, hours, geo and logo present; sameAs is Facebook only; areaServed only in the Service-page block, not on the dealership entity; map link only on the Sales department entity"
+ ],
+ "ai": {
+  "title_status": "Critical Gaps Found",
+  "badge": "CRITICAL",
+  "badge_sub": "AI-Invisible",
+  "facts": [
+   [
+    "None",
+    "Google Link in<br/>sameAs Schema",
+    "red"
+   ],
+   [
+    "2",
+    "GBP Dept. Profiles<br/>Missing",
+    "red"
+   ],
+   [
+    "0",
+    "Owner Posts on<br/>the Listing",
+    "red"
+   ],
+   [
+    "2",
+    "Unclaimed Listings<br/>(Yelp, Apple Maps)",
+    "orange"
+   ]
+  ],
+  "key_gaps": [
+   [
+    "red",
+    "Service &amp; Parts GBP profiles missing",
+    "those departments have no AI-indexable entity"
+   ],
+   [
+    "red",
+    "No owner posts on the listing",
+    "no fresh content for AI engines to reference or cite"
+   ],
+   [
+    "orange",
+    "",
+    "sameAs lists Facebook only and the dealership entity defines no areaServed"
+   ]
+  ],
+  "signals": [
+   [
+    "Homepage JSON-LD plus a small Service-page block (2 of 5 key pages); sameAs lists Facebook only (AI impact inferred, not tested)",
+    "i",
+    "c"
+   ],
+   [
+    "Service &amp; Parts profiles confirmed missing &mdash; no indexable entity for those departments",
+    "v",
+    "c"
+   ],
+   [
+    "JSON-LD on 2 of 5 key pages; sameAs lists Facebook only; areaServed appears only in the Service-page block (confirmed in audit)",
+    "v",
+    "m"
+   ],
+   [
+    "No owner posts visible on the Google listing &mdash; no fresh content for AI to reference",
+    "v",
+    "c"
+   ],
+   [
+    "Knowledge Panel active and the dealership site is the first organic result for its name; sameAs links Facebook only (entity effect inferred)",
+    "v",
+    "p"
+   ],
+   [
+    "Mitsubishi locator lists a different phone; Yelp and Apple Maps are unclaimed (confirmed)",
+    "v",
+    "m"
+   ],
+   [
+    "Google 4.5 stars / 1,599 reviews vs. Facebook 72% recommend / 73 reviews; reviews not shown on the website (confirmed)",
+    "v",
+    "m"
+   ],
+   [
+    "Rendered JSON-LD holds the business entity and 15 Offer entries &mdash; no FAQ structured data; no owner posts",
+    "v",
+    "c"
+   ]
+  ],
+  "overall": "c",
+  "sections": [
+   {
+    "title": "&#128308; Verified Critical Gaps",
+    "cards": [
+     {
+      "kind": "critical",
+      "icon": "&#128308;",
+      "title": "Service &amp; Parts Have No AI-Indexable Entity",
+      "body": "No Service GBP profile and no Parts GBP profile exist &mdash; confirmed in the audit. GBP profiles are the primary structured entity that AI engines index for local businesses. Without them, those departments have no indexable presence for AI to reference. <em>Note: whether a query like &ldquo;Mitsubishi service Greece NY&rdquo; on ChatGPT or Perplexity currently returns James Mitsubishi was not directly tested &mdash; but there is no GBP entity for AI to draw from.</em>",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; 3-Pack Profile Build &amp; Management</span>",
+      "tag": "v"
+     },
+     {
+      "kind": "critical",
+      "icon": "&#128308;",
+      "title": "No Owner Posts on the Listing",
+      "body": "The Google listing shows no owner posts: no &ldquo;From the owner&rdquo; post and no local-posts list on the Overview, and none in the Search panel (checked October 20, 2026). AI engines that favor fresh, locally optimized content have nothing recent from this dealership to reference. Competitors publishing weekly are producing the content AI engines actively prioritize.",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; Weekly SEO/AEO/GEO Content Posts</span>",
+      "tag": "v"
+     }
+    ]
+   },
+   {
+    "title": "&#9888;&#65039; Inferred Major Gaps",
+    "cards": [
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "Directory Data Not Aligned",
+      "body": "The Mitsubishi dealer locator lists 866-906-1513 instead of the dealership&rsquo;s (585) 563-2029, and the Yelp and Apple Maps listings are unclaimed. AI engines including ChatGPT, Perplexity, and Bing Copilot are known to draw from third-party directory data; how much these entries affect AI answers was not tested.",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; 60+ Directory Syndication</span>",
+      "tag": "i"
+     },
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "AEO/FAQ Content Strategy Absent",
+      "body": "The rendered homepage&rsquo;s structured data holds the dealership entity and 15 Offer entries, with no FAQ or question-and-answer markup, and the Google listing shows no owner posts. The effect on answer engines is inferred, not tested.",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; SEO/AEO Content Strategy</span>",
+      "tag": "i"
+     }
+    ]
+   },
+   {
+    "title": "&#10003; Verified AI Visibility Strengths",
+    "cards": [
+     {
+      "kind": "working",
+      "icon": "&#10003;",
+      "title": "Active Knowledge Panel &mdash; Verified AI Foundation",
+      "body": "A claimed Google Business Profile with an active Knowledge Panel is the primary prerequisite for AI search visibility &mdash; confirmed in the audit. CLIKsearch builds on it: corrected schema, active 3-Pack profiles, and weekly content.",
+      "pill": "",
+      "tag": "v"
+     },
+     {
+      "kind": "working",
+      "icon": "&#10003;",
+      "title": "First Organic Result for the Dealership Name",
+      "body": "A Google search for the dealership&rsquo;s name in Greece, NY returns its own website as the first organic result (October 20, 2026). AI engines weight top-ranking pages as sources. CLIKsearch&rsquo;s omni-social distribution across 6 platforms creates continuous cross-platform entity citations that multiply this authority signal for AI engine indexing.",
+      "pill": "",
+      "tag": "v"
+     }
+    ]
+   }
+  ]
+ },
+ "findings": [
+  {
+   "title": "&#128308; Critical Issues",
+   "cards": [
+    {
+     "kind": "critical",
+     "icon": "&#128308;",
+     "title": "No Service GBP Profile",
+     "body": "No Service Google Business Profile listing was found in the audit. The website schema already describes a Service department, but no separate Service listing appears in Google. No &ldquo;Departments:&rdquo; line was seen on the Sales listing. <strong>Both views:</strong> the website&rsquo;s schema already describes a Service department (audited October 20, 2026) &mdash; what is missing is the Google Business Profile listing for it.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "critical",
+     "icon": "&#128308;",
+     "title": "No Parts GBP Profile",
+     "body": "No Parts Google Business Profile listing was found in the audit; the website schema already describes a Parts department. <strong>Both views:</strong> the website&rsquo;s schema already describes a Parts department (audited October 20, 2026) &mdash; what is missing is the Google Business Profile listing for it.",
+     "pill": "",
+     "tag": "v-date"
+    }
+   ]
+  },
+  {
+   "title": "&#9888;&#65039; Major Gaps",
+   "cards": [
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "No Owner Posts on the Listing",
+     "body": "No owner posts were visible on the Google listing on October 20, 2026: the Overview shows no &ldquo;From the owner&rdquo; post and no local-posts list, and the Search panel shows none.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "No Recent Owner Photos",
+     "body": "The newest owner photos are dated June 2019; none were added in the last 30 days. No Service or Parts photos were seen. The profile image shows the Mitsubishi logo.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "Yelp and Apple Maps Listings Are Unclaimed",
+     "body": "The Yelp listing is unclaimed and shows 2.0 stars from 8 reviews; its address and phone match. Apple Maps shows &ldquo;Claim This Place&rdquo; and lists the city as Rochester. Bing matches.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "Mitsubishi Dealer Locator Phone Mismatch",
+     "body": "The Mitsubishi dealer locator shows 866-906-1513 instead of the dealership&rsquo;s (585) 563-2029.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "Website Schema Hours Differ from Google",
+     "body": "Google lists opening at 8:30 AM, while the website schema lists 9:00 AM for the same days &mdash; a 30-minute difference. Closing times match by day.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "Google Reviews Aren&rsquo;t Shown on the Website",
+     "body": "The rendered dealership website did not show reviews; the audit found 1,599 Google reviews at 4.5 stars. Reviews can be displayed visibly to visitors &mdash; for example a Google reviews widget or testimonials &mdash; without any review markup in the structured data.",
+     "pill": "",
+     "tag": "v-date"
+    }
+   ]
+  },
+  {
+   "title": "&#9889; Missed Opportunities",
+   "cards": [
+    {
+     "kind": "opportunity",
+     "icon": "&#9889;",
+     "title": "areaServed Missing from the Dealership Entity; sameAs Links Only to Facebook",
+     "body": "Homepage sameAs lists Facebook only. The dealership&rsquo;s own entity defines no areaServed; the only areaServed found is a small block on the Service page (no name or address) that lists Greece, Rochester and Irondequoit. The homepage has no hasMap property; a Google Maps link (map) appears on the Sales department entity only. The three department entities share the homepage URL and phone. Add hasMap and sameAs pointing to the Google Business Profile URL, and define areaServed on the dealership entity. <em style=\"color:#6b7280;\">(Effect on entity recognition and local rankings is inferred, not tested.)</em>",
+     "pill": "",
+     "tag": "v-date"
+    }
+   ],
+   "add_omni_social": true
+  },
+  {
+   "title": "&#9989; What&rsquo;s Working",
+   "cards": [
+    {
+     "kind": "working",
+     "icon": "&#9989;",
+     "title": "Strong Google Review Profile",
+     "body": "Google shows 4.5 stars from 1,599 reviews. The newest review was 3 days old, and the owner replied to 9 of the 10 newest. Facebook shows 72% recommend across 73 reviews; it does not display a star rating.",
+     "pill": "",
+     "tag": "v-date"
+    },
+    {
+     "kind": "working",
+     "icon": "&#9989;",
+     "title": "Sales Listing Is Claimed; No Duplicate Found",
+     "body": "The Sales Google Business Profile is claimed. No duplicate Google listing was found in the audit searches.",
+     "pill": "",
+     "tag": "v-date"
+    }
+   ]
+  }
+ ],
+ "opportunities": [
+  [
+   "Add Service GBP Profile",
+   "&#128308; Critical",
+   "Create, fully optimize, and manage a dedicated Service department GBP &mdash; capturing &ldquo;Mitsubishi service near me&rdquo; searches independently"
+  ],
+  [
+   "Add Parts GBP Profile",
+   "&#128308; Critical",
+   "Create, optimize, and manage a dedicated Parts department GBP &mdash; capturing wholesale, retail parts, and collision shop searches"
+  ],
+  [
+   "Complete Entity Structured Data",
+   "&#128308; Critical",
+   "Build complete dealership structured data &mdash; connect each existing department entity to its own GBP profile, expand sameAs (including the Google Business Profile link), and add full areaServed"
+  ],
+  [
+   "Start Weekly GBP Posting",
+   "&#9888;&#65039; Major",
+   "8 Sales + 4 Service + 4 Parts SEO/GEO-optimized posts and photo posts monthly &mdash; OEM specials, inventory, service offers"
+  ],
+  [
+   "Reputation Review Builder",
+   "&#9888;&#65039; Major",
+   "Automated emails and text messages sent to past customers to help grow a steady stream of reviews"
+  ],
+  [
+   "60+ Directory Syndication",
+   "&#9888;&#65039; Major",
+   "Sync NAP across 60+ directories &mdash; Yelp, CarGurus, DealerRater, Cars.com &mdash; eliminating mismatches and building entity authority"
+  ],
+  [
+   "Complete Website Schema Coverage",
+   "&#9889; Opportunity",
+   "Add full sameAs and areaServed coverage, correct department URLs and phones, and connect each department to its own GBP profile"
+  ]
+ ],
+ "why_card": {
+  "icon": "&#9200;",
+  "title": "Every Week Without Posts = Ranking Ground Lost",
+  "body": "Google&rsquo;s algorithm rewards consistent GBP activity. With no owner posts on the Sales listing &mdash; and no Service or Parts GBP listings found &mdash; competitors posting weekly OEM specials and service content are positioned to compound their Map Pack advantage every single week."
+ },
+ "alert": {
+  "eyebrow": "Critical Alert &mdash; Immediate Attention Required",
+  "tiles": [
+   [
+    "alarm",
+    "0",
+    "red",
+    "&#128683; Owner Posts on the Listing",
+    "No owner posts were visible on the Google listing during the October 20, 2026 audit.",
+    "Content Dead",
+    "crit"
+   ],
+   [
+    "alarm",
+    "2",
+    "red",
+    "&#128203; Revenue Depts. Missing on Google",
+    "No Service GBP profile. No Parts GBP profile. Both departments: not findable on Google.",
+    "Profiles Missing",
+    "crit"
+   ],
+   [
+    "alarm",
+    "4",
+    "red",
+    "&#127759; NAP &amp; Hours Mismatches",
+    "Yelp and Apple Maps are unclaimed; the Mitsubishi locator phone differs; website schema opens 30 minutes later than Google.",
+    "Audit Verified",
+    "crit"
+   ],
+   [
+    "alarm",
+    "CRITICAL",
+    "red sm",
+    "&#129302; AI Search Visibility",
+    "3 verified gaps: missing Service/Parts listings, no owner posts on the listing, and limited website schema links.",
+    "AI&ndash;Invisible",
+    "crit"
+   ],
+   [
+    "warn",
+    "72%",
+    "orange",
+    "&#9888;&#65039; Facebook Recommendations",
+    "Facebook shows 72% recommend across 73 reviews; Google shows 4.5 stars across 1,599 reviews. Facebook is not a star rating.",
+    "Reputation Gap",
+    "major"
+   ],
+   [
+    "alarm",
+    "None",
+    "red",
+    "&#9940; Reviews Not Shown on Website",
+    "1,599 Google reviews at 4.5 stars &mdash; none appeared on the dealership&rsquo;s rendered website.",
+    "Not Displayed",
+    "crit"
+   ]
+  ],
+  "impact_para2": "With two revenue departments missing from Google, no owner posts on the listing, and no Google Business Profile link in the website&rsquo;s sameAs schema",
+  "stats": [
+   [
+    "DEPTS_MISSING",
+    2,
+    "",
+    "Revenue Depts.<br/>Not on Google",
+    "Critical"
+   ],
+   [
+    "POSTS_ON_LISTING",
+    0,
+    "",
+    "Owner Posts on<br/>the Listing",
+    "Critical"
+   ],
+   [
+    "SAMEAS_LINKS",
+    0,
+    "",
+    "Google Profile Links<br/>in sameAs Schema",
+    "Critical"
+   ],
+   [
+    "AI_VIS_GAPS",
+    3,
+    "",
+    "AI Visibility<br/>Structural Gaps",
+    "Critical"
+   ]
+  ],
+  "locked": [
+   [
+    "Entity Authority: sameAs Links to Facebook Only &mdash; Knowledge Graph Signals Are Critically Thin",
+    "sameAs is how a site&rsquo;s structured data points to a business&rsquo;s other official profiles. This dealership&rsquo;s lists Facebook only &mdash; the Google Business Profile isn&rsquo;t among the linked profiles &mdash; so the site&rsquo;s entity data is thinner than a fully built profile set."
+   ],
+   [
+    "Market Reach Undefined: No areaServed on the Dealership Entity &mdash; Surrounding Markets Not Stated",
+    "The dealership&rsquo;s own structured data defines no areaServed property; only a small unnamed block on the Service page lists three cities. Greece, NY sits within a large metro market &mdash; every city left unstated is a missed chance to say where the dealership competes."
+   ],
+   [
+    "Website Schema Hours Differ from Google &mdash; Opening Time Off by 30 Minutes",
+    "Google lists opening at 8:30 AM while the website&rsquo;s structured data says 9:00 AM for the same days &mdash; one more place where the dealership&rsquo;s facts do not line up."
+   ]
+  ]
+ }
+}
