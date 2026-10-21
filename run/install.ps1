@@ -7,7 +7,8 @@ $target = Join-Path $skills "dhap-gbp-run"
 if (Test-Path $target) {
   $item = Get-Item $target -Force
   if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { $item.Delete() }
-  else { Rename-Item $target ("dhap-gbp-run.backup-" + (Get-Date -Format yyyyMMddHHmmss)) }
+  else { $bk = Join-Path $HOME ".claude\skill-backups"; New-Item -ItemType Directory -Force -Path $bk | Out-Null
+         Move-Item $target (Join-Path $bk ("dhap-gbp-run.backup-" + (Get-Date -Format yyyyMMddHHmmss))) }   # outside skills, so it can't load twice
 }
 New-Item -ItemType Junction -Path $target -Target (Join-Path $repo "run") | Out-Null   # updates itself with every git pull
 $codex = Join-Path $HOME ".codex"; New-Item -ItemType Directory -Force -Path $codex | Out-Null
