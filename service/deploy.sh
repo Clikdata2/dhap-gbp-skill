@@ -66,5 +66,6 @@ echo "Service address:  $URL"
 if [ -n "$FIRST_CODE" ]; then echo "Team code:        $FIRST_CODE"; else echo "Team code:        (unchanged — see service/team-code.sh list)"; fi
 echo "Health check:     $(curl -s "$URL/health")"
 echo
-echo "Save the service address and the team code in your password manager now."
+echo "Nothing to write down: the keys and team codes are kept in Google Secret Manager."
+echo "Next, give each person their own code:  bash service/team-code.sh add NAME EMAIL"
 echo "======================================"

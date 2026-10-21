@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # DHAP key service — set up one employee's Mac for Claude Code and Codex. Run once per Mac:
 #   bash service/setup-employee.sh
-# It asks for the service address and the person's team code (both from your password manager),
+# It asks for the service address and the person's team code (shown by the gcloud line the CTO sent them),
 # saves them where Claude Code and Codex read them, and tests the connection.
 set -euo pipefail
 

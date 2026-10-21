@@ -22,11 +22,11 @@ Employee (Claude Code / Codex / Ask AI)  --team code-->  Key service on Google C
 - **Team code** — a password for *our* key service. It starts with `dhap_`. Each person gets their own.
 - **Service address** — the web address of our key service. It starts with `https://`.
 - **Cloud Shell** — a command window inside the Google Cloud website. Nothing to install.
-- **Password manager** — the app your team uses to store passwords (for example 1Password).
+- **Secret Manager** — Google Cloud's locked box for secrets. It holds the keys and everyone's team code. Each person can open only their own. (It costs a few cents a month, about $1 at most for a small team.)
 
 > **Safety rules**
 > 1. Never paste a key or a team code into email, Slack, a chat with an AI, or a document.
-> 2. Share them only through your password manager.
+> 2. Never type them into a document. Each person reads their own code straight from Secret Manager (Part B shows how).
 > 3. If you think one leaked, tell the CTO. The CTO can replace it in a minute (see Part D).
 
 ---
@@ -43,11 +43,11 @@ The old key was pasted into a chat, so we make a fresh one.
 6. Under **API restrictions**, choose **Restrict key**. In the list, check **Places API (New)** only. Click **OK**.
 7. Under **Application restrictions**, leave it on **None**. (The key service runs in Google Cloud, which has no fixed address.)
 8. Click **Save**.
-9. Put the new key in your password manager as **"DHAP – Google Places key"**.
+9. Keep this window open. You'll paste the key in step A5, and after that it lives only in Secret Manager. You don't need to save it anywhere else.
 
 ### A2. Get the TypeSafe (JEV) key ready
 1. Sign in to **typesafe.ai** and copy your API key.
-2. Put it in your password manager as **"DHAP – TypeSafe key"**.
+2. Keep it ready. You'll paste it in step A5.
 3. No TypeSafe key yet? That's fine. Skip it now and add it later (see Part D3).
 
 ### A3. Open Cloud Shell
@@ -88,21 +88,24 @@ Health check:     {"ok": true, "places_key": true, "jev_key": true, "team_codes"
 - `"places_key": true` means the Places key is loaded.
 - `"jev_key": true` means the TypeSafe key is loaded. It says `false` if you skipped it.
 
-### A6. Save what you got
-In your password manager, create **"DHAP – Key service"** and save:
-- **Service address** (the `https://` line)
-- **Team code** (the `dhap_` line). This first code is named **team**.
+### A6. Nothing to write down
+Both keys and the team codes are now saved in **Secret Manager**. To look at them later: in the Google Cloud website click the menu (☰) → **Security** → **Secret Manager**. The first team code is named **team** (it's for testing; you can remove it later with `bash service/team-code.sh remove team`).
 
 ### A7. Make one team code per person
-Each employee should get their own code, so you can turn one person off without bothering anyone else. In Cloud Shell, for each person, type (use their first name, no spaces):
-```
-bash service/team-code.sh add maria
-```
-It prints **"New code for maria: dhap_..."**. Save it in the password manager and share it with that person only.
+Each employee gets their own code, so you can turn one person off without bothering anyone else. Each person needs a **Google account** (their work Google email is best).
 
-Also make one for Ask AI:
+In Cloud Shell, for each person, type their first name and their Google email (no spaces in the name):
 ```
-bash service/team-code.sh add askai
+bash service/team-code.sh add maria maria@yourcompany.com
+```
+What happens:
+- Their code is saved in Secret Manager as **dhap-code-maria**.
+- **Only maria's Google account** can read it.
+- It prints a short message for you to send to maria. **That message has no secrets in it**, so email or Slack is fine.
+
+Also make one for Ask AI, using the email of the person who manages GoHighLevel:
+```
+bash service/team-code.sh add askai ghl-admin@yourcompany.com
 ```
 
 ### A8. Set a spending alert
@@ -122,7 +125,16 @@ bash service/team-code.sh add askai
 
 ## Part B — Set up a Mac for Claude Code and Codex (each employee, one time)
 
-**You need:** the service address and **your own** team code from the password manager.
+**You need:** the message your CTO sent you, and your work Google account.
+
+**First, get your code (2 minutes):**
+1. Open **https://shell.cloud.google.com** in your web browser. Sign in with the Google account your CTO used.
+2. If it asks you to accept terms or to **Authorize**, click to agree.
+3. Wait for the black window to show a line ending in **$**.
+4. Copy the line from your CTO's message (it starts with `gcloud secrets versions access`), paste it in, and press **Enter**.
+5. You'll see two lines: **Service address:** and **Team code:**. Keep this tab open. You'll copy from it in a moment.
+
+**Then set up your Mac:**
 
 1. Open the **Terminal** app (press **Command + Space**, type **Terminal**, press **Enter**).
 2. Download the setup files. Paste this and press **Enter**:
@@ -149,7 +161,7 @@ bash service/team-code.sh add askai
 **If something goes wrong**
 | You see | What it means | What to do |
 |---|---|---|
-| "the team code is wrong" | The code was mistyped or turned off | Copy it again from the password manager. Still failing? Ask the CTO for a new code. |
+| "the team code is wrong" | The code was mistyped or turned off | Run the line from your CTO's message again in Cloud Shell and copy the code carefully. Still failing? Ask the CTO for a new code. |
 | "Could not reach the service" | Wrong address or no internet | Check the address starts with `https://` and you're online. |
 | The report says Places or JEV was **skipped** | The check couldn't run this time | The report is still fine. Those checks never change a score. Tell the CTO if it keeps happening. |
 
@@ -157,7 +169,7 @@ bash service/team-code.sh add askai
 
 ## Part C — Set up Ask AI (GHL admin, one time)
 
-**You need:** the service address and the **askai** team code from A7.
+**You need:** the message the CTO sent you for **askai**. First get the values: open **https://shell.cloud.google.com**, sign in with the email the CTO used, paste the line from the message, and press **Enter**. You'll see the **Service address** and the **Team code**.
 
 ### C1. Save the two values in GHL
 1. In GoHighLevel, open the sub-account you run DHAP reports in.
@@ -186,7 +198,7 @@ All of these are typed in **Cloud Shell**, inside the `dhap-gbp-skill` folder. I
 ```
 bash service/team-code.sh remove maria
 ```
-Their code stops working within about a minute. Make a new one with `add` if they still need it.
+Their code stops working within about a minute, and their saved copy in Secret Manager is deleted. If they still need access, make a new one with `add`.
 
 **D2. See who has a code**
 ```
@@ -210,5 +222,6 @@ Open the service address with `/health` added at the end in any web browser, for
 - Code: `service/main.py`, a Google Cloud Run function (Python 3.12). Keys and codes live in Secret Manager as `dhap-places-key`, `dhap-typesafe-key` and `dhap-team-codes` (JSON `{name: code}`).
 - Routes: `GET /health` · `POST /places/v1/places:searchText` and `GET /places/v1/places/<id>` (forwarded to Places API (New), nothing else is allowed) · `POST /jev` (forwarded to TypeSafe System One, pinned model only) · `GET /lookup?q=` (one compact answer for Ask AI). Every route except `/health` needs a team code (`X-DHAP-Code` header; `?code=` is accepted on `/lookup` only). Logs record the team member's name and route, never keys or codes.
 - Engine: `engine/places.py` and `engine/jev.py` use the service when `DHAP_SERVICE_URL` and `DHAP_TEAM_CODE` are set. Otherwise they fall back to `GOOGLE_PLACES_API_KEY` / `TYPESAFE_API_KEY` on the machine. If neither is set, they skip, and the audit goes on.
+- Team codes: the master list is the secret `dhap-team-codes` (read by the service). Each person's copy is the secret `dhap-code-NAME` with only that person's Google account as Secret Accessor. No password manager is needed.
 - The service is open to the internet but useless without a team code. Max 3 instances; Places spending is capped by the budget alert and by Google's quotas.
 - If `deploy.sh` stops with an error about **allUsers** or **allow-unauthenticated**, your organization blocks public services. An admin must allow it for this one service: Organization policy "Domain restricted sharing".
