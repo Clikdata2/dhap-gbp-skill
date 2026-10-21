@@ -1,0 +1,132 @@
+{
+ "_note": "James Mitsubishi Greece re-audit, Oct 20 2026 (signed-in Chrome; evidence screenshots kept for RULE K popups). Replaces the Oct 19 reference.",
+ "dealer": "James Mitsubishi Greece",
+ "audit_date": "2026-10-20",
+ "facts": {
+  "phones": [
+   "585-563-2029",
+   "866-906-1513"
+  ],
+  "numbers": [
+   4.5,
+   1599,
+   10,
+   9,
+   3,
+   2,
+   72,
+   73,
+   2.0,
+   8,
+   2019,
+   1,
+   30,
+   0,
+   15,
+   16,
+   5
+  ],
+  "dates": [
+   "2026-10-20"
+  ],
+  "times": [
+   "8:30",
+   "9:00"
+  ]
+ },
+ "ledger": {
+  "website_schema": {
+   "method": "browser fetch + JSON-LD parse of home, About, Service, Parts, Directions; rendered homepage JSON-LD listed",
+   "when": "2026-10-20"
+  },
+  "google_listings": {
+   "method": "Google Search panel + Google Maps searches (Sales, service, parts, duplicates) in signed-in Chrome",
+   "when": "2026-10-20"
+  },
+  "reviews": {
+   "method": "Maps reviews sorted Newest, 10 newest + owner replies",
+   "when": "2026-10-20"
+  },
+  "posts": {
+   "method": "Maps Overview: no 'From the owner' post and no local-posts list; Search panel shows no posts",
+   "when": "2026-10-20"
+  },
+  "photos": {
+   "method": "Maps photos 'By owner': newest owner photos dated Jun 2019; profile avatar shows the Mitsubishi logo",
+   "when": "2026-10-20"
+  },
+  "facebook": {
+   "method": "Facebook page signed in: 72% recommend (73 reviews), no star rating",
+   "when": "2026-10-20"
+  },
+  "directories": {
+   "method": "Apple Maps, Bing, Yelp, Facebook, Mitsubishi dealer locator (ZIP 14626)",
+   "when": "2026-10-20"
+  }
+ },
+ "listings": {
+  "sales": {
+   "claimed_verified": 1.0,
+   "checklist_done": 7,
+   "checklist_total": 7,
+   "photos_30d": 0,
+   "logo": true,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": false
+   },
+   "posts_30d": 0,
+   "last_post_days": 999,
+   "variety": {
+    "offers": false,
+    "events": false,
+    "cta": false
+   },
+   "newest_review_days": 3
+  },
+  "service": null,
+  "parts": null,
+  "combined": null
+ },
+ "claimed": {
+  "duplicate_or_unclaimed_found": false
+ },
+ "reviews": {
+  "google_rating": 4.5,
+  "owner_replies_of_10_newest": 9,
+  "facebook": {
+   "mode": "percent"
+  },
+  "real_reviews_visible_on_site": false
+ },
+ "nap": {
+  "google_vs_site_fields_matching": 3,
+  "directories_agree": [
+   true,
+   true,
+   true,
+   true,
+   false
+  ],
+  "dept_phones_ok": null,
+  "map_pin_ok": true
+ },
+ "schema": {
+  "pages_with_jsonld": 2,
+  "business_type_ok": true,
+  "department_entities": 3,
+  "parses_cleanly": true,
+  "dept_own_page_address": 0,
+  "dept_own_phone": 0,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": false,
+  "sameas_other": true,
+  "areaserved": false,
+  "hasmap_or_map": false,
+  "services_or_offers": false,
+  "areaserved_elsewhere": true
+ }
+}

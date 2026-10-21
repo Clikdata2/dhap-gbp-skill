@@ -110,9 +110,23 @@ for rel in ("scripts/proof_popup.py", "scripts/check_proof_popups.py"):
 if "### RULE K" not in skill:
     errors.append("SKILL.md must contain RULE K (evidence popups)")
 
+refs = sorted((root / "reference").glob("*.html")) if (root / "reference").exists() else []
+for f in refs:
+    t = re.sub(r"data:image/[a-z]+;base64,[A-Za-z0-9+/=]+", "data:image", f.read_text(encoding="utf-8"))
+    chk = t
+    for e in EXEMPT:
+        chk = chk.replace(e, "")
+    for b in BANNED:
+        if b in chk:
+            errors.append(f"reference/{f.name}: banned text found: {b!r}")
+    if div_depth(t) != 0:
+        errors.append(f"reference/{f.name}: unbalanced <div> tags")
+    if "PROOF POPUPS START" not in t or 'id="proof-pop"' not in t:
+        errors.append(f"reference/{f.name}: missing RULE K evidence popups")
+
 if errors:
     print("VALIDATION FAILED")
     for e in errors:
         print(" -", e)
     sys.exit(1)
-print(f"OK — DHAP GBP v{version}: versions agree, no internal values leaked, {len(templates)} template(s) pass.")
+print(f"OK — DHAP GBP v{version}: versions agree, no internal values leaked, {len(templates)} template(s) and {len(refs)} reference page(s) pass.")

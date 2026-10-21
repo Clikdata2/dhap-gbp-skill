@@ -1,0 +1,274 @@
+{
+ "keys": {
+  "posts": {
+   "t": "No owner posts on the Google listing",
+   "n": "Checked October 20, 2026 in the signed-in browser. The Maps Overview has no “From the owner” post and no local-posts list, and the Google Search panel shows no posts.",
+   "i": [
+    [
+     "maps_overview",
+     "Maps Overview: photos, reviews and visitor updates, but no owner post"
+    ],
+    [
+     "google_panel",
+     "Search panel: no posts section"
+    ]
+   ]
+  },
+  "depts": {
+   "t": "No Service or Parts Google listing",
+   "n": "Google Maps searches on October 20, 2026 for the dealership’s service and for Mitsubishi parts in Greece, NY return only the main James Mitsubishi Greece listing (and another dealer). The Search panel shows no Departments line. The website’s schema does describe Sales, Service and Parts departments.",
+   "i": [
+    [
+     "parts_search",
+     "Maps search “Mitsubishi parts Greece NY”: no James parts listing"
+    ],
+    [
+     "google_panel",
+     "Search panel: no Departments line"
+    ]
+   ]
+  },
+  "sameas": {
+   "t": "sameAs lists Facebook only; areaServed not on the dealership entity",
+   "n": "The website’s JSON-LD parsed on October 20, 2026 (home, About, Service, Parts and Directions pages).",
+   "c": "Homepage AutomotiveBusiness \"JAMES MITSUBISHI GREECE\":\n  sameAs: [\"https://www.facebook.com/James-Mitsubishi-Greece-1221677018007507/\"]\n  no Google Business Profile URL, no hasMap, no areaServed\n  map: only on the Sales department entity\n\nService page, separate unnamed block:\n  {\"@type\": \"AutoPartsStore\",\n   \"areaServed\": \"Greece, NY, Rochester, NY, Irondequoit, NY\"}\n  (no name, address or link to the dealership)"
+  },
+  "facebook": {
+   "t": "Facebook recommendation figure",
+   "n": "Facebook page, October 20, 2026: “72% recommend (73 reviews)” — a recommendation percentage, not a star rating. Google shows 4.5 stars across 1,599 reviews.",
+   "i": [
+    [
+     "facebook",
+     "Facebook page Details: 72% recommend (73 reviews)"
+    ],
+    [
+     "google_panel",
+     "Google: 4.5 ★ · 1,599 reviews"
+    ]
+   ]
+  },
+  "unclaimed": {
+   "t": "Yelp and Apple Maps listings are unclaimed",
+   "n": "Captured October 20, 2026. Yelp shows “Unclaimed” (2.0 stars, 8 reviews); Apple Maps shows “Claim This Place” at the foot of the listing (page text). Both show the matching phone (585) 563-2029.",
+   "i": [
+    [
+     "yelp",
+     "Yelp: Unclaimed · 2.0 ★ (8 reviews) · (585) 563-2029"
+    ],
+    [
+     "apple",
+     "Apple Maps listing (“Claim This Place” appears below the details)"
+    ]
+   ]
+  },
+  "locator": {
+   "t": "Mitsubishi dealer locator shows a different phone",
+   "n": "mitsubishicars.com dealer locator, ZIP 14626, October 20, 2026: the James Mitsubishi Greece entry lists 866-906-1513; the website and Google show (585) 563-2029.",
+   "i": [
+    [
+     "locator",
+     "Locator entry: Contact 866-906-1513"
+    ],
+    [
+     "site_phones",
+     "Website header: Sales, Service and Parts (585) 563-2029"
+    ]
+   ]
+  },
+  "hours": {
+   "t": "Website schema hours differ from Google",
+   "n": "Captured October 20, 2026: Google shows “Opens 8:30 AM”; the website’s JSON-LD says opens 09:00 Monday to Thursday.",
+   "c": "openingHoursSpecification (homepage JSON-LD):\n  Monday-Thursday  opens 09:00  closes 19:00",
+   "i": [
+    [
+     "google_panel",
+     "Google Search panel: Opens 8:30 AM"
+    ]
+   ]
+  },
+  "nap": {
+   "t": "Four NAP and hours mismatches",
+   "n": "The four items behind this count, all checked October 20, 2026: Yelp unclaimed; Apple Maps unclaimed; the Mitsubishi locator lists 866-906-1513; the website schema opens at 09:00 while Google says 8:30 AM.",
+   "i": [
+    [
+     "yelp",
+     "Yelp: Unclaimed"
+    ],
+    [
+     "locator",
+     "Locator: 866-906-1513"
+    ],
+    [
+     "google_panel",
+     "Google: opens 8:30 AM"
+    ]
+   ]
+  },
+  "site_reviews": {
+   "t": "No Google reviews shown on the website",
+   "n": "The dealership’s homepage, October 20, 2026: after scrolling to the bottom, a text search of the page for review, testimonial, rated and stars found no matches, and no menu item links to a reviews page.",
+   "i": [
+    [
+     "site_header",
+     "Homepage menu (a trade-in pop-up was open in the middle of the page)"
+    ]
+   ]
+  },
+  "reviews": {
+   "t": "Google reviews and owner replies",
+   "n": "Google Maps Reviews tab, sorted Newest, October 20, 2026 (reviewer names blurred): newest review 3 days old; 9 of the 10 newest carry a “Response from the owner”.",
+   "i": [
+    [
+     "reviews_1",
+     "Newest reviews"
+    ],
+    [
+     "reviews_2",
+     "Owner responses under the newest reviews"
+    ],
+    [
+     "google_panel",
+     "4.5 ★ · 1,599 Google reviews"
+    ]
+   ]
+  },
+  "photos": {
+   "t": "No recent owner photos",
+   "n": "Google Maps photos, “By owner”, October 20, 2026: the owner photos are dated 2019 (the header reads “Photo · Jun 2019”); none from the last 30 days. The profile image shows the Mitsubishi logo.",
+   "i": [
+    [
+     "owner_photo",
+     "Owner photo viewer: “Photo · Jun 2019”, Mitsubishi logo as the profile image"
+    ]
+   ]
+  },
+  "claimed": {
+   "t": "Sales listing claimed; no duplicate found",
+   "n": "Google Maps searches on October 20, 2026 for the dealership, its service and Mitsubishi parts in Greece return one James Mitsubishi Greece listing, with owner replies on its reviews.",
+   "i": [
+    [
+     "parts_search",
+     "Maps results: one James Mitsubishi Greece listing"
+    ],
+    [
+     "reviews_2",
+     "Owner responses on the listing"
+    ]
+   ]
+  },
+  "kp": {
+   "t": "Knowledge Panel and first organic result",
+   "n": "Google search for “James Mitsubishi Greece NY”, October 20, 2026: the dealership’s own website is the first organic result and the Knowledge Panel shows on the right.",
+   "i": [
+    [
+     "google_search",
+     "Search results: first result jamesmitsubishigreece.com; Knowledge Panel"
+    ]
+   ]
+  },
+  "directory": {
+   "t": "Directory data not aligned",
+   "n": "Captured October 20, 2026: the Mitsubishi locator lists a different phone, and Yelp and Apple Maps are unclaimed. Bing and Facebook match the website.",
+   "i": [
+    [
+     "locator",
+     "Locator: 866-906-1513"
+    ],
+    [
+     "yelp",
+     "Yelp: Unclaimed"
+    ],
+    [
+     "bing",
+     "Bing: (585) 563-2029, matches"
+    ]
+   ]
+  },
+  "aeo": {
+   "t": "No FAQ structured data",
+   "n": "Every JSON-LD block on the rendered homepage, October 20, 2026:",
+   "c": "15 × Offer (vehicle and service specials)\n 1 × AutomotiveBusiness \"JAMES MITSUBISHI GREECE\"\n\nNo FAQPage, Question or HowTo blocks.\nNo owner posts on the Google listing."
+  },
+  "aigaps": {
+   "t": "The verified AI-visibility gaps",
+   "n": "The three gaps behind this count, each with its own proof (hover the matching cards), checked October 20, 2026:",
+   "c": "1. Service and Parts GBP profiles missing\n2. No owner posts on the Google listing\n3. sameAs lists Facebook only; no areaServed on the dealership entity",
+   "i": [
+    [
+     "parts_search",
+     "No Service or Parts listing"
+    ],
+    [
+     "maps_overview",
+     "No owner posts"
+    ]
+   ]
+  }
+ },
+ "rules": [
+  [
+   "depts",
+   "profiles?\\s*missing|no service gbp|no parts gbp|ai-indexable entity|revenue depts|depts_missing|dept\\. profiles"
+  ],
+  [
+   "posts",
+   "owner posts|without posts|posts_on_listing"
+  ],
+  [
+   "photos",
+   "owner photos"
+  ],
+  [
+   "unclaimed",
+   "unclaimed"
+  ],
+  [
+   "locator",
+   "locator phone"
+  ],
+  [
+   "hours",
+   "hours differ"
+  ],
+  [
+   "nap",
+   "nap (&|and) hours"
+  ],
+  [
+   "site_reviews",
+   "not shown on (the )?website|aren.t shown"
+  ],
+  [
+   "sameas",
+   "link in\\s*sameas|sameas_links|sameas lists|areaserved missing"
+  ],
+  [
+   "facebook",
+   "facebook recommend"
+  ],
+  [
+   "reviews",
+   "strong google review"
+  ],
+  [
+   "claimed",
+   "sales listing is claimed"
+  ],
+  [
+   "kp",
+   "knowledge panel|first organic"
+  ],
+  [
+   "directory",
+   "directory data"
+  ],
+  [
+   "aeo",
+   "aeo/faq"
+  ],
+  [
+   "aigaps",
+   "ai_vis_gaps|ai search visibility$"
+  ]
+ ]
+}
