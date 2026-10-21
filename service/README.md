@@ -177,17 +177,18 @@ bash service/team-code.sh add askai ghl-admin@yourcompany.com
 3. Click **Add Custom Value**. Name: **DHAP Service URL**. Value: the service address. Save.
 4. Click **Add Custom Value** again. Name: **DHAP Team Code**. Value: the **askai** team code. Save.
 
-### C2. Test whether Ask AI can use it
+### C2. Test it once in Ask AI
 1. Open **Ask AI**.
 2. Type this, but replace the two parts in CAPITALS with the real values:
    ```
-   Open this web address and show me exactly what it returns:
-   SERVICE-ADDRESS/lookup?q=James%20Mitsubishi%20Greece%20NY&code=ASKAI-TEAM-CODE
+   Send a GET request to SERVICE-ADDRESS/lookup?q=James%20Mitsubishi%20Greece%20NY
+   with the header X-DHAP-Code: ASKAI-TEAM-CODE
+   and show me exactly what it returns.
    ```
-3. **If it shows** `"status": "ok"` with the dealer's name, phone and rating: ✅ Done. Ask AI will use the key service on every DHAP run.
-4. **If it says it can't open web addresses:** Ask AI can't reach outside websites by itself. Tell Travis. The next step is a small GHL workflow that makes the call for Ask AI. Until then, Ask AI runs simply skip the Places check, and the report is still correct.
+3. You should see `"status": "ok"` with the dealer's name, phone and rating. ✅ Done. Ask AI will use the key service on every DHAP run.
+4. If you see `"missing or wrong team code"`, copy the code again (see "You need" above) and update the **DHAP Team Code** Custom Value.
 
-> Note: in this test the team code is part of the address, so it appears in the service's log. That's why Ask AI gets **its own** code (**askai**), which you can replace at any time.
+> We tested this on October 21, 2026: Ask AI sends real web requests and can put the team code in a header, so the code stays out of the service's logs.
 
 ---
 
