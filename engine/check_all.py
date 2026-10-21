@@ -84,7 +84,8 @@ def main():
         if r.returncode: raise SystemExit(r.stdout + r.stderr)
         return json.loads(r.stdout)
     out = gate("4 build", g4)
-    D = pathlib.Path(out["dhap"]).read_text(encoding="utf-8"); HS = pathlib.Path(out["health_alert"]).read_text(encoding="utf-8")
+    _strip = lambda t: re.sub(r"data:image/[a-z]+;base64,[A-Za-z0-9+/=]+", "data:image", t)   # RULE K: embedded evidence images must not trip text assertions
+    D = _strip(pathlib.Path(out["dhap"]).read_text(encoding="utf-8")); HS = _strip(pathlib.Path(out["health_alert"]).read_text(encoding="utf-8"))
     words = ["James Mitsubishi", "Greece, NY", "Greece NY", "Rochester", "GBP-JMGNY"] if "James" not in ev["dealer"] else []
     gate("5 repository assertions", lambda: suite(repo, D, HS, ev, c["report_id"], words))
     procs = {}
