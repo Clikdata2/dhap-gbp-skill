@@ -87,6 +87,7 @@ function tag(){
     el.classList.add('has-proof'); el.setAttribute('tabindex','0'); el.setAttribute('data-proof',key);
     el.addEventListener('mouseenter',function(){ if(!pinned) show(el,key); });
     el.addEventListener('mouseleave',later);
+    el.addEventListener('mousemove',function(){ if(!pinned && pop.style.display!=='block') show(el,key); });
     el.addEventListener('focus',function(){ show(el,key); });
     el.addEventListener('click',function(e){ e.stopPropagation(); if(pinned&&cur===key){hide();} else {pinned=true; pop.classList.add('pinned'); show(el,key);} });
   });}
@@ -99,7 +100,7 @@ tag();
 })();
 </script>
 """ % (json.dumps(imgs), json.dumps(kd), json.dumps(rules))
-    return css + js
+    return "<!-- PROOF POPUPS START (RULE K) -->\n" + css + js + "<!-- PROOF POPUPS END -->\n"
 
 if __name__ == "__main__":
     spec = json.load(open(sys.argv[1]))

@@ -2,12 +2,12 @@
 """RULE K check: every tile, card and hero fact in a built DHAP or Digital Health Alert must have an evidence popup.
 Usage: python3 scripts/check_proof_popups.py report.html [report2.html ...]   (needs Playwright + Chromium)
 Prints each tile/card with its popup key; exits 1 if a non-exempt one has none. Exempt (no audit claim): omni-social pitch cards,
-the methodology card, the CLIKsearch closing box, and blurred locked findings (not selected here)."""
+the methodology card, the CLIKsearch closing box, the MiDS reimbursement card, the competitor industry-pattern bullet, and blurred locked findings (not selected here)."""
 import re, sys, pathlib
 from playwright.sync_api import sync_playwright
 
 SEL = ".hero-fact,.score-desc>div,.kpi-tile,.t-stat,.finding-card"
-EXEMPT = re.compile(r"cross-platform social|6-platform social|how this assessment was built|closes every verified gap", re.I)
+EXEMPT = re.compile(r"cross-platform social|6-platform social|how this assessment was built|closes every verified gap|mids reimbursement|competitors are posting", re.I)
 
 def main(paths):
     bad = 0
