@@ -497,7 +497,7 @@ function showTab(id,btn){
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
   if(btn.scrollIntoView){ try{ btn.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); }catch(e){} }
-  if(window.innerWidth<=680){ window.scrollTo({top:0,behavior:'smooth'}); }
+  window.scrollTo({top:0,left:0,behavior:'auto'});
 }
 (function(){
   document.querySelectorAll('.score-table,.opp-table,.invest-table').forEach(function(t){
