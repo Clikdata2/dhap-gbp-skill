@@ -1,6 +1,9 @@
 # DHAP GBP — change log (newest first)
 One entry per release: version · date · what changed · who asked. History only — the rules live in SKILL.md. The newest entry's version MUST equal the VERSION file and the version in the first line of SKILL.md (the automatic check enforces this).
 
+## v14.8 — Oct 21 2026 — one-line runs in Claude Code and Codex for everyone (requested by Travis)
+New `run/`: the run routine (process only — the rules stay in SKILL.md) with its references and check scripts, plus one-time installers (`run/install.sh` for Mac, `run/install.ps1` for Windows) that link it into Claude Code's skills and add a pointer to Codex's AGENTS.md. After the install the whole request is "Run DHAP GBP for [Dealership] [website]"; the website identifies the dealer, and city, state and brand are read from it. The routine pulls the latest rules every run, builds RULE K popups, and writes the internal rep brief. No audit, scoring or page rules changed.
+
 ## v14.7 — Oct 21 2026 — evidence popups for Ask AI runs (requested by Travis)
 New `shot/`: a second small Google Cloud Run service (Chromium, signed out) using the same team codes. `/screenshot` returns a cropped picture of a public page (Google Maps listing, Apple Maps, Facebook, locator), or says "blocked" when a site refuses a signed-out browser; `/schema` returns a page's JSON-LD; `/popup` builds the RULE K popup block from an evidence spec. RULE K gains rule 7: Ask AI uses picture proof where possible and labelled data proof (Places data, schema lines, word-for-word readings with time and source) where not. Tested signed-out on Oct 21 2026: Maps listing, Apple Maps, Facebook pictured; Google Search, Yelp, Bing, James's website blocked; Maps review sorting unavailable signed-out. `team-code.sh` refreshes both services; `scripts/proof_popup.py` gains `block_from_uris` (copy kept in `shot/`, checked by the validator). No audit, scoring or page rules changed.
 
