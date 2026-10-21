@@ -1,0 +1,49 @@
+# Evidence capture — how to record every item the rubric needs
+
+The repository's SKILL.md ("Evidence capture (mandatory before scoring)") says what must be recorded. This file is HOW. Anything you cannot record is "not recorded": say so, never guess, and never publish a score that depends on it without telling the user.
+
+## 0. Browser rules (Claude in Chrome — the user's signed-in Chrome, read-only)
+- Load the tools in ONE ToolSearch call: `select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__get_page_text,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp,mcp__claude-in-chrome__find,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__browser_batch`. Call `tabs_context_mcp {createIfEmpty:true}` first, work in your own tab, and **close every tab you opened before finishing**.
+- Why Chrome and not the built-in browser: Google Maps shows a stripped "limited view" when signed out (no About tab, no Posts list, no photo dates, no review sorting). The signed-in view has them. 
+- **Read-only.** Never click: "Claim/Own this business", "Suggest an edit", "Write a review", "Add photos", "Post", "Edit", "Sign in/out", cookie banners (leave them), or anything that changes a page. Typing is allowed only into search boxes (a ZIP in the Mitsubishi locator).
+- Tool quirks: JS/`get_page_text` results are cut at roughly 700–2000 characters, so return compact lines. Output containing `?`, `=` or `&` in URLs can come back as `[BLOCKED: Cookie/query string data]`: `.replace(/[?=&]/g,'~')` before returning. `browser_batch` needs an explicit `tabId` on every action and an `actions` array. After `navigate`, wait 3–5 s. Closing a photo viewer with the X can close the whole gallery.
+- Standing instruction (user, Oct 20 2026): use Chrome by default, without asking, for every check it can prove yes/no. Never assume, infer or guess a value (URL, path, phone, rating, status) that Chrome can confirm; if Chrome cannot prove it, record it as unverified. Still read-only: no claim/edit/post/publish clicks.
+
+## 1. Website (all five key pages: home, About, Service, Parts, Directions)
+1. Find the real URLs from the nav (`a[href]` list). "About Us" may point at /contactus. Directions may be /get-directions or "Hours & Directions".
+2. Static fetch first: `curl -sL -A "<browser UA>" URL`. If it returns 403, fetch from inside Chrome (same origin, cookies): in a tab on the homepage run
+   `const html=await fetch(path,{credentials:'include'}).then(r=>r.text()); const doc=new DOMParser().parseFromString(html,'text/html'); [...doc.querySelectorAll('script[type="application/ld+json"]')]` and parse each block.
+3. Parse every block. Handle: top-level `@graph`, top-level arrays (each element carries its own `@context` — that is valid), `@id` references (a `department` list may only hold `{"@id":…}` pointing at entities elsewhere in the graph), and a bad `@context`/`url` (e.g. `google.com/url?q=…` pasted from Gmail = not valid schema.org).
+4. Per entity record: @type, name, url, telephone, sameAs (classify each URL: Google Maps/`cid`, Facebook, Instagram, Yelp, other), areaServed (count + names), hasMap, map/maps, logo/image, description, openingHours(Specification), geo, makesOffer/hasOfferCatalog, aggregateRating/review (never a finding; if present flag as a RISK), department list (type, name, url, telephone, sameAs, map). Say "no hasMap" only for that property name; describe `map` separately.
+5. Which department entities exist (Sales/Service/Parts) and what each links to (own page address? own phone distinct from the main number?). Record "Both views": website schema vs Google listings are two separate facts.
+6. Record page text facts: header phones per department, hours, address; sitemap.html / nav / footer for any Reviews or Testimonials page.
+7. **Rendered reviews check** (browser, after scrolling to the bottom to let widgets load): `document.body.innerText` for `review|testimonial|stars?|rated`, plus review-looking iframes/widgets. Visible Google reviews on the dealer's own site earn the point; links that only send visitors out do not.
+
+## 2. Google Search panel (do this BEFORE Maps — it shows things Maps hides)
+`https://www.google.com/search?q=<Dealer+Name>+<City>+<ST>` → take a screenshot and `get_page_text`, then read the panel: rating + review count, **business description**, **"Departments:" line** (one link per department listing; a combined listing shows as one link), address, phone, hours (+ department hours), Profiles (Facebook link href), recent posts. The Departments line and the description are NOT visible on the Maps Overview/About tabs; missing them there is not evidence they are absent. Note an "Own this business?" link if shown (record it; do not click).
+
+## 3. Google Maps — each listing (Sales, then the Service/Parts/combined listing)
+URL pattern from a search: `https://www.google.com/maps/search/<Name>+<street address>+<city>` resolves straight to the place page. Place-page `/maps/place/.../data=!...!1s0x…:0x…` URLs can be reopened directly.
+- **Overview** (`get_page_text`): categories (a GMB-categories line may be printed by an extension), address ("Located in: …" = nested), hours, website, appointment/booking link ("Open booking link"), "Services" link, phone, attributes line, "From the owner" post.
+- **About tab** (click it, then `get_page_text`): attributes, service options, offerings → checklist items. A business description is NOT here (see §2).
+- **Posts**: Overview → "See local posts" button, scroll the left panel 15 ticks twice, then parse dates (`Oct 8, 2026`, `16 hours ago`). Count posts dated inside the last 30 days, note the newest date, note variety (offer / event / call-to-action buttons: Learn more, Call now, View Offer, Sign up, Buy). A post with an image also counts as a photo.
+- **Photos**: Overview → "Latest" (shows the newest age). Open the viewer and press `Right`, zooming the header (region ~[372,0,900,110]) each time: the header reads "Photo · Oct 2026" (month only). Count photos labelled with the current month inside the window; month-only labels from earlier months are not counted. Photo categories (Exterior / Inside / Workshop / By owner) give coverage; the first "By owner" photo header shows the profile avatar — a Mitsubishi/dealer logo = logo seen, a photo or an initial = logo not seen. Cover photo = the header image on the Overview.
+- **Reviews**: Reviews tab → Sort → "Newest" (menu item; Sort button ~(295,407) in a 0.6-scaled screenshot) → scroll the panel ~30 ticks → count exactly the 10 newest reviews, their ages, and how many have "Response from the owner". Newest review age feeds the recent-flow windows (Sales 15 d, Service 30 d, Parts 90 d).
+- **Combined/separate department listings**: search `<Name> Service and Parts <street> Ste A`, `Mitsubishi parts department <city>`, `<Name> service`. A search that resolves straight to one place does not list the others; use "People also search for" and several differently-worded searches. Record every listing found, its category count, hours, phone, website, offerings, attributes, description (search panel), scheduling link, posts, photos, reviews (+owner replies).
+- **Claimed/verified**: Maps never shows "verified". Record what is observable (no "Claim this business" link; owner posts/replies exist). Say plainly that verification status is only visible to the profile manager.
+- **Duplicates**: note any second listing for the dealership or its departments in Google, and on Yelp/Apple/etc.
+
+## 4. Facebook
+Open the page found in the Search panel Profiles (or `facebook.com/<slug>`). Record followers, category, address, phone, links, latest post date, and the rating: a star rating, a "% recommend", or nothing. Check the "More" tab menu — "Reviews given" is not the page's reviews. Rubric: star rating → compare within 0.5 of Google; percentage → drop the point and rescale (Reviews row); nothing shown → scored 0, not rescaled (judgment call; flag it).
+
+## 5. Five-directory NAP sample (name + street address + phone must match the website)
+1. **Apple Maps**: `https://maps.apple.com/search?query=<Name>%20<City>%20<ST>` → `get_page_text` (phone, address, "Claim This Place" = unclaimed; a postal-name city such as Rochester for Greece counts as a match).
+2. **Bing**: `https://www.bing.com/search?q=<Name>+<street>+<city>` → business card text (name, address, phone, ratings). Bing Maps pages render no text.
+3. **Yelp**: `https://www.yelp.com/biz/<slug>` (link from the Search panel/Bing) → Claimed/Unclaimed, rating, phone, address.
+4. **Facebook** (from §4).
+5. **Mitsubishi dealer locator**: `https://www.mitsubishicars.com/car-dealerships-near-me` → type the dealership ZIP in the zip box, Enter → click the dealer entry (click the list item, not only the link) → read the Contact phone and Sales/Service hours. A central-number mismatch counts as a mismatch and gets a finding.
+Also note any other phone numbers seen (Carfax, Autotrader, Yellow Pages …) in the phone-number inventory; they feed the "different local phone numbers" count. Some may be call-tracking numbers: say "not verified".
+
+## 6. Record it
+- Fill `evidence-example-vacaville.json`-style JSON (values only from the audit) → `python3 run/scripts/lib_dhap.py score evidence.json` (or `python3 engine/score.py score evidence.json`).
+- Write the evidence record (.md) with: scores + working per row, phone inventory, other checks, not-observable items and judgment calls, method + date. Anything not recorded is listed as such.

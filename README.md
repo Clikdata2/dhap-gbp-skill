@@ -18,6 +18,13 @@ Open your reply with "Using DHAP GBP v<VERSION>." If you cannot read both files,
 
 That is all. A change merged here reaches everyone on their next run. (A web copy can lag a few minutes right after a merge.)
 
+## Run a report in Claude Code or Codex (one-time install)
+Install once per computer, then the whole request is one line.
+- Mac: `bash ~/dhap-gbp-skill/run/install.sh`
+- Windows (PowerShell): `powershell -ExecutionPolicy Bypass -File $HOME\dhap-gbp-skill\run\install.ps1`
+
+Then, in Claude Code or Codex: **Run DHAP GBP for [Dealership] [website]**
+
 ## How it works
 - The prompt only tells Ask AI where the rules are. The rules themselves live in `SKILL.md` and nowhere else.
 - The location id comes from the Ask AI session. The knowledge base is found by its name, "Mitsubishi CLIKsearch". If Ask AI cannot find exactly one, it stops and says so.
