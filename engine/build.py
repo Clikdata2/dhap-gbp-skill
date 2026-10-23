@@ -73,6 +73,18 @@ def walk_strings(o):
     elif isinstance(o, list):
         for v in o: yield from walk_strings(v)
 
+FUNNEL_PLACEHOLDER = "REPLACE_WITH_DHAP_FUNNEL_LINK"   # the DHAP funnel link is always added by hand; never guess it
+ALERT_MOBILE_CSS = """<style>
+/* ===== MOBILE LAYOUT — Digital Health Alert (phones <= 520px): header and terminal title may not push the page wider than the screen ===== */
+@media(max-width:520px){
+  .header-inner{flex-wrap:wrap;gap:8px 12px;}
+  .header-title{font-size:1.05rem;letter-spacing:.04em;min-width:0;flex:1 1 120px;}
+  .header-badge{padding:6px 10px;font-size:.62rem;letter-spacing:.08em;}
+  .term-title{font-size:.62rem;letter-spacing:.03em;min-width:0;overflow-wrap:anywhere;}
+}
+</style>
+"""
+
 def check_content(c):
     P = []
     def need(cond, why):
@@ -81,11 +93,11 @@ def check_content(c):
         if re.search(r"<\s*(script|iframe|object|embed|style|link|meta)\b|\bon[a-z]+\s*=|javascript:", s, re.I): P.append(f"unsafe HTML in content: {s[:60]!r}")
         if re.search(r"<\s*/?\s*div\b", s, re.I): P.append(f"<div> is not allowed inside content (it breaks the page layout): {s[:60]!r}")
         if re.search(r"\{\{|\}\}|TODO|TBD|XXX", s): P.append(f"placeholder left in content: {s[:60]!r}")
-    for k in ("dealer", "city_st", "report_id", "dhap_url", "month_year", "summary", "scorecard_notes", "ai", "findings", "opportunities", "why_card", "alert"):
+    for k in ("dealer", "city_st", "report_id", "month_year", "summary", "scorecard_notes", "ai", "findings", "opportunities", "why_card", "alert"):
         need(k in c, f"content.{k} missing")
     if P or not all(k in c for k in ("summary", "ai", "alert", "scorecard_notes")): return P
     need(re.match(r"^GBP-[A-Z]{3,8}-\d{4}$", c["report_id"]), "report_id must look like GBP-VMVCA-1026")
-    need(re.match(r"^https://", c["dhap_url"]), "dhap_url must be the https link of the published DHAP page")
+    need(c["dhap_url"] == FUNNEL_PLACEHOLDER or re.match(r"^https://", c["dhap_url"]), f"dhap_url must be {FUNNEL_PLACEHOLDER} (the link is added by hand) or the https link of the published DHAP page")
     need(len(c["summary"].get("facts", [])) == 4, "summary.facts needs exactly 4 hero facts")
     need(3 <= len(c["summary"].get("bullets", [])) <= 5, "summary.bullets needs 3-5 bullets")
     need(len(c["scorecard_notes"]) == 8, "scorecard_notes needs exactly 8 notes (one per category, in order)")
@@ -309,6 +321,7 @@ def main():
     S.rules_guard(repo); load_logo(repo)
     probs = S.check(ev)
     if probs: sys.exit("NOT BUILT — evidence incomplete:\n  - " + "\n  - ".join(probs))
+    c.setdefault("dhap_url", FUNNEL_PLACEHOLDER)
     probs = check_content(c)
     if probs: sys.exit("NOT BUILT — content problems:\n  - " + "\n  - ".join(probs))
     if c["dealer"] != ev["dealer"]: sys.exit(f"NOT BUILT — content is for {c['dealer']!r} but evidence is for {ev['dealer']!r}")
@@ -321,6 +334,8 @@ def main():
     try:
         D = build_dhap(dh.read_text(encoding="utf-8"), c, ev, sc)
         Hs = build_alert(ha.read_text(encoding="utf-8"), c, sc)
+        if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
+        Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
     except Bad as e:
         sys.exit(f"NOT BUILT — {e}")
     out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
