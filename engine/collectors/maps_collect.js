@@ -57,6 +57,8 @@ async function dhapMaps(opts) {
   if (!await waitFor(() => location.pathname.startsWith('/maps/place') && main().querySelector('h1'), 10000))
     return JSON.stringify({ error: 'not on a single place page: open the listing itself, then run again' });
   const out = { url_place: clean(location.pathname.split('/data')[0]), warnings: [] };
+  // clicking a result in a list can leave the place panel half loaded: wait for its tabs before reading anything
+  if (!await waitFor(() => byAria('[role="tab"]', /^Reviews/i), 8000)) out.warnings.push('PANEL NOT LOADED: the Reviews tab never appeared, so About, Posts and Reviews are empty; open the place page directly and run again');
   // ---------------- Overview
   // the categories helper line is injected a few seconds after the page loads; wait for it (or give up after 6s)
   await waitFor(() => /GMB Categories:|limited view of Google Maps/i.test(txt()), 6000);
@@ -159,3 +161,5 @@ async function dhapMaps(opts) {
     warn: out.warnings };
   return JSON.stringify(c).replace(/[?=&]/g, '~');
 }
+// keep the collector across Maps navigations (the page forgets pasted code): afterwards run  eval(localStorage.__dhap + '\nwindow.dhapMaps = dhapMaps;'); await dhapMaps()
+try { localStorage.__dhap = [dhapPostVariety, dhapSplitPosts, dhapMaps].map(f => f.toString()).join('\n'); window.dhapMaps = dhapMaps; } catch (e) { /* not in a browser page */ }

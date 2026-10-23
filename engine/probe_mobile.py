@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Required mobile probe (SKILL.md RULE J): Playwright + headless Chromium at 360/390/430 (is_mobile, touch).
-Clicks all 8 DHAP tabs and asserts scrollWidth == viewport and no element past the viewport; walks the three
+Clicks all 8 DHAP tabs and asserts scrollWidth == the real viewport width (clientWidth: with is_mobile, window.innerWidth grows to hide overflow) and no element past the viewport; walks the three
 hot sheet screens; waits for the count-up and prints the final stat values; saves screenshots at 390.
 Usage: python3 probe_mobile.py DHAP.html HEALTH_ALERT.html [shots_dir]   (exit 1 on problems)"""
 import asyncio, pathlib, sys
@@ -22,7 +22,7 @@ async def main(dhap, hot, shots):
             if len(tabs) != 8: problems.append((w, "tab count", len(tabs)))
             for i, t in enumerate(tabs):
                 await t.click(); await pg.wait_for_timeout(250)
-                r = await pg.evaluate("""()=>{const vw=window.innerWidth;const p=document.querySelector('.tab-panel.active');
+                r = await pg.evaluate("""()=>{const vw=document.documentElement.clientWidth;const p=document.querySelector('.tab-panel.active');
                   const bad=[...p.querySelectorAll('*')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.right>vw+1&&getComputedStyle(e).position!=='fixed'}).slice(0,4).map(e=>e.tagName+'.'+e.className);
                   return {id:p.id,sw:document.documentElement.scrollWidth,vw,bad}}""")
                 if r["sw"] != r["vw"] or r["bad"]: problems.append((w, r))
@@ -30,7 +30,7 @@ async def main(dhap, hot, shots):
             await pg.goto(H); await pg.wait_for_timeout(500)
             for sel in ("#s1 .step-btn", "#s2 .step-btn"):
                 await pg.click(sel); await pg.wait_for_timeout(300)
-                sw = await pg.evaluate("[document.documentElement.scrollWidth, window.innerWidth]")
+                sw = await pg.evaluate("[document.documentElement.scrollWidth, document.documentElement.clientWidth]")
                 if sw[0] != sw[1]: problems.append((w, "health-alert overflow", sw))
             if w == 390:
                 await pg.evaluate("document.querySelector('.impact-box').scrollIntoView()"); await pg.wait_for_timeout(3500)

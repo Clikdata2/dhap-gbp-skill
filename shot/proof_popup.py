@@ -8,7 +8,8 @@ Usage:
 spec.json: {"keys": {"phones": {"t": "title", "n": "note with date + method", "i": [["image_name", "caption"]], "c": "optional code/text excerpt"}},
             "rules": [["phones", "regex on the card title / label"]]}      # "rules" optional: DEFAULT_RULES is used when omitted
 images_dir/<image_name>.jpg are cropped audit screenshots (about 480 px wide; blur names, crop out account details).
-Cards are matched by the text of `.kpi-lbl` / `.finding-title`, or the element text for hero facts, callout bullets and stat cards;
+Scope (RULE K): only the hero-fact numbers (DHAP Summary and the top of AI Visibility), Alert KPI tiles and Alert stat cards - never the bullets under the score, the Key Gaps, or any card. Never the Findings, Why Act Now or lower AI Visibility cards.
+Elements are matched by the text of `.kpi-lbl`, or the element text for hero facts, callout bullets and stat cards;
 first matching rule wins. Run scripts/check_proof_popups.py on the built page: every non-exempt card must resolve to a key."""
 import base64, json, pathlib, sys
 
@@ -45,8 +46,9 @@ def block(keys_spec, images_dir, rules=None):
     css = """<style>
 .has-proof{cursor:help;transition:box-shadow .15s;}
 .has-proof:hover,.has-proof:focus{box-shadow:0 0 0 2px #3b82f6;outline:none;border-radius:6px;}
-.proof-hint{font-size:.74rem;color:#6b7280;margin:10px 0 0;font-style:italic;text-align:center;}
-#proof-pop{pointer-events:none;display:none;position:fixed;z-index:2147482000;background:#fff;color:#111827;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:14px 16px 12px;width:min(640px,94vw);max-height:84vh;overflow:auto;font-family:inherit;text-align:left;}
+.proof-hint{display:block;max-width:760px;margin:16px auto 6px;padding:11px 16px;background:#fef9c3;border:2px solid #f59e0b;border-left:6px solid #d97706;border-radius:10px;color:#78350f;font-size:1rem;font-weight:800;line-height:1.4;text-align:center;font-style:normal;box-shadow:0 2px 8px rgba(217,119,6,.25);}
+@media(max-width:680px){.proof-hint{font-size:.92rem;padding:10px 12px;}}
+#proof-pop{pointer-events:none;display:none;position:fixed;z-index:2147483647;background:#fff;color:#111827;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:14px 16px 12px;width:min(640px,94vw);max-height:84vh;overflow:auto;font-family:inherit;text-align:left;}
 #proof-pop.pinned{pointer-events:auto;}
 #proof-pop.pinned figure{flex-basis:280px;}
 #proof-pop.pinned img{max-height:430px;}
@@ -65,7 +67,7 @@ def block(keys_spec, images_dir, rules=None):
     js = """<script>
 (function(){
 var IMG=%s, DATA=%s, RULES=%s;
-var SEL='.hero-fact,.score-desc>div,.kpi-tile,.t-stat,.finding-card';
+var SEL='.hero-fact,.kpi-tile,.t-stat';
 var pop=document.getElementById('proof-pop'), body=pop.querySelector('.pp-body'), cur=null, pinned=false, timer=null;
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function fill(k){var d=DATA[k], h='<div class="pp-t">'+d.t+'</div><div class="pp-n">'+d.n+'</div>';
@@ -115,6 +117,35 @@ def block_from_uris(keys_spec, image_uris, rules=None):
             (_p.Path(d) / f"{n}.jpg").write_bytes(base64.b64decode(str(u).split(",", 1)[1]))
         return block(keys_spec, d, rules)
 
+
+HINT = '<div class="proof-hint">HOVER over any stat to see the audit screenshot behind it. Click or tap to enlarge.</div>'
+
+def add_to_page(html, kind, popup_block):
+    """Insert the popup block before </body> and the prominent hint lines. kind: 'dhap' (hints above the Summary and AI Visibility score banners)
+    or 'alert' (hints above the screen 2 tiles and the screen 3 stat cards). Replaces an earlier block and hints, so it can be run twice."""
+    if "<!-- PROOF POPUPS START" in html:
+        i = html.index("<!-- PROOF POPUPS START"); j = html.index("<!-- PROOF POPUPS END -->") + len("<!-- PROOF POPUPS END -->\n")
+        html = html[:i] + html[j:]
+    import re as _re
+    html = _re.sub(r'<div class="proof-hint">.*?</div>', '', html, flags=_re.S)
+    if kind == "dhap":
+        spots = [m.start() for m in _re.finditer(r'<div class="score-banner">', html)][:2]
+        if len(spots) != 2: raise ValueError("expected 2 score banners (Summary and AI Visibility)")
+        for i in reversed(spots): html = html[:i] + HINT + "\n    " + html[i:]
+    else:
+        for marker in ('<div class="impact-stats">', '<div class="kpi-grid">'):
+            i = html.index(marker); html = html[:i] + HINT + "\n  " + html[i:]
+    if html.count("</body>") != 1: raise ValueError("expected exactly one </body>")
+    return html.replace("</body>", popup_block.rstrip("\n") + "\n</body>", 1)
+
 if __name__ == "__main__":
-    spec = json.load(open(sys.argv[1]))
-    sys.stdout.write(block(spec["keys"], sys.argv[2], spec.get("rules")))
+    args = sys.argv[1:]
+    pages = []
+    if "--insert" in args:
+        k = args.index("--insert"); pages = args[k + 1:]; args = args[:k]
+    spec = json.load(open(args[0])); blk = block(spec["keys"], args[1], spec.get("rules"))
+    if not pages:
+        sys.stdout.write(blk)
+    for pg in pages:
+        t = pathlib.Path(pg); kind = "alert" if ("health" in t.name or "hotsheet" in t.name) else "dhap"
+        t.write_text(add_to_page(t.read_text(encoding="utf-8"), kind, blk), encoding="utf-8"); print("popups + hints added:", t.name)
