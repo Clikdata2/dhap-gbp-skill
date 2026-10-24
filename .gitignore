@@ -5,3 +5,6 @@ __pycache__/
 .env
 engine/tests/out/
 .secrets/
+
+# Local dealer-run working files (dealer data never goes in this public repository)
+work/
