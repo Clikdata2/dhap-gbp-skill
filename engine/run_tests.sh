@@ -8,6 +8,8 @@ node tests/test_post_variety.js
 node tests/test_split_posts.js
 "$PY" tests/test_paste_files.py
 "$PY" tests/test_score.py
+"$PY" tests/test_decide.py
+"$PY" tests/test_areas.py
 "$PY" tests/test_jev.py 3
 "$PY" tests/test_places.py 3
 "$PY" tests/test_schema_collector.py 3

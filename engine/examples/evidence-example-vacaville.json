@@ -3,7 +3,6 @@
  "audit_date": "2026-10-20",
  "listings": {
   "sales": {
-   "claimed_verified": 1.0,
    "checklist_done": 7,
    "checklist_total": 7,
    "photos_30d": 4,
@@ -26,7 +25,6 @@
   "service": null,
   "parts": null,
   "combined": {
-   "claimed_verified": 1.0,
    "checklist_done": 4,
    "checklist_total": 8,
    "photos_30d": 1,
@@ -48,7 +46,8 @@
   }
  },
  "claimed": {
-  "duplicate_or_unclaimed_found": false
+  "main_claim_link": false,
+  "lookalikes": []
  },
  "reviews": {
   "google_rating": 4.9,
@@ -57,7 +56,13 @@
    "mode": "none",
    "within_half": false
   },
-  "real_reviews_visible_on_site": false
+  "real_reviews_visible_on_site": false,
+  "yelp": {
+   "rating": null,
+   "count": null,
+   "claimed": null,
+   "note": "not recorded (audited before v15)"
+  }
  },
  "nap": {
   "google_vs_site_fields_matching": 2,
@@ -68,8 +73,14 @@
    false,
    false
   ],
-  "dept_phones_ok": false,
-  "map_pin_ok": true
+  "map_pin_ok": true,
+  "dept_phones": [
+   {
+    "dept": "service & parts",
+    "gbp": "(707) 348-0555",
+    "site": "707-353-4579"
+   }
+  ]
  },
  "schema": {
   "pages_with_jsonld": 5,
@@ -82,9 +93,37 @@
   "logo_or_image": true,
   "sameas_google": true,
   "sameas_other": false,
-  "areaserved": true,
   "hasmap_or_map": false,
-  "services_or_offers": true
+  "services_or_offers": true,
+  "areaserved": {
+   "delivery_offered": true,
+   "code_places": [
+    "Vacaville",
+    "Sacramento",
+    "Davis",
+    "Fairfield",
+    "Vallejo",
+    "Stockton"
+   ],
+   "page_places": [
+    "Vacaville",
+    "Fairfield",
+    "Dixon",
+    "Davis",
+    "Vallejo",
+    "Napa",
+    "Suisun City",
+    "Woodland",
+    "Winters",
+    "Solano County"
+   ],
+   "code_on_page": [
+    "Vacaville",
+    "Fairfield",
+    "Davis",
+    "Vallejo"
+   ]
+  }
  },
  "ledger": {
   "website_schema": {
@@ -114,6 +153,10 @@
   "directories": {
    "method": "Apple Maps, Bing card, Yelp, Facebook, mitsubishicars.com locator (ZIP 95687)",
    "when": "2026-10-20"
+  },
+  "delivery": {
+   "method": "Maps About tab: main listing shows 'Offers delivery' (Oct 22 2026 live check)",
+   "when": "2026-10-22"
   }
  },
  "facts": {
@@ -158,5 +201,25 @@
    "5:30",
    "5:00"
   ]
+ },
+ "schema_rendered": {
+  "pages_with_jsonld": 5,
+  "business_type_ok": true,
+  "department_entities": 2,
+  "parses_cleanly": true,
+  "dept_own_page_address": 2,
+  "dept_own_phone": 1,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": true,
+  "sameas_other": false,
+  "hasmap_or_map": false,
+  "services_or_offers": true
+ },
+ "jev": {
+  "status": "skipped",
+  "reason": "recorded before v15; JEV did not run on this audit",
+  "items": [],
+  "review": []
  }
 }

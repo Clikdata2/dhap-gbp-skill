@@ -16,8 +16,14 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     blk = skill[skill.index("## Assertion suite"):]; s0 = blk.index("```python") + 9; blk = blk[s0: blk.index("```", s0)]
     skips = []
     if ev["schema"]["sameas_google"]: skips.append(("Google Link in", "the Google link IS in sameAs (evidence)"))
-    if ev["schema"]["areaserved"]: skips.append(("No areaServed in Site Schema", "areaServed IS present (evidence)"))
+    A = ev["schema"]["areaserved"]
+    if not A["delivery_offered"]: skips.append(("No areaServed in Site Schema", "the dealer offers no delivery (evidence), so areaServed is not checked (rule 4)"))
+    elif A["code_places"]: skips.append(("No areaServed in Site Schema", "areaServed IS present on the dealership entity (evidence)"))
     elif ev["schema"].get("areaserved_elsewhere"): skips.append(("No areaServed in Site Schema", "areaServed appears in a block other than the dealership entity (evidence), so the finding is worded for the entity"))
+    if ev["reviews"]["real_reviews_visible_on_site"]:
+        pat = """ and "Google Reviews Aren't Shown" in html.replace('&rsquo;',"'")"""
+        if pat not in blk: raise AssertionError("suite changed: the Google Reviews Aren't Shown check was not found")
+        blk = blk.replace(pat, "", 1); print("   skipped repository condition \"Google Reviews Aren't Shown\": real reviews ARE shown on the website (evidence)")
     for tok, why in skips:
         pat = "'" + tok + "' in html"
         if pat not in blk: raise AssertionError(f"suite changed: {pat} not found")

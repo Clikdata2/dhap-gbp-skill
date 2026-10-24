@@ -30,95 +30,17 @@ def file_names(dealer, d=None):
         "evidence": f"audit_evidence_{s}_{t}.md",
     }
 
-# ----------------------------------------------------------------------------- rubric (v13 rubrics)
-ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
-             "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
-BENCH_POSTS = {"sales": 8, "service": 4, "parts": 4}
-WEIGHT = {"sales": 50, "service": 25, "parts": 25}
-REVIEW_WINDOW = {"sales": (15, 1.5), "service": (30, .75), "parts": (90, .75)}   # days, points
-
-def _roles(ev):
-    """Map each existing listing to the department roles it covers. A combined Service & Parts
-    listing covers BOTH roles (same data counted for each)."""
-    L = ev["listings"]
-    roles = {}
-    if L.get("sales"): roles["sales"] = L["sales"]
-    if L.get("service"): roles["service"] = L["service"]
-    if L.get("parts"): roles["parts"] = L["parts"]
-    if L.get("combined"):
-        roles["service"] = L["combined"]; roles["parts"] = L["combined"]
-    return roles
-
-def _w(roles):
-    tot = sum(WEIGHT[r] for r in roles)
-    return {r: WEIGHT[r] / tot for r in roles}
+# ----------------------------------------------------------------------------- rubric
+# One scorer only: the engine's (engine/score.py), so the non-Mitsubishi path can never score differently.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "engine"))
+import score as _S
+ROW_NAMES = _S.ROW_NAMES
 
 def score_rows(ev):
-    """Return (rows_unrounded, rows_rounded). `ev` is the evidence dict (see references/evidence-template.json)."""
-    roles = _roles(ev); w = _w(roles); L = ev["listings"]
-    def wavg(f): return sum(w[r] * f(roles[r], r) for r in roles)
+    """Return (rows_unrounded, rows_rounded) from the engine; Google's age labels are turned into day counts first."""
+    return _S.score_rows(_S.resolve_ages(ev))
 
-    # 1 Claimed & Verified: 8 = every listing claimed+verified (averaged) ; 2 = no duplicate/unclaimed listing in the audit search
-    uniq = {id(v): v for v in roles.values()}.values()
-    r1 = 8 * (sum(l.get("claimed_verified", 0) for l in uniq) / len(uniq)) + (0 if ev["claimed"].get("duplicate_or_unclaimed_found") else 2)
-
-    # 2 Profile Completeness: structure 4 + information 6
-    struct = (2 if L.get("sales") else 0) + (1 if (L.get("service") or L.get("combined")) else 0) + (1 if (L.get("parts") or L.get("combined")) else 0)
-    def pct(l): return l["checklist_done"] / l["checklist_total"]
-    info = 0
-    if L.get("sales"): info += 2 * pct(L["sales"])
-    if L.get("combined"): info += 4 * pct(L["combined"])
-    else:
-        if L.get("service"): info += 2 * pct(L["service"])
-        if L.get("parts"): info += 2 * pct(L["parts"])
-    r2 = 0 if not roles else struct + info
-
-    # 3 Photos: 6 cadence + 2 logo/cover + 2 coverage (weighted 50/25/25 over existing, renormalised)
-    cad = 6 * wavg(lambda l, r: min(l["photos_30d"] / 4, 1))
-    lc = wavg(lambda l, r: (1 if l.get("logo") else 0) + (1 if l.get("cover") else 0))
-    cov = wavg(lambda l, r: 2 * (sum(1 for k in ("exterior", "interior_or_team", "department") if l.get("coverage", {}).get(k)) / 3))
-    r3 = cad + lc + cov
-
-    # 4 Reviews & Reputation
-    rt = ev["reviews"]["google_rating"]
-    rating = 3 if rt >= 4.5 else 2 if rt >= 4.0 else 1 if rt >= 3.5 else 0
-    earned = mx = 0
-    for r in roles:
-        days, pts = REVIEW_WINDOW[r]; d = roles[r]["newest_review_days"]
-        mx += pts; earned += pts if d <= days else pts / 2 if d <= 2 * days else 0
-    flow = 3 * earned / mx if mx else 0
-    owner = 2 * ev["reviews"]["owner_replies_of_10_newest"] / 10
-    fb = ev["reviews"]["facebook"]            # {"mode": "stars"|"percent"|"none", "within_half": bool}
-    fbpt = 1 if (fb["mode"] == "stars" and fb.get("within_half")) else 0
-    site = 1 if ev["reviews"]["real_reviews_visible_on_site"] else 0
-    r4 = rating + flow + owner + fbpt + site
-    if fb["mode"] == "percent":               # point dropped, row rescaled to 10
-        r4 = (r4 - fbpt) / 9 * 10
-
-    # 5 Posts: 6 cadence + 2 recency + 2 variety
-    cad = 6 * wavg(lambda l, r: min(l["posts_30d"] / BENCH_POSTS[r], 1))
-    rec = wavg(lambda l, r: 2 if l["last_post_days"] <= 7 else 1 if l["last_post_days"] <= 14 else 0)
-    var = wavg(lambda l, r: 2 * (sum(1 for k in ("offers", "events", "cta") if l.get("variety", {}).get(k)) / 3))
-    r5 = cad + rec + var
-
-    # 6 NAP: 4 google-vs-site (name/address/phone) + 4 five-directory sample + 1 dept phones + 1 pin
-    n = ev["nap"]
-    r6 = 4 * (n["google_vs_site_fields_matching"] / 3) + 4 * (sum(1 for x in n["directories_agree"] if x) / 5) \
-        + (1 if n["dept_phones_ok"] in (True, None) else 0) + (1 if n["map_pin_ok"] else 0)
-
-    # 7 LocalBusiness Schema structure
-    s = ev["schema"]
-    r7 = 3 * (s["pages_with_jsonld"] / 5) + (1 if s["business_type_ok"] else 0) + s["department_entities"] \
-        + (1 if s["parses_cleanly"] else 0) + s["dept_own_page_address"] / 3 + s["dept_own_phone"] / 3
-
-    # 8 Schema fields
-    r8 = 3 * (s["core_fields"] / 6) + (1 if s["logo_or_image"] else 0) + (1 if s["sameas_google"] else 0) + (1 if s["sameas_other"] else 0) \
-        + (2 if s["areaserved"] else 0) + (1 if s["hasmap_or_map"] else 0) + (1 if s["services_or_offers"] else 0)
-
-    raw = [r1, r2, r3, r4, r5, r6, r7, r8]
-    return raw, [round(x, 1) for x in raw]
-
-def overall(rows): return round(sum(rows) / len(rows), 1)
+def overall(rows): return _S.overall(rows)
 
 def status_from_lowest(rows):
     """Weakest-link status rule (repo v14): lowest <=5.0 Critical; >5.0 and <7.0 Major Issues; 7.0-8.9 Needs Improvement; >=9.0 Fully Optimized."""
@@ -171,8 +93,8 @@ def div_depth(t):
 def selftest():
     ref = json.loads((pathlib.Path(__file__).resolve().parent.parent / "references" / "evidence-example-vacaville.json").read_text())
     raw, rows = score_rows(ref)
-    assert rows == [10.0, 8.0, 6.4, 6.9, 5.8, 5.3, 8.0, 8.0], rows
-    assert overall(rows) == 7.3
+    assert rows == [10.0, 8.0, 6.4, 6.9, 5.8, 5.3, 8.0, 6.7], rows     # v15: areaServed both ways (Oct 22 2026)
+    assert overall(rows) == 7.1
     st = status_from_lowest(rows)
     assert st["label"] == "Major Issues" and st["lowest_row"] == "Google Maps / NAP Consistency", st
     assert file_names("Vacaville Mitsubishi", "2026-10-20") == {
