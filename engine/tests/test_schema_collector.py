@@ -19,21 +19,31 @@ CASES = [
   ("bad @context block + 3 departments (structure copied from a real dealer site, all values made up)", "synth_badctx",
    {"home": "/", "about": "/aboutus.html", "service": "/service.html", "parts": "/orderparts.html", "directions": "/hours.html"},
    dict(pages_with_jsonld=5, parses_cleanly=False, business_type_ok=True, department_entities=3, dept_own_page_address=3, dept_own_phone=2,
-        core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, areaserved=False, hasmap_or_map=False, services_or_offers=False)),
+        core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, hasmap_or_map=False, services_or_offers=False)),
   ("synthetic @graph + @id refs + array block + nav discovery", "synth_graph", None,
    dict(pages_with_jsonld=5, parses_cleanly=True, business_type_ok=True, department_entities=2, dept_own_page_address=2, dept_own_phone=1,
-        core_fields=6, logo_or_image=True, sameas_google=True, sameas_other=False, areaserved=True, hasmap_or_map=False, services_or_offers=True)),
+        core_fields=6, logo_or_image=True, sameas_google=True, sameas_other=False, hasmap_or_map=False, services_or_offers=True)),
   ("broken site (bad JSON, string fields, aggregateRating, 404s)", "synth_broken", None,
    dict(pages_with_jsonld=2, parses_cleanly=False, business_type_ok=True, department_entities=1, dept_own_page_address=0, dept_own_phone=0,
-        core_fields=4, logo_or_image=False, sameas_google=False, sameas_other=True, areaserved=True, hasmap_or_map=False, services_or_offers=False)),
+        core_fields=4, logo_or_image=False, sameas_google=False, sameas_other=True, hasmap_or_map=False, services_or_offers=False)),
   ("big site (60 extra blocks per page)", "synth_big", None,
    dict(pages_with_jsonld=5, parses_cleanly=True, business_type_ok=True, department_entities=2, dept_own_page_address=2, dept_own_phone=1,
-        core_fields=6, logo_or_image=True, sameas_google=True, sameas_other=False, areaserved=True, hasmap_or_map=False, services_or_offers=True)),
+        core_fields=6, logo_or_image=True, sameas_google=True, sameas_other=False, hasmap_or_map=False, services_or_offers=True)),
   ("menu trap (Parts link = homepage, Service link = promo page)", "synth_navtrap", None,
    dict(pages_with_jsonld=5, parses_cleanly=True, business_type_ok=True, department_entities=2, dept_own_page_address=2, dept_own_phone=1,
-        core_fields=4, logo_or_image=False, sameas_google=False, sameas_other=False, areaserved=False, hasmap_or_map=False, services_or_offers=False)),
+        core_fields=4, logo_or_image=False, sameas_google=False, sameas_other=False, hasmap_or_map=False, services_or_offers=False)),
 ]
-EXTRA = {"synth_navtrap": lambda o: any("service /svc-dept.aspx" in x for x in o["pages"]) and any("parts /orderparts.aspx" in x for x in o["pages"]),"synth_graph": lambda o: "about /contactus:" in " ".join(o["pages"]) and "service /service-department:" in " ".join(o["pages"]) and "parts /parts-department:" in " ".join(o["pages"]) and "directions /get-directions:" in " ".join(o["pages"]),
+CASES.append(("blocks added by JavaScript (Countryside pattern) + text JEV judges", "synth_jsonly", None,
+   dict(pages_with_jsonld=5, parses_cleanly=True, business_type_ok=True, department_entities=0, dept_own_page_address=0, dept_own_phone=0,
+        core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, hasmap_or_map=False, services_or_offers=False)))
+def _jsonly(o):
+    g = o["evidence_schema_rendered"] or {}
+    s = o["sentences"]
+    return (g.get("department_entities") == 3 and g.get("dept_own_phone") == 2 and g.get("sameas_google") is True and g.get("hasmap_or_map") is True
+            and any("department_entities: raw 0" in x for x in o["js_only"]) and o["area_served_raw"] == "US, Illinois"
+            and any("Burr Ridge" in x["s"] for x in s["serving"]) and any("valet" in x["s"] for x in s["delivery"]) and any("Maria" in x["s"] for x in s["reviews"])
+            and not any("LaGrange Road north" in x["s"] for x in s["serving"]))
+EXTRA = {"synth_jsonly": _jsonly, "synth_navtrap": lambda o: o["js_only"] == [] and o["rendered_failed"] >= 1 and any("service /svc-dept.aspx" in x for x in o["pages"]) and any("parts /orderparts.aspx" in x for x in o["pages"]),"synth_graph": lambda o: "about /contactus:" in " ".join(o["pages"]) and "service /service-department:" in " ".join(o["pages"]) and "parts /parts-department:" in " ".join(o["pages"]) and "directions /get-directions:" in " ".join(o["pages"]),
          "synth_broken": lambda o: any("RISK" in n for n in o["notes"]) and any("fail to parse" in n for n in o["notes"]),
          "synth_badctx": lambda o: any("non-schema.org" in n for n in o["notes"])}
 
@@ -46,11 +56,13 @@ async def main(repeats):
             for rnd in range(repeats):
                 pg = await b.new_page(); await pg.goto(base + "/")
                 t0 = time.perf_counter()
-                raw = await pg.evaluate(JS + f"\n;dhapSchema({json.dumps(paths) if paths else ''})")
+                raw = await pg.evaluate(JS + f"\n;dhapSchema({json.dumps(dict(paths or {}, wait=600))})")
                 dt = time.perf_counter() - t0; times.append(dt)
                 o = json.loads(raw); ev = o["evidence_schema"]
+                if folder == "synth_jsonly": found = json.loads(await pg.evaluate(JS + "\n;dhapFind(['Burr Ridge','Countryside','Naperville','La Grange'])"))
+                else: found = None
                 bad = {k: (ev.get(k), v) for k, v in want.items() if ev.get(k) != v}
-                extra_ok = EXTRA.get(folder, lambda o: True)(o)
+                extra_ok = EXTRA.get(folder, lambda o: o["js_only"] == [] and o["evidence_schema_rendered"] is not None)(o) and (found is None or found == ["Burr Ridge", "Countryside", "La Grange"])
                 ok = not bad and extra_ok and "?" not in raw and "=" not in raw and "&" not in raw
                 fails += 0 if ok else 1
                 print(f"[{'PASS' if ok else 'FAIL'}] run {rnd+1} {name}: {dt*1000:.0f} ms" + ("" if ok else f"  diff={bad} extra_ok={extra_ok}"))

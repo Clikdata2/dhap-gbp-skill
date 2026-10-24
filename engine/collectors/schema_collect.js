@@ -5,6 +5,7 @@
 // short notes. It only READS pages (same-origin fetch with the browser's own cookies). No clicks, no edits.
 // Output avoids ? = & characters (some tools block them).
 async function dhapSchema(paths) {
+  const opts = Object.assign({}, paths && (paths.rendered !== undefined || paths.wait) ? paths : {}); if (paths) { delete paths.rendered; delete paths.wait; }
   const KEYS = ['home', 'about', 'service', 'parts', 'directions'];
   const clean = s => String(s == null ? '' : s).replace(/[?=&]/g, '~');
   const host = location.hostname.replace(/^www\./, '');
@@ -75,7 +76,21 @@ async function dhapSchema(paths) {
     out.ents = out.ents.map(res); out.byId = byId; out.res = res;
     return out;
   }
-  // ---- 3. audit each page
+  // rendered reading (v15 JavaScript check): load the page in a hidden same-origin frame and read it after its scripts ran
+  async function getRendered(path, wait) {
+    if (!path) return null;
+    if (path === location.pathname && document.readyState === 'complete') return document;
+    return await new Promise(resolve => {
+      const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;left:-9999px;width:1200px;height:900px;';
+      let done = false; const end = v => { if (done) return; done = true; resolve(v); setTimeout(() => f.remove(), 50); };
+      f.onload = () => setTimeout(() => { try { const d = f.contentDocument; end(!d || !d.body ? { status: 'BLOCKED' } : !/html/i.test(d.contentType || '') ? { status: 'NOT RENDERED' } : d); } catch (e) { end({ status: 'BLOCKED' }); } }, wait);
+      setTimeout(() => end({ status: 'TIMEOUT' }), wait + 8000);
+      f.src = path; document.body.appendChild(f);
+    });
+  }
+  const rawDocs = {};
+  // ---- 3. audit each page (once on the raw pages, once after JavaScript)
+  async function audit(get, keep) {
   const pages = {}; let main = null, mainBlocks = null, homeTypes = [];
   const roleOf = d => { const t = typesOf(d).join(' ') + ' ' + (d.name || ''); return /parts/i.test(t) ? 'parts' : /repair|service/i.test(t) ? 'service' : /dealer|sales/i.test(t) ? 'sales' : 'other'; };
   const source = {};
@@ -85,7 +100,8 @@ async function dhapSchema(paths) {
       if (d) { try { const u = new URL(String(d.url), location.href); let mh = ''; try { mh = new URL(String(main.url)).hostname.replace(/^www\./, ''); } catch (e) {} if ([host, mh].includes(u.hostname.replace(/^www\./, '')) && u.pathname !== '/') { P[k] = u.pathname; source[k] = 'schema'; } } catch (e) {} }
     }
     if (k !== 'home' && P[k] === '/') P[k] = null;
-    const doc = await getDoc(P[k]);
+    const doc = await get(P[k]);
+    if (keep && doc && !doc.status) keep[k] = doc;
     if (!doc || doc.status) { pages[k] = { path: clean(P[k]), status: doc ? doc.status : 'NOT FOUND' }; continue; }
     const b = blocksOf(doc);
     pages[k] = { path: clean(P[k]), blocks: b.blocks, parseErr: b.parseErr, badCtx: b.badCtx, agg: b.hasAgg, faq: b.faq,
@@ -104,7 +120,7 @@ async function dhapSchema(paths) {
   ev.parses_cleanly = KEYS.every(k => !pages[k] || !pages[k].blocks || (pages[k].parseErr === 0 && pages[k].badCtx === 0));
   if (!main) {
     Object.assign(ev, { business_type_ok: false, department_entities: 0, dept_own_page_address: 0, dept_own_phone: 0, core_fields: 0,
-      logo_or_image: false, sameas_google: false, sameas_other: false, areaserved: false, hasmap_or_map: false, services_or_offers: false });
+      logo_or_image: false, sameas_google: false, sameas_other: false, hasmap_or_map: false, services_or_offers: false });
     notes.push('no business entity on the homepage');
   } else {
     const r = mainBlocks.res;
@@ -126,7 +142,7 @@ async function dhapSchema(paths) {
     ev.logo_or_image = !!(main.logo || main.image);
     const same = [].concat(main.sameAs || []).map(String); const cls = same.map(classify);
     ev.sameas_google = cls.includes('G'); ev.sameas_other = cls.some(c => c !== 'G');
-    ev.areaserved = !!main.areaServed; ev.hasmap_or_map = !!(main.hasMap || main.map || main.maps);
+    ev.hasmap_or_map = !!(main.hasMap || main.map || main.maps);
     ev.services_or_offers = !!(main.makesOffer || main.hasOfferCatalog);
     ev._detail = {
       main_type: mt.join('/'), main_tel: clean(main.telephone), sameAs: cls.join(','),
@@ -141,5 +157,40 @@ async function dhapSchema(paths) {
   KEYS.forEach(k => { const p = pages[k]; if (p && p.parseErr) notes.push(`${k}: ${p.parseErr} block(s) fail to parse`); if (p && p.badCtx) notes.push(`${k}: ${p.badCtx} block(s) with a non-schema.org @context`); });
   // compact page summary: path:blocks b/parse errors e/bad context c[/faq][/area][/map]
   const pg = KEYS.map(k => { const p = pages[k]; return (source[k] ? '(from schema) ' : '') + (p.status ? `${k} ${p.path}:${p.status}` : `${k} ${p.path}:${p.blocks}b/${p.parseErr}e/${p.badCtx}c${p.faq ? '/faq' : ''}${p.areaServed ? '/area' : ''}${p.map ? '/map' : ''}${p.agg ? '/AGG' : ''}`); });
-  return JSON.stringify({ evidence_schema: ev, pages: pg, notes }).replace(/[?=&]/g, '~');
+  return { ev, pg, notes, main, pages, area: main && main.areaServed !== undefined ? main.areaServed : null };
+  }
+  const R = await audit(getDoc, rawDocs);
+  const failed = {};
+  const G = opts.rendered === false ? null : await audit(async p => { const d = await getRendered(p, opts.wait || 3500); if (d && d.status) { failed[p] = d.status; return rawDocs[Object.keys(rawDocs).find(k => P[k] === p)] || d; } return d; });
+  // ---- 5. what only appears after JavaScript (ChatGPT, Claude and Perplexity do not see it; Google does)
+  const js_only = [];
+  if (G) {
+    Object.keys(R.ev).filter(k => k !== '_detail').forEach(k => { if (JSON.stringify(R.ev[k]) !== JSON.stringify(G.ev[k])) js_only.push(`${k}: raw ${JSON.stringify(R.ev[k])} / after JavaScript ${JSON.stringify(G.ev[k])}`); });
+    KEYS.forEach(k => { const a = R.pages[k], b = G.pages[k]; if (a && b && !a.status && !b.status && b.blocks !== a.blocks) js_only.push(`${k}: ${a.blocks} JSON-LD block(s) raw, ${b.blocks} after JavaScript`); if (failed[P[k]]) R.notes.push(`${k}: the after-JavaScript reading failed (${failed[P[k]]}); its raw reading stands in, so no difference is claimed. Open that page in this tab and run dhapSchema again (it then reads the open page directly)`); });
+  }
+  // ---- 6. readable text of the raw pages: the sentences JEV judges (serving towns, delivery, reviews shown)
+  const txt = {}; const sent = { serving: [], delivery: [], reviews: [] };
+  const RX = { serving: /\b(serv(e|es|ing)|drivers (from|in|throughout|across|near)|customers (from|in|throughout|across)|shoppers (from|in)|residents of|areas? we serve|near)\b/i,
+               delivery: /\b(deliver\w*|pick[- ]?up|valet|mobile (service|mechanic|repair)|ship(s|ping|ped)?)\b/i,
+               reviews: /\b(reviews?|testimonials?|rated|stars?)\b/i };
+  KEYS.forEach(k => {
+    const d = rawDocs[k]; if (!d || !d.body) return;
+    const c = d.body.cloneNode(true); c.querySelectorAll('script,style,noscript,template,svg').forEach(x => x.remove());
+    // keep block boundaries: a detached page has no layout, so textContent would glue "Directions" + "Proudly serving..."
+    c.querySelectorAll('p,div,li,ul,ol,h1,h2,h3,h4,h5,h6,br,tr,td,th,section,article,header,footer,nav,a,button,span,label,option,dt,dd,blockquote,figcaption').forEach(x => x.after(d.createTextNode('\n')));
+    const lines = (c.textContent || '').split(/\n+/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    const t = lines.join(' \n '); txt[k] = t;
+    lines.flatMap(l => l.split(/(?<=[.!?])\s+(?=[A-Z0-9"“])|(?<=[a-z0-9][.!?])(?=[A-Z][a-z])/)).forEach(x => { x = x.trim().slice(0, 300); for (const n of Object.keys(sent)) if (RX[n].test(x) && sent[n].length < 25 && !sent[n].some(y => y.s === x)) sent[n].push({ page: k, s: x }); });
+  });
+  window.__dhapText = Object.values(txt).join(' \n ');
+  const out = { rendered_failed: Object.keys(failed).length, evidence_schema: R.ev, evidence_schema_rendered: G ? G.ev : null, js_only, pages: R.pg, pages_rendered: G ? G.pg : null,
+                area_served_raw: R.area, sentences: sent, notes: R.notes };
+  return JSON.stringify(out).replace(/[?=&]/g, '~');
+}
+
+// after dhapSchema(): which of these place names appear in the raw readable text of the 5 key pages (rule 4, code_on_page)
+function dhapFind(names) {
+  const fold = s => String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bmount\b/g, 'mt').replace(/\bfort\b/g, 'ft').replace(/[.]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+  const t = ' ' + fold(window.__dhapText || '') + ' ';
+  return JSON.stringify(names.filter(n => new RegExp('(?<![a-z0-9])' + fold(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![a-z0-9])').test(t)));
 }

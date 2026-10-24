@@ -3,29 +3,164 @@
  "dealer": "James Mitsubishi Greece",
  "audit_date": "2026-10-19",
  "facts": {
-  "phones": ["585-563-2029", "866-906-1515"],
-  "numbers": [4.5, 1599, 10, 5, 2, 8, 72, 73, 2.0, 7, 2025, 1, 30, 3, 0, 216],
-  "dates": ["2026-10-19", "2026-03-17", "2026-10-18"],
-  "times": ["8:30", "9:00"]
+  "phones": [
+   "585-563-2029",
+   "866-906-1515"
+  ],
+  "numbers": [
+   4.5,
+   1599,
+   10,
+   5,
+   2,
+   8,
+   72,
+   73,
+   2.0,
+   7,
+   2025,
+   1,
+   30,
+   3,
+   0,
+   216
+  ],
+  "dates": [
+   "2026-10-19",
+   "2026-03-17",
+   "2026-10-18"
+  ],
+  "times": [
+   "8:30",
+   "9:00"
+  ]
  },
  "ledger": {
-  "website_schema": {"method": "homepage curl + parse and browser view-source of home, About, Service, Parts, Directions", "when": "2026-10-18"},
-  "google_listings": {"method": "five Google Maps searches (Sales, Service, Parts, duplicate checks) in signed-in Chrome", "when": "2026-10-19"},
-  "reviews": {"method": "Maps reviews sorted Newest, 10 newest + owner replies", "when": "2026-10-19"},
-  "posts": {"method": "Maps and Search panel: no owner posts visible; last post March 17 2026 from the reference record", "when": "2026-10-19"},
-  "photos": {"method": "Maps photos viewer: owner photos dated 7 years ago and Oct 2025", "when": "2026-10-19"},
-  "facebook": {"method": "Facebook page signed in: 72% recommend (73 reviews), no star rating", "when": "2026-10-19"},
-  "directories": {"method": "Apple Maps, Bing, Yelp, Facebook, Mitsubishi dealer locator", "when": "2026-10-19"}
+  "website_schema": {
+   "method": "homepage curl + parse and browser view-source of home, About, Service, Parts, Directions",
+   "when": "2026-10-18"
+  },
+  "google_listings": {
+   "method": "five Google Maps searches (Sales, Service, Parts, duplicate checks) in signed-in Chrome",
+   "when": "2026-10-19"
+  },
+  "reviews": {
+   "method": "Maps reviews sorted Newest, 10 newest + owner replies",
+   "when": "2026-10-19"
+  },
+  "posts": {
+   "method": "Maps and Search panel: no owner posts visible; last post March 17 2026 from the reference record",
+   "when": "2026-10-19"
+  },
+  "photos": {
+   "method": "Maps photos viewer: owner photos dated 7 years ago and Oct 2025",
+   "when": "2026-10-19"
+  },
+  "facebook": {
+   "method": "Facebook page signed in: 72% recommend (73 reviews), no star rating",
+   "when": "2026-10-19"
+  },
+  "directories": {
+   "method": "Apple Maps, Bing, Yelp, Facebook, Mitsubishi dealer locator",
+   "when": "2026-10-19"
+  },
+  "delivery": {
+   "method": "Maps About tab: main listing shows 'Offers delivery' (Oct 22 2026 live check)",
+   "when": "2026-10-22"
+  }
  },
  "listings": {
-  "sales": {"claimed_verified": 1.0, "checklist_done": 7, "checklist_total": 7, "photos_30d": 0, "logo": false, "cover": true,
-            "coverage": {"exterior": true, "interior_or_team": true, "department": false},
-            "posts_30d": 0, "last_post_days": 216, "variety": {"offers": false, "events": false, "cta": false}, "newest_review_days": 2},
-  "service": null, "parts": null, "combined": null
+  "sales": {
+   "checklist_done": 7,
+   "checklist_total": 7,
+   "photos_30d": 0,
+   "logo": false,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": false
+   },
+   "posts_30d": 0,
+   "last_post_days": 216,
+   "variety": {
+    "offers": false,
+    "events": false,
+    "cta": false
+   },
+   "newest_review_days": 2
+  },
+  "service": null,
+  "parts": null,
+  "combined": null
  },
- "claimed": {"duplicate_or_unclaimed_found": false},
- "reviews": {"google_rating": 4.5, "owner_replies_of_10_newest": 8, "facebook": {"mode": "percent"}, "real_reviews_visible_on_site": false},
- "nap": {"google_vs_site_fields_matching": 3, "directories_agree": [true, true, true, true, false], "dept_phones_ok": null, "map_pin_ok": true},
- "schema": {"pages_with_jsonld": 1, "business_type_ok": true, "department_entities": 3, "parses_cleanly": true, "dept_own_page_address": 0, "dept_own_phone": 0,
-            "core_fields": 6, "logo_or_image": true, "sameas_google": false, "sameas_other": true, "areaserved": false, "hasmap_or_map": false, "services_or_offers": false}
+ "claimed": {
+  "main_claim_link": false,
+  "lookalikes": []
+ },
+ "reviews": {
+  "google_rating": 4.5,
+  "owner_replies_of_10_newest": 8,
+  "facebook": {
+   "mode": "percent"
+  },
+  "real_reviews_visible_on_site": false,
+  "yelp": {
+   "rating": 2.0,
+   "count": 8,
+   "claimed": false
+  }
+ },
+ "nap": {
+  "google_vs_site_fields_matching": 3,
+  "directories_agree": [
+   true,
+   true,
+   true,
+   true,
+   false
+  ],
+  "map_pin_ok": true,
+  "dept_phones": null
+ },
+ "schema": {
+  "pages_with_jsonld": 1,
+  "business_type_ok": true,
+  "department_entities": 3,
+  "parses_cleanly": true,
+  "dept_own_page_address": 0,
+  "dept_own_phone": 0,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": false,
+  "sameas_other": true,
+  "hasmap_or_map": false,
+  "services_or_offers": false,
+  "areaserved": {
+   "delivery_offered": true,
+   "code_places": [],
+   "page_places": [],
+   "code_on_page": []
+  }
+ },
+ "schema_rendered": {
+  "pages_with_jsonld": 1,
+  "business_type_ok": true,
+  "department_entities": 3,
+  "parses_cleanly": true,
+  "dept_own_page_address": 0,
+  "dept_own_phone": 0,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": false,
+  "sameas_other": true,
+  "hasmap_or_map": false,
+  "services_or_offers": false
+ },
+ "jev": {
+  "status": "skipped",
+  "reason": "recorded before v15; JEV did not run on this audit",
+  "items": [],
+  "review": []
+ }
 }

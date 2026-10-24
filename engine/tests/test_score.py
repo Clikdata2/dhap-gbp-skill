@@ -6,19 +6,24 @@ import score as S
 REPO = S.default_repo() if (S.default_repo() / "SKILL.md").exists() else ENG.parent / "repo"
 LED = {g: {"method": "test fixture", "when": "2026-10-20"} for g in S.LEDGER_GROUPS}
 def L(**k):
-    base = dict(claimed_verified=1.0, checklist_done=7, checklist_total=7, photos_30d=0, logo=False, cover=True,
+    base = dict(checklist_done=7, checklist_total=7, photos_30d=0, logo=False, cover=True,
                 coverage=dict(exterior=True, interior_or_team=True, department=False), posts_30d=0, last_post_days=None,
                 variety=dict(offers=False, events=False, cta=False), newest_review_days=0)
     base.update(k); return base
 
+JEV0 = {"status": "skipped", "reason": "test fixture", "items": [], "review": []}
+def SCH(**k):
+    d = dict(pages_with_jsonld=1, business_type_ok=True, department_entities=3, parses_cleanly=True, dept_own_page_address=0, dept_own_phone=0,
+             core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, hasmap_or_map=False, services_or_offers=False)
+    d.update(k); return d
+AS0 = dict(delivery_offered=True, code_places=[], page_places=[], code_on_page=[])
 # --- the locked reference in SKILL.md (James Mitsubishi Greece, Oct 19 2026): 10 / 4.0 / 2.3 / 8.4 / 0 / 9.2 / 5.6 / 5.0 -> 5.6 Critical
 JAMES = dict(dealer="James Mitsubishi Greece", audit_date="2026-10-19", ledger=LED,
     listings=dict(sales=L(last_post_days=216, newest_review_days=2), service=None, parts=None, combined=None),
-    claimed=dict(duplicate_or_unclaimed_found=False),
-    reviews=dict(google_rating=4.5, owner_replies_of_10_newest=8, facebook=dict(mode="percent"), real_reviews_visible_on_site=False),
-    nap=dict(google_vs_site_fields_matching=3, directories_agree=[True, True, True, True, False], dept_phones_ok=None, map_pin_ok=True),
-    schema=dict(pages_with_jsonld=1, business_type_ok=True, department_entities=3, parses_cleanly=True, dept_own_page_address=0, dept_own_phone=0,
-                core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, areaserved=False, hasmap_or_map=False, services_or_offers=False))
+    claimed=dict(main_claim_link=False, lookalikes=[]), jev=JEV0,
+    reviews=dict(google_rating=4.5, owner_replies_of_10_newest=8, facebook=dict(mode="percent"), real_reviews_visible_on_site=False, yelp=dict(rating=2.0, count=8, claimed=False)),
+    nap=dict(google_vs_site_fields_matching=3, directories_agree=[True, True, True, True, False], dept_phones=None, map_pin_ok=True),
+    schema=SCH(areaserved=AS0), schema_rendered=SCH())
 VAC = json.loads((ENG / "examples/evidence-example-vacaville.json").read_text()); VAC["ledger"] = LED
 VAC["listings"]["sales"]["last_post_days"] = 0
 MUSIC = dict(dealer="Music City Mitsubishi", audit_date="2026-10-19", ledger=LED,
@@ -26,11 +31,10 @@ MUSIC = dict(dealer="Music City Mitsubishi", audit_date="2026-10-19", ledger=LED
                   service=None, parts=None,
                   combined=L(checklist_done=5, checklist_total=8, photos_30d=0, logo=False, cover=False, coverage=dict(exterior=False, interior_or_team=False, department=False),
                              posts_30d=0, last_post_days=None, newest_review_days=100)),
-    claimed=dict(duplicate_or_unclaimed_found=True),
-    reviews=dict(google_rating=4.8, owner_replies_of_10_newest=10, facebook=dict(mode="none"), real_reviews_visible_on_site=False),
-    nap=dict(google_vs_site_fields_matching=2, directories_agree=[False, False, False, False, True], dept_phones_ok=False, map_pin_ok=True),
-    schema=dict(pages_with_jsonld=5, business_type_ok=True, department_entities=3, parses_cleanly=False, dept_own_page_address=3, dept_own_phone=2,
-                core_fields=6, logo_or_image=True, sameas_google=False, sameas_other=True, areaserved=False, hasmap_or_map=False, services_or_offers=False))
+    claimed=dict(main_claim_link=False, lookalikes=[{"name": "Music City Mitsubishi Parts"}]), jev=JEV0,
+    reviews=dict(google_rating=4.8, owner_replies_of_10_newest=10, facebook=dict(mode="none"), real_reviews_visible_on_site=False, yelp=None),
+    nap=dict(google_vs_site_fields_matching=2, directories_agree=[False, False, False, False, True], dept_phones=[{"dept": "service & parts", "gbp": "615-555-0100", "site": "615-555-0199"}], map_pin_ok=True),
+    schema=SCH(pages_with_jsonld=5, parses_cleanly=False, dept_own_page_address=3, dept_own_phone=2, areaserved=dict(AS0, delivery_offered=False)), schema_rendered=SCH(pages_with_jsonld=5))
 
 fails = 0
 def ok(name, cond, extra=""):
@@ -38,7 +42,7 @@ def ok(name, cond, extra=""):
 
 def run_once():
     for name, ev, rows, ov, lab in (("James reference (locked in SKILL.md)", JAMES, [10.0, 4.0, 2.3, 8.4, 0.0, 9.2, 5.6, 5.0], 5.6, "Critical"),
-                                    ("Vacaville audit (Oct 20)", VAC, [10.0, 8.0, 6.4, 6.9, 5.8, 5.3, 8.0, 8.0], 7.3, "Major Issues")):
+                                    ("Vacaville audit (Oct 20), v15 areaServed both ways", VAC, [10.0, 8.0, 6.4, 6.9, 5.8, 5.3, 8.0, 6.7], 7.1, "Major Issues")):
         p = S.check(ev); ok(name + " evidence passes the check", not p, p)
         raw, r = S.score_rows(ev); st = S.status(r)
         ok(name + " rows", r == rows, r); ok(name + " overall", S.overall(r) == ov, S.overall(r)); ok(name + " status", st["label"] == lab, st)
@@ -71,7 +75,42 @@ def run_once():
     ok("separate Service + Parts listings score", not S.check(ev) and S.score_rows(ev)[1][1] == S.r1d(4 + 2 + 2 * 4 / 8 + 2 * 4 / 7), S.score_rows(ev)[1])
     # no listings at all
     ev = copy.deepcopy(VAC); ev["listings"] = dict(sales=None, service=None, parts=None, combined=None); ev["listings_none"] = True
-    raw, r = S.score_rows(ev); ok("no Google listings -> Profile Completeness 0, no crash", r[1] == 0 and r[0] == 2.0, r)
+    raw, r = S.score_rows(ev); ok("no Google listings -> Claimed 0 and Profile Completeness 0, no crash", r[1] == 0 and r[0] == 0, r)
+    # ---- v15 rules (Oct 22 2026 decisions)
+    D = "2026-10-23"
+    for lab, want in (("a week ago", (7, 13)), ("2 weeks ago", (14, 20)), ("4 weeks ago", (28, 34)), ("a month ago", (30, 60)), ("6 months ago", (183, 213)),
+                      ("a year ago", (365, 729)), ("3 hours ago", (0, 1)), ("an hour ago", (0, 1)), ("a day ago", (1, 1)), ("5 days ago", (5, 5)),
+                      ("Edited a week ago", (7, 13)), ("Apr 30, 2026", (176, 176)), ("2026-10-23", (0, 0))):
+        ok(f"rule 2: '{lab}' = {want} days", S.age_range(lab, D) == want, S.age_range(lab, D))
+    ok("rule 2: month-end 'a month ago' on Mar 31 = Feb 28 back", S.age_range("a month ago", "2026-03-31") == (31, 58), S.age_range("a month ago", "2026-03-31"))
+    ok("rule 2: nonsense label refused", S.age_range("recently", D) is None and S.age_range("Dec 1, 2026", D) is None)
+    ev = copy.deepcopy(VAC); ev["listings"]["sales"].pop("newest_review_days"); ev["listings"]["sales"]["newest_review_label"] = "2 weeks ago"; ev["audit_date"] = D
+    S.resolve_ages(ev); ok("rule 2: '2 weeks ago' crosses the 15-day Sales line -> the lower (half) credit", ev["listings"]["sales"]["newest_review_days"] == 20)
+    ev = copy.deepcopy(VAC); ev["listings"]["sales"].pop("newest_review_days"); ev["listings"]["sales"]["newest_review_label"] = "2 days ago"
+    ev["listings"]["sales"].pop("last_post_days"); ev["listings"]["sales"]["last_post_label"] = "Oct 20, 2026"
+    ok("rule 2: evidence with only labels scores without a separate step (build, facts gate)", not S.check(copy.deepcopy(ev)) and S.score_rows(copy.deepcopy(ev))[1] == S.score_rows(VAC)[1], S.check(copy.deepcopy(ev)))
+    ev = copy.deepcopy(VAC); ev["listings"]["sales"]["newest_review_label"] = "lately"; ev["listings"]["sales"].pop("newest_review_days")
+    ok("rule 2: a label the engine can't read is refused", any("label not understood" in x for x in S.check(ev)), S.check(ev))
+    ev = copy.deepcopy(VAC); ev["claimed"]["main_claim_link"] = True
+    ok("rule 3: main listing shows 'Claim this business' -> Claimed 2", S.score_rows(ev)[1][0] == 2.0)
+    ev = copy.deepcopy(VAC); ev["claimed"]["lookalikes"] = [{"name": "Vacaville Mitsubishi Parts"}] * 3
+    ok("rule 3: look-alike listings cost nothing", S.score_rows(ev)[1][0] == 10.0)
+    ev = copy.deepcopy(VAC); ev["nap"]["dept_phones"] = [{"dept": "service & parts", "gbp": "(707) 353-4579", "site": "1-707-353-4579"}]
+    ok("rule 1: same digits in different formats match", S.score_rows(ev)[0][5] - S.score_rows(VAC)[0][5] == 1)
+    ev = copy.deepcopy(VAC); ev["nap"]["dept_phones"] = [{"dept": "service", "gbp": "707-353-4579", "site": ""}]
+    ok("rule 1: a department phone with no website phone is refused", any("nap.dept_phones" in x for x in S.check(ev)))
+    ev = copy.deepcopy(VAC); ev["schema"]["areaserved"]["delivery_offered"] = False
+    ok("rule 4: no delivery -> areaServed skipped, row rescaled (6/8 x 10 = 7.5)", S.score_rows(ev)[1][7] == 7.5, S.score_rows(ev)[1])
+    ev = copy.deepcopy(VAC); ev["schema"]["areaserved"]["code_on_page"] = ["Stockton", "Reno"]
+    ok("rule 4: a code-on-page place that is not in the code is refused", any("not in code_places" in x for x in S.check(ev)))
+    ev = copy.deepcopy(VAC); ev.pop("schema_rendered")
+    ok("JavaScript check: no rendered reading -> not scored", any("schema_rendered: missing" in x for x in S.check(ev)))
+    ev = copy.deepcopy(VAC); ev["reviews"].pop("yelp")
+    ok("Yelp reading missing -> not scored", any(x.startswith("reviews.yelp") for x in S.check(ev)))
+    ev = copy.deepcopy(VAC); ev.pop("jev")
+    ok("JEV ledger missing -> not scored", any(x.startswith("jev:") for x in S.check(ev)))
+    ok("edge warning uses the real score (8.75 is 0.25 from 9.0)", not S.edge_warnings([8.75] + [10] * 7, [8.8] + [10.0] * 7))
+    ok("edge warning still fires at 8.80", bool(S.edge_warnings([8.80] + [10] * 7, [8.8] + [10.0] * 7)))
     # rules guard: a changed rubric text must stop scoring; the real repo must pass
     try: S.rules_guard(REPO); ok("rules guard accepts the current repository", True)
     except SystemExit as e: ok("rules guard accepts the current repository", False, e)
@@ -87,13 +126,16 @@ def run_once():
         ev = copy.deepcopy(VAC)
         for k in ("sales", "combined"):
             l = ev["listings"][k]
-            l.update(claimed_verified=rnd.choice([0, .5, 1]), checklist_done=rnd.randint(0, l["checklist_total"]), photos_30d=rnd.randint(0, 30),
+            l.update(checklist_done=rnd.randint(0, l["checklist_total"]), photos_30d=rnd.randint(0, 30),
                      posts_30d=rnd.randint(0, 20), logo=rnd.random() < .5, cover=rnd.random() < .5, newest_review_days=rnd.choice([None, 0, 15, 16, 30, 31, 200]))
             l["last_post_days"] = rnd.randint(0, 30) if l["posts_30d"] else rnd.choice([None, 45, 400])
             if not l["posts_30d"]: l["variety"] = dict(offers=False, events=False, cta=False)
         ev["reviews"].update(google_rating=rnd.choice([None, 1.0, 3.4, 3.5, 4.0, 4.49, 4.5, 5.0]), owner_replies_of_10_newest=rnd.randint(0, 10),
                              facebook=rnd.choice([dict(mode="none"), dict(mode="percent"), dict(mode="stars", within_half=True), dict(mode="stars", within_half=False)]))
         ev["nap"]["directories_agree"] = [rnd.random() < .5 for _ in range(5)]
+        ev["claimed"]["main_claim_link"] = rnd.random() < .2
+        ev["schema"]["areaserved"] = dict(delivery_offered=rnd.random() < .5, code_places=["A", "B"][:rnd.randint(0, 2)], page_places=["B", "C"][:rnd.randint(0, 2)], code_on_page=[])
+        ev["schema"]["areaserved"]["code_on_page"] = ev["schema"]["areaserved"]["code_places"][:rnd.randint(0, len(ev["schema"]["areaserved"]["code_places"]))]
         p = S.check(ev)
         if p: bad += 1; continue
         raw1, r1 = S.score_rows(ev); raw2, r2 = S.score_rows(copy.deepcopy(ev))

@@ -28,9 +28,11 @@ def variants():
     # Critical: drop the shared listing's photos/posts and the directory matches so a row falls to 5.0 or below
     e = copy.deepcopy(EV); e["nap"].update(google_vs_site_fields_matching=1, directories_agree=[False] * 5); v["critical"] = (e, copy.deepcopy(CT), "Critical", "#dc2626")
     # Needs Improvement: lift every weak row to 7+ but not all to 9
-    e = copy.deepcopy(EV); e["nap"].update(google_vs_site_fields_matching=3, directories_agree=[True] * 5, dept_phones_ok=True)
+    e = copy.deepcopy(EV); e["nap"].update(google_vs_site_fields_matching=3, directories_agree=[True] * 5, dept_phones=[{"dept": "service & parts", "gbp": "707-353-4579", "site": "707-353-4579"}])
     for k in ("sales", "combined"): e["listings"][k].update(photos_30d=6, posts_30d=8, last_post_days=2, logo=True, variety=dict(offers=True, events=True, cta=True), newest_review_days=3)
     e["listings"]["combined"].update(coverage=dict(exterior=True, interior_or_team=True, department=True)); e["reviews"].update(real_reviews_visible_on_site=True)
+    six = ["Vacaville", "Sacramento", "Davis", "Fairfield", "Vallejo", "Stockton"]   # code and pages agree on every place (rule 4: 2 of 2)
+    e["schema"]["areaserved"].update(code_places=six, page_places=six, code_on_page=six)
     v["needs improvement"] = (e, copy.deepcopy(CT), "Needs Improvement", "#ca8a04")
     # Fully Optimized: everything met
     f = copy.deepcopy(e); f["listings"]["combined"].update(checklist_done=8); f["listings"]["sales"].update(coverage=dict(exterior=True, interior_or_team=True, department=True))
