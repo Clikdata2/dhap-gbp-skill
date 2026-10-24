@@ -18,7 +18,7 @@ Usage:
 """
 import calendar, datetime, hashlib, json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import areas
+import areas, ai_answers
 
 def default_repo():
     """The rules folder: the repository this engine/ folder sits in, else a local copy at ~/.cache/dhap-gbp-skill."""
@@ -34,6 +34,7 @@ def r1d(x):
 # fingerprints of the rules text this scorer was checked against (repository version -> section hashes)
 KNOWN_RULES = {
     "15.0": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},
+    "15.1": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},   # AI answer check added; scoring text unchanged
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -180,6 +181,7 @@ def check(ev):
         e = led.get(g)
         need("ledger." + g, isinstance(e, dict) and str(e.get("method", "")).strip() and re.match(r"^\d{4}-\d{2}-\d{2}", str(e.get("when", ""))),
              "say HOW it was observed (method) and WHEN (YYYY-MM-DD) — proof ledger")
+    P += ai_answers.check(ev)                                  # v15.1: the AI answer check is mandatory (audits from Oct 24 2026)
     return [p for p in P if p]
 
 # ----------------------------------------------------------------------------------------------- scoring

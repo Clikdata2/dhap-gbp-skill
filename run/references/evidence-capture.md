@@ -54,4 +54,27 @@ Also open the dealer's page on Autotrader (and, when time allows, Cars.com, CarG
 
 ## 6. Record it
 - Fill `evidence-example-vacaville.json`-style JSON (values only from the audit) → `python3 run/scripts/lib_dhap.py score evidence.json` (or `python3 engine/score.py score evidence.json`).
-- Write the evidence record (.md) with: scores + working per row, phone inventory, other checks, not-observable items and judgment calls, method + date. Anything not recorded is listed as such.
+- Write the evidence record (.md) with: scores + working per row, phone inventory, the AI answer check table (`python3 engine/ai_answers.py brief evidence.json`), other checks, not-observable items and judgment calls, method + date. Anything not recorded is listed as such.
+
+## 7. AI answer check (v15.1, every run — mandatory)
+Ask what the AI tools actually say. SKILL.md AI ANSWER CHECK has the 3 questions (best, contact, rating) word for word; fill in Brand, Dealer, City and ST from the website.
+- **Where:** use Claude in Chrome (same tab rules as §0). Open a new chat or a new search for every question; never ask a follow-up; never sign in or out. Typing the question into the tool's own box is allowed (it is a search, not an edit).
+  | Tool (`tool`) | How |
+  |---|---|
+  | Google AI (`google_ai`) | `https://www.google.com/search?q=<question>` → read the AI Overview; if none shows, AI Mode: `https://www.google.com/search?q=<question>&udm=50` |
+  | Gemini (`gemini`) | `https://gemini.google.com/app` (needs a Google sign-in) → click the prompt box → type → Enter. Answers can take over a minute: wait up to 90 s and do not navigate away (that drops the answer) |
+  | ChatGPT (`chatgpt`) | `https://chatgpt.com/?q=<question>&hints=search` (opens a new chat with Search on and asks; works signed out) |
+  | Microsoft Copilot (`copilot`) | Copilot Search, signed out: `https://www.bing.com/copilotsearch?q=<question>`. Its text does not come back from `get_page_text`: read it from a screenshot (zoom). `copilot.microsoft.com` needs a Microsoft sign-in |
+  | Perplexity (`perplexity`) | `https://www.perplexity.ai/search?q=<question>` (works signed out) |
+  | Claude (`claude`) | the run's own web search tool with the question word for word (Claude Code: WebSearch); record the sources it returns and the answer written only from them. `claude.ai` when the run has no search tool |
+  | Brave (`brave`) | Ask Brave, signed out: `https://search.brave.com/ask?q=<question>` (the plain results page often shows no AI summary) |
+  | Bing card (`bing_card`, prompt `card`) | `https://www.bing.com/search?q=<Dealer>+<City>+<ST>` → the business card: name, address, phone, rating and its source |
+  | Apple Maps (`apple_maps`, prompt `card`) | `https://maps.apple.com/search?query=<Dealer>%20<City>%20<ST>` → the place card |
+- **Wait for the full answer** (15–30 s for most tools; the stop or loading icon gone), then `get_page_text` and a screenshot cropped to the answer. Blur any account name or avatar.
+- **Record each answer** in `evidence.ai_answers.answers` as `{tool, prompt, status: "answered", asked, when, named, position, phone, phone_matches_site, rating, rating_source, sources, quote, proof}`:
+  - `named`: does the answer name this dealer (the right location, not a same-name dealer elsewhere); `position`: 1 for first in a list, null when not named.
+  - `phone` word for word, and `phone_matches_site`: does it equal the website's number for that department. Add the number to `facts.phones`.
+  - `rating` and `rating_source` (`google`, `yelp`, `facebook`, `dealer_site`, `other`): where the rating comes from, read from the answer or its cited source.
+  - `sources`: the domains it cites. `quote`: its words about the dealer, word for word; if not named, "not mentioned" plus who it named first.
+  - A tool that will not answer: `{tool, prompt, status: "blocked", asked, when, reason}`, then try it once more in a fresh tab.
+- Set `ai_answers.method` (for example "Claude in Chrome, signed in; fresh chat per question") and run `python3 engine/ai_answers.py check evidence.json`.

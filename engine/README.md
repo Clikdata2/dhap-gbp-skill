@@ -7,7 +7,7 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 ## How a run goes
 
 1. **Collect.** Open the dealer's website and Google Maps listing in the signed-in Chrome. Paste `collectors/schema_collect.min.js` on the website and `collectors/maps_collect.min.js` on the Maps listing. Each one does in one step what used to take 8 to 15 steps, and gives back a short answer.
-2. **Record.** Write what you saw in an evidence file. Copy `examples/evidence-example-vacaville.json` and change it. Every group needs a "method" (how you checked) and a "when" (the date).
+2. **Record.** Write what you saw in an evidence file, including the AI answer check (`ai_answers`). Copy `examples/evidence-example-vacaville.json` and change it. Every group needs a "method" (how you checked) and a "when" (the date).
 3. **Write.** Write the report wording in a content file. Copy `examples/content-example-vacaville.json` and change it. It holds only words and numbers, not page code.
 4. **Check and build.** Run one command:
    `python3 engine/check_all.py --evidence ev.json --content content.json --out OUT`
@@ -38,6 +38,7 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `build.py` | Builds the full report and the health alert from the templates in `templates/` |
 | `check_all.py` | Runs all seven checks |
 | `jev.py` | Optional second opinion on post types (see below) |
+| `ai_answers.py` | AI answer check (v15.1, every run): checks the saved answers of 7 AI tools to 3 questions plus the Bing and Apple Maps cards, and writes the rep-brief table and flags. The evidence check refuses to score without it |
 | `places.py` | Optional Google Places cross-check of the Maps collector (see below) |
 | `probe_mobile.py`, `spellcheck.py` | Checks 6 and 7 |
 | `examples/` | James Mitsubishi Greece (the locked reference) and Vacaville Mitsubishi, plus live Chrome readings for those two and Music City Mitsubishi |
