@@ -1,0 +1,458 @@
+{
+ "_note": "v15.2 content example: alert.stats and alert.impact_para2 are left out — the engine picks the stat cards (rule 7).",
+ "dealer": "Vacaville Mitsubishi",
+ "city_st": "Vacaville, CA",
+ "report_id": "GBP-VMVCA-1026",
+ "month_year": "October 2026",
+ "dhap_url": "https://clikdatamarketing.com/vacaville-mitsubishi-digital-health-analysis-proposal-page",
+ "summary": {
+  "title": "Has Clear Local Search Gaps to Close",
+  "context": "Vacaville Mitsubishi has a strong Google presence and well-built website schema",
+  "red": "seven different local phone numbers across the website and listings, Service and Parts sharing one thin Google listing, and none of its Google reviews shown on the website",
+  "consequence": "are limiting local search visibility every single day.",
+  "orange": "dealerships that keep their Sales, Service and Parts listings and phone numbers aligned are positioned to gain ground on every department search.",
+  "facts": [
+   [
+    "7",
+    "Different Local<br/>Phone Numbers",
+    "red"
+   ],
+   [
+    "1",
+    "Shared Listing for<br/>Service &amp; Parts",
+    "red"
+   ],
+   [
+    "None",
+    "Google Reviews Shown<br/>on the Website",
+    "red"
+   ],
+   [
+    "5 of 8",
+    "Sales Posts in the<br/>Last 30 Days",
+    "orange"
+   ]
+  ],
+  "bullets": [
+   [
+    "red",
+    "7 different local phone numbers",
+    "the website, Google, Bing, Facebook and the Mitsubishi locator disagree"
+   ],
+   [
+    "red",
+    "Service &amp; Parts share one thin listing",
+    "1 category, 1 review, no description or scheduling link"
+   ],
+   [
+    "red",
+    "172 Google reviews at 4.9&#9733;",
+    "none are shown on the website"
+   ],
+   [
+    "orange",
+    "",
+    "Strong foundation: active Sales posting, fast owner replies, and rich website schema"
+   ]
+  ]
+ },
+ "scorecard_notes": [
+  "✅ Both Google listings show owner posts; no duplicate Google listing found (Apple Maps shows &ldquo;Claim This Place&rdquo;)",
+  "⚠️ Sales listing complete (7 of 7 items); Service &amp; Parts share one listing with 1 category, no description or scheduling link (4 of 8)",
+  "⚠️ Sales added 4+ photos in October; the shared Service &amp; Parts listing added 1; no logo seen on either listing",
+  "⚠️ Google 4.9★ / 172 reviews, newest 14 hours old, 10 of 10 newest answered; Facebook shows no star rating; reviews not shown on the website",
+  "⚠️ Sales 5 posts in 30 days (standard 8); Service &amp; Parts 1 (standard 4); newest Sales post 16 hours before the audit",
+  "🟠 Google, Bing, Facebook and the Mitsubishi locator show phone numbers that differ from the website; Apple Maps and Yelp match",
+  "✅ JSON-LD on all 5 key pages and it parses; Service &amp; Parts entities present; no Sales department entity",
+  "✅ Google link in sameAs, areaServed (6 cities), offers, logo; ⚠️ no other official profiles in sameAs, no hasMap or map"
+ ],
+ "ai": {
+  "title_status": "Major Gaps Found",
+  "badge": "MAJOR",
+  "badge_sub": "Gaps to Close",
+  "facts": [
+   [
+    "7",
+    "Different Local<br/>Phone Numbers",
+    "red"
+   ],
+   [
+    "1",
+    "Shared Listing for<br/>Service &amp; Parts",
+    "red"
+   ],
+   [
+    "None",
+    "Google Reviews Shown<br/>on the Website",
+    "red"
+   ],
+   [
+    "Google",
+    "Only Profile in<br/>sameAs Schema",
+    "orange"
+   ]
+  ],
+  "key_gaps": [
+   [
+    "red",
+    "7 different local phone numbers",
+    "conflicting contact data across the website and listings"
+   ],
+   [
+    "red",
+    "Service &amp; Parts share one thin Google listing",
+    "1 category, 1 review, no description"
+   ],
+   [
+    "red",
+    "172 Google reviews not shown on the website",
+    "visitors must leave the site to see them"
+   ],
+   [
+    "orange",
+    "sameAs lists only the Google profile",
+    "no other official profiles, no hasMap or map"
+   ]
+  ],
+  "signals": [
+   [
+    "Well-built site schema: Google link in sameAs, areaServed, offers and FAQ structured data; no hasMap or map (AI impact inferred, not tested)",
+    "i",
+    "p"
+   ],
+   [
+    "Complete Sales listing; Service and Parts share one nested listing with 1 category, 1 review, no description or scheduling link",
+    "v",
+    "m"
+   ],
+   [
+    "sameAs lists only the Google profile (no Facebook, Instagram or other official profiles); no Sales department entity; the Parts entity repeats the main phone number",
+    "v",
+    "m"
+   ],
+   [
+    "Sales posted 16 hours before the audit and 5 times in 30 days (standard 8); the shared Service &amp; Parts listing posted once (standard 4)",
+    "v",
+    "p"
+   ],
+   [
+    "Active Knowledge Panel with description and a Departments link to the combined listing &mdash; sameAs links to Google only (entity effect inferred)",
+    "v",
+    "p"
+   ],
+   [
+    "7 different local phone numbers across the website, Google, Bing, Facebook and the Mitsubishi locator; Apple Maps shows &ldquo;Claim This Place&rdquo;",
+    "v",
+    "m"
+   ],
+   [
+    "Google 4.9&#9733; / 172 reviews vs. Yelp 3.3&#9733; / 7; none shown on the website; Facebook shows no star rating (browser checks, October 20, 2026)",
+    "v",
+    "m"
+   ],
+   [
+    "FAQ structured data is on the homepage and GBP posts answer local &ldquo;near me&rdquo; searches",
+    "v",
+    "s"
+   ]
+  ],
+  "overall": "m",
+  "sections": [
+   {
+    "title": "&#9888;&#65039; Verified Major Gaps",
+    "cards": [
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "Seven Different Local Phone Numbers",
+      "body": "The website lists 707-532-2052 (Sales), 707-353-4579 (Service) and 707-475-0868 (Parts). Google lists (707) 926-3135 for the dealership and (707) 348-0555 for the shared Service &amp; Parts listing; Bing repeats the first. Facebook lists (707) 452-2500 and the Mitsubishi dealer locator lists 707-513-4935. Apple Maps and Yelp match the website&rsquo;s Sales number. Some may be call-tracking numbers (not verified). AI engines and directories draw on this data, so conflicting numbers weaken confidence.",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; 60+ Directory Syndication</span>",
+      "tag": "v-date"
+     },
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "Service &amp; Parts Share One Thin, AI-Indexable Entity",
+      "body": "Google Maps shows one &ldquo;Vacaville Mitsubishi Service and Parts&rdquo; listing nested under the main listing: 1 category, 1 review (5.0&#9733;, four months old, unanswered), no description and no scheduling link, with its own website and phone number. <em>Whether a query like &ldquo;Mitsubishi service Vacaville&rdquo; on ChatGPT or Perplexity currently returns Vacaville Mitsubishi was not directly tested.</em>",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; 3-Pack Profile Build &amp; Management</span>",
+      "tag": "v-date"
+     },
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "Strong Reviews, Invisible on the Website",
+      "body": "Google shows 4.9&#9733; across 172 reviews, but none appear on the rendered homepage or Contact Us page, and the site has no reviews page. Facebook shows no star rating or recommendation figure, and Yelp shows 3.3&#9733; across 7 reviews.",
+      "pill": "",
+      "tag": "v-date"
+     }
+    ]
+   },
+   {
+    "title": "&#9888;&#65039; Inferred Major Gaps",
+    "cards": [
+     {
+      "kind": "major",
+      "icon": "&#9888;&#65039;",
+      "title": "sameAs Lists Only the Google Profile",
+      "body": "The AutoDealer schema&rsquo;s sameAs list holds the Google Business Profile link and nothing else &mdash; no Facebook, Instagram, Yelp or other official profiles &mdash; and no <code>hasMap</code> or <code>map</code> property appears on any page checked. (Effect on entity recognition inferred, not tested.)",
+      "pill": "<span class=\"pill pill-blue\">CLIKsearch &mdash; Custom Dealership Website Schema</span>",
+      "tag": "i"
+     }
+    ]
+   },
+   {
+    "title": "&#10003; Verified AI Visibility Strengths",
+    "cards": [
+     {
+      "kind": "working",
+      "icon": "&#10003;",
+      "title": "Strong Review Foundation &mdash; Verified AI Signal",
+      "body": "4.9&#9733; across 172 Google reviews, with the newest review 14 hours old and all of the 10 newest reviews answered by the owner. CLIKsearch&rsquo;s Reputation Review Reactivation Builder Campaign extends that momentum to Service and Parts.",
+      "pill": "",
+      "tag": "v-date"
+     },
+     {
+      "kind": "working",
+      "icon": "&#10003;",
+      "title": "Well-Built Schema and Active Posting",
+      "body": "Homepage schema carries a Google link in sameAs, six cities in areaServed, offers, and FAQ structured data; the Sales profile posted five times in the last 30 days. Paired with dedicated 3-Pack profiles and weekly content, this is a strong base. CLIKsearch&rsquo;s omni-social distribution across 6 platforms creates continuous cross-platform entity citations that multiply this authority signal for AI engine indexing.",
+      "pill": "",
+      "tag": "v-date"
+     }
+    ]
+   }
+  ]
+ },
+ "findings": [
+  {
+   "title": "⚠️ Major Gaps",
+   "cards": [
+    {
+     "kind": "major",
+     "icon": "⚠️",
+     "title": "Seven Different Local Phone Numbers",
+     "body": "Website: 707-532-2052 (Sales), 707-353-4579 (Service), 707-475-0868 (Parts); the Parts schema entity repeats 707-532-2052. Google: (707) 926-3135 for the dealership and (707) 348-0555 for the shared Service &amp; Parts listing. Bing: (707) 926-3135. Facebook: (707) 452-2500. Mitsubishi dealer locator: 707-513-4935. Apple Maps and Yelp show 707-532-2052 and match. Name, address, and phone should match everywhere the business is listed; some of these may be call-tracking numbers (not verified). Of the five directories sampled (Apple Maps, Bing, Yelp, Facebook, the locator) two agree with the website. <span class=\"tag-green-sm\">Audit Verified &middot; October 20, 2026</span>",
+     "pill": "CLIKsearch — 60+ Directory Listing Syndication",
+     "tag": ""
+    },
+    {
+     "kind": "major",
+     "icon": "⚠️",
+     "title": "Mitsubishi Dealer Locator Shows Different Service Hours",
+     "body": "The Mitsubishi locator lists Service hours of 7:30 AM to 5:30 PM Monday to Friday; the website and Google show 8:00 AM to 5:00 PM (checked October 20, 2026). Sales hours (9:00 AM to 8:00 PM) agree everywhere.",
+     "pill": "CLIKsearch — Profile Accuracy Monitoring",
+     "tag": ""
+    },
+    {
+     "kind": "major",
+     "icon": "⚠️",
+     "title": "Service &amp; Parts Share One Thin Google Listing",
+     "body": "Google has a single &ldquo;Vacaville Mitsubishi Service and Parts&rdquo; listing at Suite A, nested under the main listing. It has 1 category (Auto repair shop), 1 review (5.0&#9733;, four months old, no reply), no description and no scheduling link; its phone is (707) 348-0555 and its website is factorypartsstore.com. The website lists separate Service and Parts numbers. <strong>Both views:</strong> the website&rsquo;s schema already describes Service (AutoRepair) and Parts (AutoPartsStore) departments (audited October 20, 2026) &mdash; neither entity links to the combined Google listing, and Google shows no separate Service or Parts listings.",
+     "pill": "CLIKsearch — Service &amp; Parts Profile Setup &amp; Management",
+     "tag": ""
+    },
+    {
+     "kind": "major",
+     "icon": "&#9888;&#65039;",
+     "title": "Google Reviews Aren&rsquo;t Shown on the Website",
+     "body": "None of the dealership&rsquo;s 172 Google reviews (4.9&#9733;) appear on its homepage or its Contact Us page, and no Reviews or Testimonials page was found in the navigation, footer or site map &mdash; checked in a browser on October 20, 2026. Visitors have to leave the website to see the reputation that lives on the Google Business Profile. Reviews can be shown visibly to visitors &mdash; for example a Google reviews widget or testimonials &mdash; without any review markup in the structured data.",
+     "pill": "",
+     "tag": ""
+    },
+    {
+     "kind": "major",
+     "icon": "⚠️",
+     "title": "Posting Below the Standard on Service &amp; Parts and Sales",
+     "body": "The Sales profile posted 5 times in the 30 days before the audit (newest 16 hours earlier) against a standard of 8 a month. The shared Service &amp; Parts listing posted once (October 6, 2026) against a standard of 4, and its owner-uploaded photos date to April 2026. The posting standard is one we set, not a Google requirement. <em style=\"color:#6b7280;\">(Competitor posting activity in Vacaville, CA not directly audited — industry pattern.)</em>",
+     "pill": "CLIKsearch — Weekly SEO/GEO Content &amp; Photo Posts",
+     "tag": ""
+    },
+    {
+     "kind": "major",
+     "icon": "⚠️",
+     "title": "No Logo Seen on Either Google Listing",
+     "body": "Both listings show a cover photo, but no business logo was seen; the profile image on the Sales and the shared listing is a photo or an initial (checked October 20, 2026). A logo is one of the two profile-image items scored.",
+     "pill": "CLIKsearch — Full GBP Optimization",
+     "tag": ""
+    }
+   ]
+  },
+  {
+   "title": "⚡ Missed Opportunities",
+   "cards": [
+    {
+     "kind": "opportunity",
+     "icon": "⚡",
+     "title": "sameAs Lists Only the Google Profile; No hasMap or map",
+     "body": "The AutoDealer schema&rsquo;s sameAs list contains the Google Business Profile link only &mdash; it does not include Facebook, Instagram, Yelp or the other official profiles. sameAs is how a site&rsquo;s structured data points to a business&rsquo;s other official profiles. No <code>hasMap</code> or legacy <code>map</code> property appears on the top-level entity or on the Service and Parts department entities (parsed from the JSON-LD on the homepage, About Us (Contact Us), Service, Parts, and Hours &amp; Directions pages, October 20, 2026). <em style=\"color:#6b7280;\">(Effect on entity recognition inferred, not tested.)</em>",
+     "pill": "CLIKsearch — Custom Dealership Website Schema",
+     "tag": ""
+    },
+    {
+     "kind": "opportunity",
+     "icon": "⚡",
+     "title": "Department Entities Don&rsquo;t Match the Listings",
+     "body": "The schema has Service (AutoRepair, 707-353-4579) and Parts (AutoPartsStore) entities with their own page addresses, but no separate Sales department entity, and the Parts entity repeats the main phone number while the page shows 707-475-0868. Neither department entity carries a sameAs or map link to the combined Google listing (audited October 20, 2026).",
+     "pill": "CLIKsearch — Custom Schema Build",
+     "tag": ""
+    },
+    {
+     "kind": "opportunity",
+     "icon": "⚡",
+     "title": "Apple Maps Listing Is Unclaimed",
+     "body": "The Apple Maps listing for the dealership shows &ldquo;Claim This Place&rdquo; (checked October 20, 2026). Its name, address and phone match the website. Yelp shows a claimed page (3.3&#9733;, 7 reviews) with the matching phone.",
+     "pill": "CLIKsearch — 60+ Directory Listing Syndication",
+     "tag": ""
+    }
+   ],
+   "add_omni_social": true
+  },
+  {
+   "title": "✅ What's Working",
+   "cards": [
+    {
+     "kind": "working",
+     "icon": "✅",
+     "title": "Excellent Google Review Profile",
+     "body": "4.9★ with 172 Google reviews; the newest review was 14 hours old and the owner answered all of the 10 newest. CLIKsearch's Reputation Review Reactivation Builder Campaign extends this momentum to Service and Parts.",
+     "pill": "",
+     "tag": ""
+    },
+    {
+     "kind": "working",
+     "icon": "✅",
+     "title": "Complete Sales Listing",
+     "body": "The main Google listing has 7 categories, hours, phone, website, an appointment link, offerings, attributes, a business description, and a Departments link to the Service &amp; Parts listing.",
+     "pill": "",
+     "tag": ""
+    },
+    {
+     "kind": "working",
+     "icon": "✅",
+     "title": "Active, Varied Posting on Sales",
+     "body": "Five posts in 30 days &mdash; offers, community events and trade-in content &mdash; with a new post 16 hours before the audit, and at least four new photos in October.",
+     "pill": "",
+     "tag": ""
+    },
+    {
+     "kind": "working",
+     "icon": "✅",
+     "title": "Well-Built Website Schema",
+     "body": "JSON-LD appears on all five key pages and parses cleanly. The AutoDealer entity carries name, address, phone, URL, hours, geo, logo, a Google Business Profile link in sameAs, six cities in areaServed, six service offers, and FAQ structured data is on the homepage.",
+     "pill": "",
+     "tag": ""
+    }
+   ]
+  }
+ ],
+ "opportunities": [
+  [
+   "Align Phone Numbers Across the Web",
+   "⚠️ Major",
+   "Choose one correct number per department and keep it identical on the website, schema, Google, Facebook, Bing, Apple Maps, Yelp and the Mitsubishi locator &mdash; replacing seven conflicting numbers"
+  ],
+  [
+   "Build Out Dedicated Service &amp; Parts Listings",
+   "⚠️ Major",
+   "Fully optimize and manage the Service and Parts listings &mdash; categories, description, scheduling link, weekly photos and posts, and a Departments link from the main listing"
+  ],
+  [
+   "Complete Entity Structured Data",
+   "⚠️ Major",
+   "Build complete dealership structured data &mdash; the Service and Parts department entities already exist in the schema, so connect each department to its own GBP profile, add a Sales department entity, and expand sameAs beyond the Google Business Profile link to the other official profiles"
+  ],
+  [
+   "Weekly GBP Posting &amp; Photos",
+   "⚠️ Major",
+   "8 Sales + 4 Service + 4 Parts SEO/GEO-optimized posts and photo posts monthly &mdash; closing the gap on the Service and Parts listing"
+  ],
+  [
+   "Reputation Review Builder",
+   "⚡ Opportunity",
+   "Automated emails and text messages to past Sales, Service, and Parts customers to help grow a steady stream of reviews on Google and Facebook &mdash; extending a strong Sales review base to Service and Parts, 24/7"
+  ],
+  [
+   "60+ Directory Syndication &amp; Claim Coverage",
+   "⚡ Opportunity",
+   "Keep name, address, and phone consistent across 60+ directories &mdash; including the unclaimed Apple Maps listing &mdash; and align Service hours on the Mitsubishi locator"
+  ]
+ ],
+ "why_card": {
+  "icon": "📞",
+  "title": "Seven Phone Numbers = Split Calls and Mixed Signals",
+  "body": "Customers and search engines see seven different local numbers for this dealership across the website, Google, Bing, Facebook and the Mitsubishi locator &mdash; so calls, directions and service requests can land in the wrong place, and every conflicting listing weakens the others. Competitors with one aligned number per department are positioned to compound their Map Pack advantage every single week."
+ },
+ "alert": {
+  "eyebrow": "Digital Health Alert &mdash; Attention Required",
+  "tiles": [
+   [
+    "warn",
+    "5 of 8",
+    "orange sm",
+    "&#128203; Sales Posts in 30 Days",
+    "Five Sales posts in the last 30 days against a standard of 8 a month; the shared Service &amp; Parts listing has 1 against 4.",
+    "Below Standard",
+    "major"
+   ],
+   [
+    "warn",
+    "1",
+    "orange",
+    "&#128203; Shared Listing for Service &amp; Parts",
+    "One Google listing covers both departments: 1 category, 1 review, no description or scheduling link.",
+    "Thin Listing",
+    "major"
+   ],
+   [
+    "alarm",
+    "7",
+    "red",
+    "&#127759; Different Local Phone Numbers",
+    "The website, Google, Bing, Facebook and the Mitsubishi locator list seven different local numbers for this dealership.",
+    "NAP Mismatch",
+    "crit"
+   ],
+   [
+    "warn",
+    "MAJOR",
+    "orange sm",
+    "&#129302; AI Search Visibility",
+    "4 verified gaps: conflicting phone numbers, a thin shared listing, reviews missing from the site, and a sameAs list limited to Google.",
+    "Gaps Found",
+    "major"
+   ],
+   [
+    "warn",
+    "No Stars",
+    "orange sm",
+    "&#9888;&#65039; Facebook Rating",
+    "Facebook shows no star rating or recommendation figure; Google shows 4.9 stars across 172 reviews and Yelp shows 3.3 stars across 7.",
+    "Not Displayed",
+    "major"
+   ],
+   [
+    "alarm",
+    "None",
+    "red",
+    "&#9940; Reviews Not Shown on Website",
+    "172 Google reviews at 4.9 stars &mdash; none appeared on the dealership&rsquo;s rendered website.",
+    "Not Displayed",
+    "crit"
+   ]
+  ],
+  "locked": [
+   [
+    "Entity Authority: sameAs Lists Only the Google Profile &mdash; Other Official Profiles Not Linked",
+    "sameAs is how a site&rsquo;s structured data points to a business&rsquo;s other official profiles. This dealership&rsquo;s lists only the Google Business Profile &mdash; Facebook, Instagram, Yelp and the other official profiles aren&rsquo;t among the linked profiles &mdash; so the site&rsquo;s entity data is thinner than a fully built profile set."
+   ],
+   [
+    "Department Schema Out of Step: No Sales Entity, and the Parts Phone Repeats the Main Number",
+    "The site&rsquo;s structured data describes Service and Parts departments, but has no separate Sales department entity, and the Parts entry repeats the main phone number while the page shows a different Parts number."
+   ],
+   [
+    "Service Hours Differ Between the Website and the Mitsubishi Locator",
+    "The Mitsubishi dealer locator lists Service hours of 7:30 AM to 5:30 PM, while the website and Google show 8:00 AM to 5:00 PM &mdash; one more place where the dealership&rsquo;s facts do not line up."
+   ]
+  ]
+ }
+}

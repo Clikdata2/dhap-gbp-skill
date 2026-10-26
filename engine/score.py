@@ -35,7 +35,7 @@ def r1d(x):
 KNOWN_RULES = {
     "15.0": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},
     "15.1": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},   # AI answer check added; scoring text unchanged
-    "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "614e1261abd9e19b"},   # rule 8: NAP directory readings (arithmetic unchanged; directories.py decides the matches)
+    "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -232,7 +232,8 @@ def score_rows(ev):
         + wavg(lambda l, r: 2 * sum(1 for k in ("offers", "events", "cta") if l["variety"][k]) / 3)
     # 6 NAP: 4 Google vs site + 4 five-directory sample + 1 department phones + 1 map pin
     N = ev["nap"]
-    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + 4 * sum(N["directories_agree"]) / 5 + (1 if not N["dept_phones"] or all(_digits(x["gbp"]) == _digits(x["site"]) for x in N["dept_phones"]) else 0) + (1 if N["map_pin_ok"] else 0)
+    dirs = N["_directory_points"]["network"][0] + N["_directory_points"]["ai"][0] if "_directory_points" in N else 4 * sum(N["directories_agree"]) / 5   # v15.2 rule 8: two groups of 2
+    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + dirs + (1 if not N["dept_phones"] or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in N["dept_phones"]) else 0) + (1 if N["map_pin_ok"] else 0)
     # 7 Schema structure: 3 page coverage + 1 type + 3 department entities + 1 parses + 2 (own page address, own phone)
     S = ev["schema"]
     r7 = 3 * S["pages_with_jsonld"] / 5 + int(S["business_type_ok"]) + S["department_entities"] + int(S["parses_cleanly"]) \

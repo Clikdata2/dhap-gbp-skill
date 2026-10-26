@@ -84,8 +84,9 @@ def menus(ev):
             M["GBP Posts & Engagement"].append(card("POST_TYPE_GAPS", n, f"{DEPT[k]} Post Types Not Used<br/>(Offers, Events, Calls)", f"{w(n)} {DEPT[k]} post type{s(n)} (offers, events, calls to action) not used")); break
     # 6 NAP
     N = ev["nap"]
-    mm = (3 - N["google_vs_site_fields_matching"]) + (5 - sum(N["directories_agree"])) + (0 if N["map_pin_ok"] else 1) \
-        + sum(1 for x in (N["dept_phones"] or []) if S._digits(x["gbp"]) != S._digits(x["site"]))
+    dmm = sum(1 for r in N["_directory_results"] if r["status"] == "found" and not r["agree"]) if "_directory_results" in N else 5 - sum(N["directories_agree"])
+    mm = (3 - N["google_vs_site_fields_matching"]) + dmm + (0 if N["map_pin_ok"] else 1) \
+        + sum(1 for x in (N["dept_phones"] or []) if S._digits(x["gbp"]) != S._digits(x["site"]) and not (applies(ev) and (S.directories.toll_free(x["gbp"]) or S.directories.toll_free(x["site"]))))
     if mm: M["Google Maps / NAP Consistency"].append(card("NAP_MISMATCHES", mm, "Name, Address &amp; Phone<br/>Mismatches Found", f"{w(mm)} name, address or phone mismatch{s(mm, '', 'es')} across Google and the directories"))
     # 7 LocalBusiness Schema
     Sc = ev["schema"]

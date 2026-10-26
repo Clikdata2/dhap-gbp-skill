@@ -16,7 +16,9 @@ Usage:
   python3 ai_answers.py check evidence.json     -> the problems, or AI ANSWERS OK
   python3 ai_answers.py brief evidence.json     -> the rep-brief table and the flags (markdown)
 """
-import json, re, sys
+import json, pathlib, re, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import directories
 
 START = "2026-10-24"                       # audits dated before this did not run the check
 TOOLS = ("google_ai", "gemini", "chatgpt", "copilot", "perplexity", "claude", "brave")
@@ -60,8 +62,8 @@ def check(ev):
         pos = a.get("position")
         if not (pos is None or (isinstance(pos, int) and not isinstance(pos, bool) and pos >= 1)): P.append(p + ".position: 1, 2, 3... where the dealer is listed, or null")
         if a.get("named") is False and pos is not None: P.append(p + ".position: must be null when the dealer is not named")
-        if a.get("phone") is not None and not isinstance(a.get("phone_matches_site"), bool):
-            P.append(p + ".phone_matches_site: true/false when the answer shows a phone (compare with the website's number for that department)")
+        if a.get("phone") is not None and not isinstance(a.get("phone_matches_site"), bool) and not (a.get("phone_matches_site") is None and directories.toll_free(a["phone"])):
+            P.append(p + ".phone_matches_site: true/false when the answer shows a phone — compare with the WEBSITE's number for that department (the authority); null only for a toll-free number, which is never compared with a local one")
         r = a.get("rating")
         if r is not None:
             if isinstance(r, bool) or not isinstance(r, (int, float)) or not 1 <= r <= 5: P.append(p + ".rating: 1.0..5.0, or null when none is shown")

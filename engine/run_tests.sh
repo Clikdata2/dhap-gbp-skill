@@ -11,6 +11,7 @@ node tests/test_split_posts.js
 "$PY" tests/test_decide.py
 "$PY" tests/test_areas.py
 "$PY" tests/test_ai_answers.py 3
+"$PY" tests/test_rules_7_8.py 3
 "$PY" tests/test_jev.py 3
 "$PY" tests/test_places.py 3
 "$PY" tests/test_schema_collector.py 3

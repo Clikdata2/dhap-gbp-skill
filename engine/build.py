@@ -14,7 +14,7 @@ Refuses (exit 1) when content is incomplete or unsafe (script tags, unbalanced <
 """
 import argparse, datetime, html as H, json, pathlib, re, sys
 ENG = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(ENG))
-import score as S, alert_cards as AC
+import score as S, alert_cards as AC, directories as DIR, ai_answers as AA
 
 MITS_LOGO = None   # read from SKILL.md "VERIFIED LOGO / IMAGE URLS" at run time, so the link lives in one place
 def load_logo(repo):
@@ -123,6 +123,50 @@ def check_content(c, picked=False):
     return P
 
 # ----------------------------------------------------------------------------------------------- DHAP
+def nap_tables(ev):
+    """Rule 8 (v15.2): the NAP tables — AI and car-shopper sites (AI Visibility tab) and the CLIKsearch network (Findings tab)."""
+    N = ev.get("nap", {}); R = N.get("_directory_results")
+    if not R: return "", ""
+    cites = {}
+    for a in (ev.get("ai_answers") or {}).get("answers", []):
+        for src in a.get("sources") or []:
+            cites.setdefault(re.sub(r"^https?://(www\.)?", "", src).split("/")[0], set()).add(AA.NAME.get(a["tool"], a["tool"]))
+    def why(r):
+        k = r["directory"]
+        if k.startswith("cited:"): return "Cited by " + ", ".join(sorted(cites.get(k[6:], []))) + " in the AI answer check" if cites.get(k[6:]) else "Cited in the AI answer check"
+        w = DIR.SITES[k].get("why", "CLIKsearch syndication network"); return w[0].upper() + w[1:]
+    def status(r):
+        if r["status"] == "not_found": return '<span style="color:#6b7280;font-weight:700;">Not listed</span>'
+        if r["status"] == "blocked": return '<span style="color:#6b7280;font-weight:700;">Not readable</span>'
+        if r["agree"]: return '<span style="color:#15803d;font-weight:800;">&#10003; Matches</span>'
+        return f'<span style="color:#dc2626;font-weight:800;">&#10007; {H.escape(r["why"].replace("differs: ", "Wrong "))}</span>'
+    def shows(r): return "&mdash;" if r["status"] != "found" else "<br/>".join(H.escape(r["shows"][x]) for x in ("name", "address", "phone"))
+    P = N["_directory_points"]
+    def table(g, title, intro, sumlabel, extra=""):
+        rows = [r for r in R if g in r["groups"]]
+        rows.sort(key=lambda r: (r["status"] != "found", bool(r.get("agree")), r["label"]))   # wrong first, then matches, then not listed
+        body = "\n".join(f'      <tr><td><strong>{H.escape(r["label"])}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{H.escape(why(r))}</div></td><td>{shows(r)}</td><td>{status(r)}</td></tr>' for r in rows)
+        pts, ok, found = P[g]
+        return f'''
+  <div class="section-title">{title}</div>
+  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">{intro}</p>
+  <table class="score-table">
+    <thead><tr><th>Site</th><th>What It Shows</th><th>Status</th></tr></thead>
+    <tbody>
+{body}
+      <tr><td><strong>{sumlabel}</strong></td><td>{ok} of {found} listings found match your website{extra}</td><td>{pts:.1f} / 2 points</td></tr>
+    </tbody>
+  </table>
+'''
+    site = N["site"]; ref = f'Your website shows {H.escape(site["name"])}, {H.escape(site["address"])}, {H.escape(site["phone"])}.'
+    ai = table("ai", "Where AI Tools &amp; Car Shoppers Read Your Name, Address &amp; Phone",
+               ref + " These are the sites AI answers, search engines and car shoppers read. A wrong phone or address here can send a shopper to the wrong number, even when CLIKsearch does not list you there.",
+               "AI &amp; CAR-SHOPPER SITES")
+    net = table("network", "Directory Network Check &mdash; CLIKsearch Syndication",
+                ref + " These are the directories CLIKsearch keeps accurate for its clients. &ldquo;Not listed&rdquo; is a directory CLIKsearch adds; GPS, in-car and voice systems read the map and data providers checked here.",
+                "CLIKSEARCH NETWORK")
+    return ai, net
+
 def build_dhap(tpl, c, ev, sc):
     rows, ovr, st = sc["rows"], sc["overall"], sc["status"]; date = sc["date_long"]; fill = round(ovr * 10)
     s = c["summary"]
@@ -180,6 +224,7 @@ def build_dhap(tpl, c, ev, sc):
     kgh = "\n".join("          " + dot(g[0], g[1], g[2], last=(i == len(kg) - 1)) for i, g in enumerate(kg))
     badge_emoji = {"CRITICAL": "&#128308;", "MAJOR": "&#128992;", "PARTIAL": "&#128993;", "STRONG": "&#128994;"}.get(A["badge"], "&#128992;")
     secs = "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
+    nap_ai, nap_net = nap_tables(ev)
     aiv = f'''<!-- AI VISIBILITY SCORE TAB -->
 <div id="aivisibility" class="tab-panel">
   <div class="hero-card">
@@ -216,7 +261,7 @@ def build_dhap(tpl, c, ev, sc):
 {chr(10).join(sig_rows)}
     </tbody>
   </table>
-{secs}
+{nap_ai}{secs}
   <div class="mids-box" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:rgba(34,197,94,.3);margin-top:20px;">
     <div class="mids-title" style="color:#15803d;">&#129302; CLIKsearch Closes Every Verified Gap</div>
     <div class="mids-body">CLIKsearch&rsquo;s SEO/AEO/GEO-focused content strategy, custom dealership schema build, 60+ directory syndication, and 3-Pack profile management are specifically engineered to address each of the verified gaps identified above. Every deliverable is designed to be AI-readable, AI-indexable, and AI-citable. <strong>MiDS approved &mdash; up to 100% reimbursable.</strong></div>
@@ -231,7 +276,7 @@ def build_dhap(tpl, c, ev, sc):
         cards = sec["cards"] + ([OMNI] if sec.get("add_omni_social") else [])
         F += f'  <div class="section-title">{sec["title"]}</div>\n' + "".join(card(x, date) for x in cards) + "\n"
     if "No Cross-Platform Social Distribution" not in F: raise Bad("findings: one section must set add_omni_social: true (RULE G card)")
-    F += "</div>\n\n"
+    F += nap_net + "</div>\n\n"
     orows = "\n".join(f'      <tr><td><strong>{o[0]}</strong></td><td>{o[1]}</td><td><div class="roi-tag"><span>&#9654;</span><span>{o[2]}</span></div></td><td>{pill()}</td></tr>' for o in c["opportunities"])
     orows += f'''
       <tr><td><strong>Omni-Social Post Distribution</strong></td><td>&#9889; Force Multiplier</td>

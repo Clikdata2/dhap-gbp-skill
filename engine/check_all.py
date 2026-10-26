@@ -65,6 +65,12 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     assert 'Critical Alerts Identified</span><span class="term-cursor">' in HS and "local searches and revenue go to someone else.<br>" in HS
     for t in re.findall(r'class="t-head">(.*?)</div>', HS): assert len(H.unescape(t)) <= 18, ("stat header too long", t)
     tv = re.findall(r'data-target="(\d+)"', HS); heads = re.findall(r'class="t-head">&gt; (\w+)', HS)
+    if "_directory_results" in ev["nap"]:   # rule 8: both NAP tables, one row per site in each group plus the summary row
+        R = ev["nap"]["_directory_results"]; ai = D[D.find('id="aivisibility"'):D.find('id="findings"')]; fi = D[D.find('id="findings"'):D.find('id="opportunities"')]
+        for part, g, head in ((ai, "ai", "Where AI Tools &amp; Car Shoppers Read Your Name"), (fi, "network", "Directory Network Check")):
+            assert head in part, ("NAP table missing", head)
+            t = part[part.index(head):]; t = t[:t.index("</table>")]
+            assert t.count("<tr>") == 1 + sum(1 for r in R if g in r["groups"]) + 1, ("NAP table rows", g)
     if picked:   # rule 7: exactly the engine's cards, in order, with their numbers and statuses
         assert heads == [x["head"] for x in picked[0]] and tv == [str(x["target"]) for x in picked[0]], ("stat cards differ from the engine's pick", heads, tv)
         assert re.findall(r'class="t-stat" data-status="([^"]+)"', HS) == [x["status"] for x in picked[0]], "stat card statuses differ from their area scores"
