@@ -43,7 +43,7 @@ def _jsonly(o):
             and any("department_entities: raw 0" in x for x in o["js_only"]) and o["area_served_raw"] == "US, Illinois"
             and any("Burr Ridge" in x["s"] for x in s["serving"]) and any("valet" in x["s"] for x in s["delivery"]) and any("Maria" in x["s"] for x in s["reviews"])
             and not any("LaGrange Road north" in x["s"] for x in s["serving"]))
-EXTRA = {"synth_jsonly": _jsonly, "synth_navtrap": lambda o: o["js_only"] == [] and o["rendered_failed"] >= 1 and any("service /svc-dept.aspx" in x for x in o["pages"]) and any("parts /orderparts.aspx" in x for x in o["pages"]),"synth_graph": lambda o: "about /contactus:" in " ".join(o["pages"]) and "service /service-department:" in " ".join(o["pages"]) and "parts /parts-department:" in " ".join(o["pages"]) and "directions /get-directions:" in " ".join(o["pages"]),
+EXTRA = {"synth_jsonly": _jsonly, "synth_navtrap": lambda o: o["js_only"] == [] and o["rendered_failed"] >= 1 and any("service /svc-dept.aspx" in x for x in o["pages"]) and any("parts /orderparts.aspx" in x for x in o["pages"]),"synth_graph": lambda o: o["schema_phones"] == ["(707) 532-2052", "(707) 353-4579"] and "about /contactus:" in " ".join(o["pages"]) and "service /service-department:" in " ".join(o["pages"]) and "parts /parts-department:" in " ".join(o["pages"]) and "directions /get-directions:" in " ".join(o["pages"]),
          "synth_broken": lambda o: any("RISK" in n for n in o["notes"]) and any("fail to parse" in n for n in o["notes"]),
          "synth_badctx": lambda o: any("non-schema.org" in n for n in o["notes"])}
 

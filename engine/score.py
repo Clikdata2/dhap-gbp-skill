@@ -18,7 +18,7 @@ Usage:
 """
 import calendar, datetime, hashlib, json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import areas, ai_answers
+import areas, ai_answers, directories
 
 def default_repo():
     """The rules folder: the repository this engine/ folder sits in, else a local copy at ~/.cache/dhap-gbp-skill."""
@@ -35,6 +35,7 @@ def r1d(x):
 KNOWN_RULES = {
     "15.0": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},
     "15.1": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},   # AI answer check added; scoring text unchanged
+    "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -75,7 +76,7 @@ def resolve_ages(ev):
             if l.get(f + "_label") is not None and l.get(f + "_days") is None:
                 r = age_range(l[f + "_label"], ev.get("audit_date", "1970-01-01"))
                 if r: l[f + "_days"] = r[1]; l.setdefault("_ranges", {})[f] = r
-    return ev
+    return directories.resolve(ev)                         # rule 8 (v15.2): directory matches decided from the saved readings
 
 def _digits(t): return re.sub(r"\D", "", str(t or "")).removeprefix("1")[-10:]
 
@@ -154,7 +155,8 @@ def check(ev):
     need("reviews.real_reviews_visible_on_site", isinstance(R.get("real_reviews_visible_on_site"), bool), "true/false (rendered-site check)")
     N = ev.get("nap", {})
     need("nap.google_vs_site_fields_matching", _num(N.get("google_vs_site_fields_matching"), 0, 3, True), "0..3 (name, address, phone)")
-    d = N.get("directories_agree"); need("nap.directories_agree", isinstance(d, list) and len(d) == 5 and all(isinstance(x, bool) for x in d), "exactly 5 true/false: Apple Maps, Bing, Yelp, Facebook, Mitsubishi locator")
+    if directories.applies(ev): P += directories.check(ev)
+    else: d = N.get("directories_agree"); need("nap.directories_agree", isinstance(d, list) and len(d) == 5 and all(isinstance(x, bool) for x in d), "exactly 5 true/false: Apple Maps, Bing, Yelp, Facebook, Mitsubishi locator")
     dp = N.get("dept_phones")
     need("nap.dept_phones", dp is None or (isinstance(dp, list) and dp and all(isinstance(x, dict) and x.get("dept") and _digits(x.get("gbp")) and _digits(x.get("site")) for x in dp)),
          "null when there is no department listing, else one {dept, gbp, site} per department listing: its Google phone and the website's phone for that department (rule 1)")
@@ -230,7 +232,8 @@ def score_rows(ev):
         + wavg(lambda l, r: 2 * sum(1 for k in ("offers", "events", "cta") if l["variety"][k]) / 3)
     # 6 NAP: 4 Google vs site + 4 five-directory sample + 1 department phones + 1 map pin
     N = ev["nap"]
-    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + 4 * sum(N["directories_agree"]) / 5 + (1 if not N["dept_phones"] or all(_digits(x["gbp"]) == _digits(x["site"]) for x in N["dept_phones"]) else 0) + (1 if N["map_pin_ok"] else 0)
+    dirs = N["_directory_points"]["network"][0] + N["_directory_points"]["ai"][0] if "_directory_points" in N else 4 * sum(N["directories_agree"]) / 5   # v15.2 rule 8: two groups of 2
+    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + dirs + (1 if not N["dept_phones"] or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in N["dept_phones"]) else 0) + (1 if N["map_pin_ok"] else 0)
     # 7 Schema structure: 3 page coverage + 1 type + 3 department entities + 1 parses + 2 (own page address, own phone)
     S = ev["schema"]
     r7 = 3 * S["pages_with_jsonld"] / 5 + int(S["business_type_ok"]) + S["department_entities"] + int(S["parses_cleanly"]) \

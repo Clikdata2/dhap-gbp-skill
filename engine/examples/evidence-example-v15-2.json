@@ -1,0 +1,726 @@
+{
+ "_note": "INVENTED v15.2 worked example built from the Vacaville example: the AI answers and listing-site readings are made up for tests and as a field guide; they are not from a real audit.",
+ "dealer": "Vacaville Mitsubishi",
+ "audit_date": "2026-10-25",
+ "listings": {
+  "sales": {
+   "checklist_done": 7,
+   "checklist_total": 7,
+   "photos_30d": 4,
+   "logo": false,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": false
+   },
+   "posts_30d": 5,
+   "last_post_days": 0,
+   "variety": {
+    "offers": true,
+    "events": true,
+    "cta": true
+   },
+   "newest_review_days": 0
+  },
+  "service": null,
+  "parts": null,
+  "combined": {
+   "checklist_done": 4,
+   "checklist_total": 8,
+   "photos_30d": 1,
+   "logo": false,
+   "cover": true,
+   "coverage": {
+    "exterior": true,
+    "interior_or_team": true,
+    "department": true
+   },
+   "posts_30d": 1,
+   "last_post_days": 14,
+   "variety": {
+    "offers": true,
+    "events": false,
+    "cta": true
+   },
+   "newest_review_days": 120
+  }
+ },
+ "claimed": {
+  "main_claim_link": false,
+  "lookalikes": []
+ },
+ "reviews": {
+  "google_rating": 4.9,
+  "owner_replies_of_10_newest": 10,
+  "facebook": {
+   "mode": "none",
+   "within_half": false
+  },
+  "real_reviews_visible_on_site": false,
+  "yelp": {
+   "rating": null,
+   "count": null,
+   "claimed": null,
+   "note": "not recorded (audited before v15)"
+  }
+ },
+ "nap": {
+  "google_vs_site_fields_matching": 2,
+  "map_pin_ok": true,
+  "dept_phones": [
+   {
+    "dept": "service & parts",
+    "gbp": "(707) 348-0555",
+    "site": "707-353-4579"
+   }
+  ],
+  "site": {
+   "name": "Vacaville Mitsubishi",
+   "address": "681 Orange Dr, Vacaville, CA 95687",
+   "phone": "707-532-2052",
+   "phones": {
+    "sales": "707-532-2052",
+    "service": "707-353-4579",
+    "parts": "707-475-0868"
+   },
+   "schema_phones": [
+    "707-532-2052",
+    "707-353-4579",
+    "707-475-0868"
+   ]
+  },
+  "postal_cities": [],
+  "directories": [
+   {
+    "directory": "bing",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/bing",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "(707) 513-4935",
+    "proof": "proof/bing.png"
+   },
+   {
+    "directory": "apple_maps",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/apple_maps",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/apple_maps.png"
+   },
+   {
+    "directory": "data_axle",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/data_axle",
+    "status": "found",
+    "name": "Vacaville Motors Group LLC",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/data_axle.png",
+    "name_same": false
+   },
+   {
+    "directory": "yellowpages",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/yellowpages",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "(707) 513-4935",
+    "proof": "proof/yellowpages.png"
+   },
+   {
+    "directory": "superpages",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/superpages",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "(707) 513-4935",
+    "proof": "proof/superpages.png"
+   },
+   {
+    "directory": "dexknows",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/dexknows",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "(707) 513-4935",
+    "proof": "proof/dexknows.png"
+   },
+   {
+    "directory": "citysquares",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/citysquares",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/citysquares.png"
+   },
+   {
+    "directory": "ibegin",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/ibegin",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/ibegin.png"
+   },
+   {
+    "directory": "yelp",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/yelp",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/yelp.png"
+   },
+   {
+    "directory": "facebook",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/facebook",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "(707) 513-4935",
+    "proof": "proof/facebook.png"
+   },
+   {
+    "directory": "brand_locator",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/brand_locator",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/brand_locator.png"
+   },
+   {
+    "directory": "bbb",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/bbb",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/bbb.png"
+   },
+   {
+    "directory": "cargurus",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/cargurus",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Drive, Vacaville, CA 95688",
+    "phone": "707-532-2052",
+    "proof": "proof/cargurus.png"
+   },
+   {
+    "directory": "autotrader",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/autotrader",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/autotrader.png"
+   },
+   {
+    "directory": "cars_com",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/cars_com",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/cars_com.png"
+   },
+   {
+    "directory": "dealerrater",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/dealerrater",
+    "status": "found",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Dr, Vacaville, CA 95687",
+    "phone": "707-532-2052",
+    "proof": "proof/dealerrater.png"
+   },
+   {
+    "directory": "cited:capitalone.com",
+    "status": "found",
+    "when": "2026-10-25 10:00",
+    "url": "https://example.invalid/capitalone",
+    "name": "Vacaville Mitsubishi",
+    "address": "681 Orange Drive, Vacaville, CA 95687",
+    "phone": "(707) 532-2052",
+    "proof": "proof/capitalone.png"
+   }
+  ],
+  "google_phones": {
+   "sales": "(707) 926-3135",
+   "service": "(707) 348-0555",
+   "parts": null
+  }
+ },
+ "schema": {
+  "pages_with_jsonld": 5,
+  "business_type_ok": true,
+  "department_entities": 2,
+  "parses_cleanly": true,
+  "dept_own_page_address": 2,
+  "dept_own_phone": 1,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": true,
+  "sameas_other": false,
+  "hasmap_or_map": false,
+  "services_or_offers": true,
+  "areaserved": {
+   "delivery_offered": true,
+   "code_places": [
+    "Vacaville",
+    "Sacramento",
+    "Davis",
+    "Fairfield",
+    "Vallejo",
+    "Stockton"
+   ],
+   "page_places": [
+    "Vacaville",
+    "Fairfield",
+    "Dixon",
+    "Davis",
+    "Vallejo",
+    "Napa",
+    "Suisun City",
+    "Woodland",
+    "Winters",
+    "Solano County"
+   ],
+   "code_on_page": [
+    "Vacaville",
+    "Fairfield",
+    "Davis",
+    "Vallejo"
+   ]
+  }
+ },
+ "ledger": {
+  "website_schema": {
+   "method": "schema collector in signed-in Chrome, 5 key pages (same-origin fetch)",
+   "when": "2026-10-25"
+  },
+  "google_listings": {
+   "method": "Google Search panel + Maps collector, Sales and Service & Parts listings",
+   "when": "2026-10-25"
+  },
+  "reviews": {
+   "method": "Maps reviews sorted Newest, 10 newest + owner replies",
+   "when": "2026-10-25"
+  },
+  "posts": {
+   "method": "Maps 'See local posts' list, dates counted inside 30 days",
+   "when": "2026-10-25"
+  },
+  "photos": {
+   "method": "Maps Latest photos viewer, month labels; By owner avatar for logo",
+   "when": "2026-10-25"
+  },
+  "facebook": {
+   "method": "facebook.com/vacavillemitsubishi signed in: no star rating or recommend figure",
+   "when": "2026-10-25"
+  },
+  "directories": {
+   "method": "Apple Maps, Bing card, Yelp, Facebook, mitsubishicars.com locator (ZIP 95687)",
+   "when": "2026-10-25"
+  },
+  "delivery": {
+   "method": "Maps About tab: main listing shows 'Offers delivery' (Oct 22 2026 live check)",
+   "when": "2026-10-25"
+  }
+ },
+ "facts": {
+  "phones": [
+   "707-348-0555",
+   "707-353-4579",
+   "707-452-2500",
+   "707-475-0868",
+   "707-513-4935",
+   "707-532-2052",
+   "707-926-3135"
+  ],
+  "numbers": [
+   4.9,
+   172,
+   7,
+   1,
+   5,
+   8,
+   4,
+   10,
+   14,
+   16,
+   3.3,
+   6,
+   2,
+   30,
+   120,
+   0,
+   5.0,
+   681,
+   95687
+  ],
+  "dates": [
+   "2026-10-20",
+   "2026-10-06"
+  ],
+  "times": [
+   "9:00",
+   "8:00",
+   "7:30",
+   "5:30",
+   "5:00"
+  ]
+ },
+ "schema_rendered": {
+  "pages_with_jsonld": 5,
+  "business_type_ok": true,
+  "department_entities": 2,
+  "parses_cleanly": true,
+  "dept_own_page_address": 2,
+  "dept_own_phone": 1,
+  "core_fields": 6,
+  "logo_or_image": true,
+  "sameas_google": true,
+  "sameas_other": false,
+  "hasmap_or_map": false,
+  "services_or_offers": true
+ },
+ "jev": {
+  "status": "skipped",
+  "reason": "recorded before v15; JEV did not run on this audit",
+  "items": [],
+  "review": []
+ },
+ "ai_answers": {
+  "method": "invented example (not a real audit)",
+  "answers": [
+   {
+    "tool": "google_ai",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_google_ai_best.png"
+   },
+   {
+    "tool": "google_ai",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_google_ai_contact.png"
+   },
+   {
+    "tool": "google_ai",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_google_ai_rating.png"
+   },
+   {
+    "tool": "chatgpt",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": false,
+    "position": null,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "not mentioned; named another dealer first (invented)",
+    "proof": "proof/ai_chatgpt_best.png"
+   },
+   {
+    "tool": "chatgpt",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": "(707) 532-2052",
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "capitalone.com"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_chatgpt_contact.png",
+    "phone_matches_site": true
+   },
+   {
+    "tool": "chatgpt",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_chatgpt_rating.png"
+   },
+   {
+    "tool": "copilot",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": false,
+    "position": null,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "not mentioned; named another dealer first (invented)",
+    "proof": "proof/ai_copilot_best.png"
+   },
+   {
+    "tool": "copilot",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_copilot_contact.png"
+   },
+   {
+    "tool": "copilot",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_copilot_rating.png"
+   },
+   {
+    "tool": "perplexity",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": false,
+    "position": null,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "not mentioned; named another dealer first (invented)",
+    "proof": "proof/ai_perplexity_best.png"
+   },
+   {
+    "tool": "perplexity",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_perplexity_contact.png"
+   },
+   {
+    "tool": "perplexity",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_perplexity_rating.png"
+   },
+   {
+    "tool": "claude",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_claude_best.png"
+   },
+   {
+    "tool": "claude",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_claude_contact.png"
+   },
+   {
+    "tool": "claude",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_claude_rating.png"
+   },
+   {
+    "tool": "brave",
+    "prompt": "best",
+    "status": "answered",
+    "asked": "(example) best question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_brave_best.png"
+   },
+   {
+    "tool": "brave",
+    "prompt": "contact",
+    "status": "answered",
+    "asked": "(example) contact question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": "(707) 513-4935",
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_brave_contact.png",
+    "phone_matches_site": false
+   },
+   {
+    "tool": "brave",
+    "prompt": "rating",
+    "status": "answered",
+    "asked": "(example) rating question",
+    "when": "2026-10-25 09:30",
+    "named": true,
+    "position": 1,
+    "phone": null,
+    "rating": null,
+    "rating_source": null,
+    "sources": [
+     "vacavillemitsubishi.example"
+    ],
+    "quote": "invented example answer",
+    "proof": "proof/ai_brave_rating.png"
+   }
+  ]
+ }
+}

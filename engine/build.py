@@ -14,7 +14,7 @@ Refuses (exit 1) when content is incomplete or unsafe (script tags, unbalanced <
 """
 import argparse, datetime, html as H, json, pathlib, re, sys
 ENG = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(ENG))
-import score as S
+import score as S, alert_cards as AC, directories as DIR, ai_answers as AA
 
 MITS_LOGO = None   # read from SKILL.md "VERIFIED LOGO / IMAGE URLS" at run time, so the link lives in one place
 def load_logo(repo):
@@ -85,7 +85,7 @@ ALERT_MOBILE_CSS = """<style>
 </style>
 """
 
-def check_content(c):
+def check_content(c, picked=False):
     P = []
     def need(cond, why):
         if not cond: P.append(why)
@@ -109,16 +109,72 @@ def check_content(c):
     A = c["alert"]
     need(len(A.get("tiles", [])) == 6, "alert.tiles needs exactly 6")
     need(any("Reviews Not Shown on Website" in t[3] for t in A.get("tiles", [])) or A.get("reviews_shown_on_site"), "alert.tiles: one tile must be 'Reviews Not Shown on Website' unless the rendered site shows reviews (then set reviews_shown_on_site: true)")
-    need(len(A.get("stats", [])) == 4, "alert.stats needs exactly 4 stat cards")
-    heads = [s[0] for s in A.get("stats", [])]
-    need("SAMEAS_LINKS" in heads and "AI_VIS_GAPS" in heads, "alert.stats must include SAMEAS_LINKS and AI_VIS_GAPS")
-    for h in heads: need(len("> " + h) <= 18 and re.match(r"^[A-Z0-9_]+$", h), f"stat header '{h}' must be CAPS_WITH_UNDERSCORES and at most 16 characters")
-    for s in A.get("stats", []): need(isinstance(s[1], int) and s[1] >= 0, f"stat {s[0]} target must be a whole number")
+    if picked:   # rule 7 (v15.2): the engine picks the cards and writes the Revenue Impact paragraph from the evidence
+        for k in ("stats", "impact_para2"): need(k not in A, f"alert.{k}: leave it out — from v15.2 the engine writes it from the evidence (rule 7)")
+    else:
+        need(len(A.get("stats", [])) == 4, "alert.stats needs exactly 4 stat cards")
+        heads = [s[0] for s in A.get("stats", [])]
+        need("SAMEAS_LINKS" in heads and "AI_VIS_GAPS" in heads, "alert.stats must include SAMEAS_LINKS and AI_VIS_GAPS")
+        for h in heads: need(len("> " + h) <= 18 and re.match(r"^[A-Z0-9_]+$", h), f"stat header '{h}' must be CAPS_WITH_UNDERSCORES and at most 16 characters")
+        for s in A.get("stats", []): need(isinstance(s[1], int) and s[1] >= 0, f"stat {s[0]} target must be a whole number")
+        need("impact_para2" in A, "alert.impact_para2 missing")
     need(len(A.get("locked", [])) == 3, "alert.locked needs exactly 3 blurred findings (06-08)")
     need(len(c["opportunities"]) >= 3, "opportunities needs at least 3 rows (Omni-Social and ACT NOW rows are added automatically)")
     return P
 
 # ----------------------------------------------------------------------------------------------- DHAP
+def nap_tables(ev, date=""):
+    """Rule 8 (v15.2): the NAP tables — AI and car-shopper sites (AI Visibility tab) and the CLIKsearch network (Findings tab)."""
+    N = ev.get("nap", {}); R = N.get("_directory_results")
+    if not R: return "", ""
+    cites = {}
+    for a in (ev.get("ai_answers") or {}).get("answers", []):
+        for src in a.get("sources") or []:
+            cites.setdefault(re.sub(r"^https?://(www\.)?", "", src).split("/")[0], set()).add(AA.NAME.get(a["tool"], a["tool"]))
+    def why(r):
+        k = r["directory"]
+        if k.startswith("cited:"): return "Cited by " + ", ".join(sorted(cites.get(k[6:], []))) + " in the AI answer check" if cites.get(k[6:]) else "Cited in the AI answer check"
+        w = DIR.SITES[k].get("why", "CLIKsearch syndication network"); return w[0].upper() + w[1:]
+    def status(r):
+        if r["status"] == "not_found": return '<span style="color:#6b7280;font-weight:700;">Not listed</span>'
+        if r["status"] == "blocked": return '<span style="color:#6b7280;font-weight:700;">Not readable</span>'
+        tf = '<div style="color:#b45309;font-weight:700;font-size:.78rem;margin-top:3px;">Toll-free &mdash; should be local</div>' if r.get("toll_free") else ""
+        if r["agree"]: return '<span style="color:#15803d;font-weight:800;">&#10003; Matches</span>' + tf
+        return f'<span style="color:#dc2626;font-weight:800;">&#10007; {H.escape(r["why"].split(" (")[0].replace("differs: ", "Wrong "))}</span>' + tf
+    def shows(r): return "&mdash;" if r["status"] != "found" else "<br/>".join(H.escape(r["shows"][x]) for x in ("name", "address", "phone"))
+    P = N["_directory_points"]
+    def table(g, title, intro, sumlabel, extra=""):
+        rows = [r for r in R if g in r["groups"]]
+        rows.sort(key=lambda r: (r["status"] != "found", bool(r.get("agree")), r["label"]))   # wrong first, then matches, then not listed
+        body = "\n".join(f'      <tr><td><strong>{H.escape(r["label"])}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{H.escape(why(r))}</div></td><td>{shows(r)}</td><td>{status(r)}</td></tr>' for r in rows)
+        pts, ok, found = P[g]
+        return f'''
+  <div class="section-title">{title}</div>
+  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">{intro}</p>
+  <table class="score-table">
+    <thead><tr><th>Site</th><th>What It Shows</th><th>Status</th></tr></thead>
+    <tbody>
+{body}
+      <tr><td><strong>{sumlabel}</strong></td><td>{ok} of {found} listings found match your website{extra}</td><td>{pts:.1f} / 2 points</td></tr>
+    </tbody>
+  </table>
+'''
+    site = N["site"]; ref = f'Your website shows {H.escape(site["name"])}, {H.escape(site["address"])}, {H.escape(site["phone"])}.'
+    ai = table("ai", "Where AI Tools &amp; Car Shoppers Read Your Name, Address &amp; Phone",
+               ref + " These are the sites AI answers, search engines and car shoppers read. A wrong phone or address here can send a shopper to the wrong number, even when CLIKsearch does not list you there.",
+               "AI &amp; CAR-SHOPPER SITES")
+    net = table("network", "Directory Network Check &mdash; CLIKsearch Syndication",
+                ref + " These are the main directories CLIKsearch keeps accurate for its clients; CLIKsearch also syndicates to 40+ smaller directories and the map and data providers behind GPS, in-car and voice systems. &ldquo;Not listed&rdquo; is a directory CLIKsearch adds.",
+                "CLIKSEARCH NETWORK")
+    flags = DIR.local_flags(ev)   # the always-local rule: a finding card for each toll-free main or department number
+    if flags:
+        cards = "".join(card({"kind": "major", "title": f"{f['dept'].title()} Number Is Toll-Free &mdash; It Should Be Local", "tag": "v-date",
+                              "body": H.escape(f["text"]) + (" CLIKsearch sets the local number on the Google listing." if f["case"] in ("google", "both") else "") +
+                                      (" The dealer&rsquo;s website company updates the website and its schema." if f["case"] in ("website", "both", "schema") else ""),
+                              "pill": "CLIKsearch &mdash; GBP Profile Management" if f["case"] in ("google", "both") else None}, date) for f in flags)
+        net = f'\n  <div class="section-title">&#9888;&#65039; Phone Numbers Should Be Local</div>\n' + cards + net
+    return ai, net
+
 def build_dhap(tpl, c, ev, sc):
     rows, ovr, st = sc["rows"], sc["overall"], sc["status"]; date = sc["date_long"]; fill = round(ovr * 10)
     s = c["summary"]
@@ -176,6 +232,7 @@ def build_dhap(tpl, c, ev, sc):
     kgh = "\n".join("          " + dot(g[0], g[1], g[2], last=(i == len(kg) - 1)) for i, g in enumerate(kg))
     badge_emoji = {"CRITICAL": "&#128308;", "MAJOR": "&#128992;", "PARTIAL": "&#128993;", "STRONG": "&#128994;"}.get(A["badge"], "&#128992;")
     secs = "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
+    nap_ai, nap_net = nap_tables(ev, date)
     aiv = f'''<!-- AI VISIBILITY SCORE TAB -->
 <div id="aivisibility" class="tab-panel">
   <div class="hero-card">
@@ -212,7 +269,7 @@ def build_dhap(tpl, c, ev, sc):
 {chr(10).join(sig_rows)}
     </tbody>
   </table>
-{secs}
+{nap_ai}{secs}
   <div class="mids-box" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:rgba(34,197,94,.3);margin-top:20px;">
     <div class="mids-title" style="color:#15803d;">&#129302; CLIKsearch Closes Every Verified Gap</div>
     <div class="mids-body">CLIKsearch&rsquo;s SEO/AEO/GEO-focused content strategy, custom dealership schema build, 60+ directory syndication, and 3-Pack profile management are specifically engineered to address each of the verified gaps identified above. Every deliverable is designed to be AI-readable, AI-indexable, and AI-citable. <strong>MiDS approved &mdash; up to 100% reimbursable.</strong></div>
@@ -227,7 +284,7 @@ def build_dhap(tpl, c, ev, sc):
         cards = sec["cards"] + ([OMNI] if sec.get("add_omni_social") else [])
         F += f'  <div class="section-title">{sec["title"]}</div>\n' + "".join(card(x, date) for x in cards) + "\n"
     if "No Cross-Platform Social Distribution" not in F: raise Bad("findings: one section must set add_omni_social: true (RULE G card)")
-    F += "</div>\n\n"
+    F += nap_net + "</div>\n\n"
     orows = "\n".join(f'      <tr><td><strong>{o[0]}</strong></td><td>{o[1]}</td><td><div class="roi-tag"><span>&#9654;</span><span>{o[2]}</span></div></td><td>{pill()}</td></tr>' for o in c["opportunities"])
     orows += f'''
       <tr><td><strong>Omni-Social Post Distribution</strong></td><td>&#9889; Force Multiplier</td>
@@ -263,7 +320,7 @@ def build_dhap(tpl, c, ev, sc):
     return h
 
 # ----------------------------------------------------------------------------------------------- health alert
-def build_alert(tpl, c, sc):
+def build_alert(tpl, c, sc, picked=None):
     st, ovr = sc["status"], sc["overall"]; fill = round(ovr * 10); col = st["color"]; A = c["alert"]
     s = tpl
     s = rep(s, "James Mitsubishi Greece &mdash; Greece, NY", f'{c["dealer"]} &mdash; {c["city_st"]}', what="identity strip")
@@ -289,12 +346,15 @@ def build_alert(tpl, c, sc):
     kp = ('<!-- KPI ROW 1 -->\n  <div class="section-lbl" style="margin-top:4px;">GBP Activity &amp; Profile Status</div>\n  <div class="kpi-grid">\n' + "".join(tile(t) for t in A["tiles"][:3]) +
           '  </div>\n\n  <!-- KPI ROW 2 -->\n  <div class="section-lbl">Visibility, Reputation &amp; Authority</div>\n  <div class="kpi-grid">\n' + "".join(tile(t) for t in A["tiles"][3:]) + '  </div>\n\n')
     s = s[:i] + kp + s[j:]
-    s = re.sub(r'(<span style="display:block;margin-top:16px;">)With .*?(, this dealership is surrendering)', lambda m: m.group(1) + A["impact_para2"] + m.group(2), s, count=1, flags=re.S)
-    if A["impact_para2"] not in s: raise Bad("revenue-impact paragraph marker not found (template changed?)")
-    # four stat cards, rebuilt from content (AI_VIS_GAPS always equals the Key Gaps bullets)
+    if picked is not None:   # rule 7: the dealer's weakest areas, picked from the evidence
+        stats = [(x["head"], x["target"], x["suffix"], x["cap"], x["status"]) for x in picked[0]]; para = picked[1]
+    else: stats, para = A["stats"], A["impact_para2"]
+    s = re.sub(r'(<span style="display:block;margin-top:16px;">)With .*?(, this dealership is surrendering)', lambda m: m.group(1) + para + m.group(2), s, count=1, flags=re.S)
+    if para not in s: raise Bad("revenue-impact paragraph marker not found (template changed?)")
+    # the stat cards (legacy content: AI_VIS_GAPS always equals the Key Gaps bullets)
     i = s.index('<div class="impact-stats">'); j = s.index("</div>\n  </div>", s.index('class="t-head">&gt; AI_VIS_GAPS'))
     cards = []
-    for head, target, suffix, cap, stat in A["stats"]:
+    for head, target, suffix, cap, stat in stats:
         if head == "AI_VIS_GAPS": target = len(c["ai"]["key_gaps"])
         cards.append(f'''<div class="t-stat" data-status="{stat}" data-target="{target}" data-suffix="{suffix}" data-comma="0">
         <div class="t-head">&gt; {head}</div>
@@ -303,7 +363,8 @@ def build_alert(tpl, c, sc):
         <div class="t-bar"><i></i></div>
         <div class="t-status">&gt; Status: <b>{stat}</b></div>
       </div>''')
-    s = s[:i] + '<div class="impact-stats">\n      ' + "\n      ".join(cards) + "\n    " + s[j:]
+    grid = f' style="grid-template-columns:repeat({len(cards)},1fr);"' if len(cards) < 4 else ""
+    s = s[:i] + f'<div class="impact-stats"{grid}>\n      ' + "\n      ".join(cards) + "\n    " + s[j:]
     s = rep(s, "c.querySelector('.t-status').innerHTML='&gt; Status: <b>Critical</b>';", "c.querySelector('.t-status').innerHTML='&gt; Status: <b>'+(c.getAttribute('data-status')||'Critical')+'</b>';", what="count-up status")
     # blurred locked findings 06-08
     rows = list(re.finditer(r'<div class="bf-title">(.*?)</div>\s*<div class="bf-detail">(.*?)</div>', s, re.S))
@@ -322,7 +383,8 @@ def main():
     probs = S.check(ev)
     if probs: sys.exit("NOT BUILT — evidence incomplete:\n  - " + "\n  - ".join(probs))
     c.setdefault("dhap_url", FUNNEL_PLACEHOLDER)
-    probs = check_content(c)
+    new = AC.applies(ev)
+    probs = check_content(c, picked=new)
     if probs: sys.exit("NOT BUILT — content problems:\n  - " + "\n  - ".join(probs))
     if c["dealer"] != ev["dealer"]: sys.exit(f"NOT BUILT — content is for {c['dealer']!r} but evidence is for {ev['dealer']!r}")
     c = dict(c, dealer=H.escape(c["dealer"], quote=False), city_st=H.escape(c["city_st"], quote=False))   # plain text -> safe HTML
@@ -333,15 +395,19 @@ def main():
     dh = sorted(T.glob("*_dhap_v*.html"))[-1]; ha = sorted(T.glob("*_hotsheet_v*.html"))[-1]
     try:
         D = build_dhap(dh.read_text(encoding="utf-8"), c, ev, sc)
-        Hs = build_alert(ha.read_text(encoding="utf-8"), c, sc)
-        if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
-        Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
+        picked = AC.pick(ev, rows) if new else None
+        Hs = None if picked is not None and not picked[0] else build_alert(ha.read_text(encoding="utf-8"), c, sc, picked)   # every area at 10: no Alert
+        if Hs is not None:
+            if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
+            Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
     except Bad as e:
         sys.exit(f"NOT BUILT — {e}")
     out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
     n1, n2, _ = names(ev["dealer"], ev["audit_date"])
-    (out / n1).write_text(D, encoding="utf-8"); (out / n2).write_text(Hs, encoding="utf-8")
-    print(json.dumps({"dhap": str(out / n1), "health_alert": str(out / n2), "templates": [dh.name, ha.name], "rows": rows,
+    (out / n1).write_text(D, encoding="utf-8")
+    if Hs is not None: (out / n2).write_text(Hs, encoding="utf-8")
+    print(json.dumps({"dhap": str(out / n1), "health_alert": str(out / n2) if Hs is not None else None,
+                      "alert_cards": [x["head"] for x in picked[0]] if picked else None, "templates": [dh.name, ha.name], "rows": rows,
                       "overall": sc["overall"], "status": sc["status"]["label"], "edge_warnings": S.edge_warnings(raw, rows)}, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__": main()
