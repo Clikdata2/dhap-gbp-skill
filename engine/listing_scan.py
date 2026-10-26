@@ -3,9 +3,10 @@
 
 For every site in listing_sites.json with method "headless": open its search, find the dealer's result (by phone, else
 by the match words), open the listing when the result does not show the phone, copy the name, address and phone it
-shows, and save a screenshot. Each reading is saved with "draft": true — the run looks at the screenshot, corrects
-anything the page parser got wrong, and removes "draft" before the evidence check (which refuses drafts). Sites that
-refuse an automated browser come back "blocked": read them in the signed-in Chrome with the "chrome" sites.
+shows, and save a screenshot. A complete reading (name, phone, and a street with
+a ZIP, all in the dealer's result) is accepted as is, with its screenshot as proof. An incomplete one is saved with
+"draft": true — the run fills the missing part from the screenshot and removes "draft" (the evidence check refuses
+drafts). A site that refuses the browser or times out is "blocked" and skipped: one try per site, never retried.
 Usage: python3 listing_scan.py --name "James Mitsubishi Greece" --match "James Mitsubishi" --city Greece --st NY --zip 14626
                                --phone 585-563-2029 --out DIR        -> DIR/listing_scan.json + DIR/proof/*.png
 Needs Playwright's Chromium (the DHAP venv)."""
@@ -56,12 +57,7 @@ JS_BLOCK = """([match, ph]) => {
   return null;
 }"""
 
-async def one(b, site, a, out_dir, sem, tries=2):
-    r = await _one(b, site, a, out_dir, sem)
-    if r["status"] == "blocked" and r["reason"].startswith("page error") and tries > 1: r = await one(b, site, a, out_dir, sem, tries - 1)   # one retry for timeouts
-    return r
-
-async def _one(b, site, a, out_dir, sem):
+async def one(b, site, a, out_dir, sem):   # one try per site: a site that can't be read is recorded and skipped, never retried
     url = site["url"].format(**{k: urllib.parse.quote_plus(v) for k, v in vars(a).items() if isinstance(v, str)})
     r = {"directory": site["id"], "when": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "url": url, "draft": True}
     async with sem:
@@ -70,10 +66,10 @@ async def _one(b, site, a, out_dir, sem):
             resp = await pg.goto(url, timeout=35000, wait_until="domcontentloaded"); await pg.wait_for_timeout(4000)
             body = await pg.evaluate("document.body ? document.body.innerText : ''")
             if (resp and resp.status in (401, 403, 429)) or BLOCKED.search(body[:600]):
-                r.update(status="blocked", reason=f"refused the automated browser (HTTP {resp.status if resp else '?'}) — read it in the signed-in Chrome"); return r
+                r.update(status="blocked", reason=f"refused the automated browser (HTTP {resp.status if resp else '?'}) — skipped"); r.pop("draft"); return r
             hit = await pg.evaluate(JS_BLOCK, [a.match, digits(a.phone)])
             if not hit:
-                r.update(status="not_found", searched=f"{site['name']} search: {a.match} / {a.city}, {a.st} / {a.phone}"); return r
+                r.update(status="not_found", searched=f"{site['name']} search: {a.match} / {a.city}, {a.st} / {a.phone}"); r.pop("draft"); return r
             nm, ad, ph = parse(hit["text"], a.match, a.phone)
             el = await pg.query_selector("[data-dhap='1']")
             if (not ph or not ad) and hit.get("href") and hit["href"].startswith("http"):   # open the listing for the missing parts
@@ -85,8 +81,9 @@ async def _one(b, site, a, out_dir, sem):
             if el: await el.screenshot(path=str(shot))
             else: await pg.screenshot(path=str(shot), full_page=False)
             r.update(status="found", name=nm, address=ad, phone=ph, proof=str(shot.relative_to(out_dir.parent)), block=hit["text"][:600])
+            if nm and ph and re.search(r"\d{5}", ad): r.pop("draft")   # complete reading (name, phone, street with ZIP): accepted; the screenshot stays as proof
         except Exception as e:
-            r.update(status="blocked", reason=f"page error: {str(e)[:120]} — read it in the signed-in Chrome")
+            r.update(status="blocked", reason=f"page error: {str(e)[:120]} — skipped"); r.pop("draft", None)
         finally:
             await ctx.close()
     return r
@@ -102,6 +99,6 @@ async def main():
         R = await asyncio.gather(*(one(b, x, a, proof, sem) for x in sites)); await b.close()
     (out / "listing_scan.json").write_text(json.dumps(R, indent=1, ensure_ascii=False))
     for r in R: print(f"{r['directory']:18} {r['status']:9} {r.get('phone', ''):16} {r.get('address', '')[:55]:55} {r.get('name', r.get('reason', r.get('searched', '')))[:60]}")
-    print(f"saved {out / 'listing_scan.json'} — DRAFTS: check each screenshot, fix what the parser misread, remove \"draft\", then add the Chrome sites")
+    print(f"saved {out / 'listing_scan.json'} — only readings marked draft need a look at their screenshot; then read the Chrome sites")
 
 if __name__ == "__main__": asyncio.run(main())

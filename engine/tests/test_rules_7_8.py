@@ -51,9 +51,10 @@ def run_once():
     broken(lambda e: next(d for d in e["nap"]["directories"] if d["status"] == "found").update(proof=""), ".proof", "a found listing with no screenshot")
     broken(lambda e: e["nap"]["directories"].append({"directory": "myspace", "status": "not_found", "searched": "x", "when": "2026-10-25"}), "unknown site", "a site not in the registry")
     broken(lambda e: e["nap"].pop("site"), "nap.site", "no website NAP")
-    broken(lambda e: next(d for d in e["nap"]["directories"] if d["status"] == "blocked").pop("reason"), ".reason", "blocked with no reason")
+    broken(lambda e: next(d for d in e["nap"]["directories"] if d["directory"] == "cars_com").update(status="blocked"), ".reason", "blocked with no reason")
+    broken(lambda e: e["nap"]["directories"].extend({"directory": f"cited:site{i}.com", "status": "not_found", "searched": "x", "when": "2026-10-25", "url": "u"} for i in range(5)), "at most the 5 most-cited", "more than five AI-cited sites")
     ok("audits before Oct 25 2026 keep the typed five-directory answers", not S.check(fresh(JAMES)) and S.score_rows(fresh(JAMES))[1] == [10.0, 4.0, 2.3, 8.4, 0.0, 9.2, 5.6, 5.0])
-    ok("registry: every scored site has a lookup method and a group", all(x["group"] in ("network", "ai", "both") for x in D.REGISTRY["sites"]) and len(D.CHECKED) >= 35, len(D.CHECKED))
+    ok("registry: every scored site has a lookup method and a group", all(x["group"] in ("network", "ai", "both") for x in D.REGISTRY["sites"]) and len(D.CHECKED) == 16, len(D.CHECKED))
     # ---------------- the website is the authority (Travis, Oct 25 2026)
     site = fresh(V)["nap"]["site"]
     ok("authority: a Service listing is compared with the website's Service number", D.phone_check("707-353-4579", site, "service") is True and D.phone_check("707-532-2052", site, "service") is False)

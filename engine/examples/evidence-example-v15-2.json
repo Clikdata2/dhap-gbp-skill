@@ -124,13 +124,6 @@
     "name_same": false
    },
    {
-    "directory": "foursquare",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/foursquare",
-    "status": "blocked",
-    "reason": "login required in Chrome too"
-   },
-   {
     "directory": "yellowpages",
     "when": "2026-10-25 10:00",
     "url": "https://example.invalid/yellowpages",
@@ -161,33 +154,6 @@
     "proof": "proof/dexknows.png"
    },
    {
-    "directory": "yellowbot",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/yellowbot",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/yellowbot.png"
-   },
-   {
-    "directory": "hotfrog",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/hotfrog",
-    "status": "not_found",
-    "searched": "Hotfrog: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "chamberofcommerce",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/chamberofcommerce",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/chamberofcommerce.png"
-   },
-   {
     "directory": "citysquares",
     "when": "2026-10-25 10:00",
     "url": "https://example.invalid/citysquares",
@@ -206,134 +172,6 @@
     "address": "681 Orange Dr, Vacaville, CA 95687",
     "phone": "707-532-2052",
     "proof": "proof/ibegin.png"
-   },
-   {
-    "directory": "ezlocal",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/ezlocal",
-    "status": "not_found",
-    "searched": "EZLocal: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "mylocalservices",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/mylocalservices",
-    "status": "not_found",
-    "searched": "My Local Services: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "mapquest",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/mapquest",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/mapquest.png"
-   },
-   {
-    "directory": "citysearch",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/citysearch",
-    "status": "not_found",
-    "searched": "CitySearch: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "insiderpages",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/insiderpages",
-    "status": "not_found",
-    "searched": "InsiderPages: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "judysbook",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/judysbook",
-    "status": "not_found",
-    "searched": "Judy's Book: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "tupalo",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/tupalo",
-    "status": "not_found",
-    "searched": "Tupalo: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "uscity",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/uscity",
-    "status": "not_found",
-    "searched": "US City: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "botw",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/botw",
-    "status": "not_found",
-    "searched": "Best of the Web: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "enrollbusiness",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/enrollbusiness",
-    "status": "not_found",
-    "searched": "Enroll Business: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "infobel",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/infobel",
-    "status": "not_found",
-    "searched": "Infobel: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "opendi",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/opendi",
-    "status": "not_found",
-    "searched": "OpenDi: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "instagram",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/instagram",
-    "status": "not_found",
-    "searched": "Instagram: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "nextdoor",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/nextdoor",
-    "status": "not_found",
-    "searched": "Nextdoor: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "here",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/here",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/here.png"
-   },
-   {
-    "directory": "tomtom",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/tomtom",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/tomtom.png"
-   },
-   {
-    "directory": "network_sites",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/network_sites",
-    "status": "not_found",
-    "searched": "CLIKsearch directory network (ArriveBusiness, Bizmetron, CityOptimum, GalacticVibe, GoLocalPages, JoomLocal, Local469, LocalizedListings, LoclFocus, MyBizWinner, MyLocalEdge, NetLocalBiz, PassPages, ProSearchDirectory, Sediora, SmartBusinessSearch, SpeedyLocal, YpListing, Zoom Local Search): Vacaville Mitsubishi / Vacaville, CA"
    },
    {
     "directory": "yelp",
@@ -396,16 +234,6 @@
     "proof": "proof/autotrader.png"
    },
    {
-    "directory": "kbb",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/kbb",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/kbb.png"
-   },
-   {
     "directory": "cars_com",
     "when": "2026-10-25 10:00",
     "url": "https://example.invalid/cars_com",
@@ -424,33 +252,6 @@
     "address": "681 Orange Dr, Vacaville, CA 95687",
     "phone": "707-532-2052",
     "proof": "proof/dealerrater.png"
-   },
-   {
-    "directory": "edmunds",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/edmunds",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/edmunds.png"
-   },
-   {
-    "directory": "truecar",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/truecar",
-    "status": "not_found",
-    "searched": "TrueCar: Vacaville Mitsubishi / Vacaville, CA"
-   },
-   {
-    "directory": "carfax",
-    "when": "2026-10-25 10:00",
-    "url": "https://example.invalid/carfax",
-    "status": "found",
-    "name": "Vacaville Mitsubishi",
-    "address": "681 Orange Dr, Vacaville, CA 95687",
-    "phone": "707-532-2052",
-    "proof": "proof/carfax.png"
    },
    {
     "directory": "cited:capitalone.com",
@@ -662,30 +463,6 @@
     ],
     "quote": "invented example answer",
     "proof": "proof/ai_google_ai_rating.png"
-   },
-   {
-    "tool": "gemini",
-    "prompt": "best",
-    "status": "blocked",
-    "asked": "(example) best question",
-    "when": "2026-10-25 09:30",
-    "reason": "answer still generating after 90 s (invented)"
-   },
-   {
-    "tool": "gemini",
-    "prompt": "contact",
-    "status": "blocked",
-    "asked": "(example) contact question",
-    "when": "2026-10-25 09:30",
-    "reason": "answer still generating after 90 s (invented)"
-   },
-   {
-    "tool": "gemini",
-    "prompt": "rating",
-    "status": "blocked",
-    "asked": "(example) rating question",
-    "when": "2026-10-25 09:30",
-    "reason": "answer still generating after 90 s (invented)"
    },
    {
     "tool": "chatgpt",
@@ -943,40 +720,6 @@
     ],
     "quote": "invented example answer",
     "proof": "proof/ai_brave_rating.png"
-   },
-   {
-    "tool": "bing_card",
-    "prompt": "card",
-    "status": "answered",
-    "asked": "(example) card question",
-    "when": "2026-10-25 09:30",
-    "named": true,
-    "position": 1,
-    "phone": null,
-    "rating": null,
-    "rating_source": null,
-    "sources": [
-     "vacavillemitsubishi.example"
-    ],
-    "quote": "invented example answer",
-    "proof": "proof/ai_bing_card_card.png"
-   },
-   {
-    "tool": "apple_maps",
-    "prompt": "card",
-    "status": "answered",
-    "asked": "(example) card question",
-    "when": "2026-10-25 09:30",
-    "named": true,
-    "position": 1,
-    "phone": null,
-    "rating": null,
-    "rating_source": null,
-    "sources": [
-     "vacavillemitsubishi.example"
-    ],
-    "quote": "invented example answer",
-    "proof": "proof/ai_apple_maps_card.png"
    }
   ]
  }

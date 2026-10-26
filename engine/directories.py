@@ -148,6 +148,8 @@ def check(ev):
             if not str(d.get(f, "")).strip(): P.append(f"{p}.{f}: {'the screenshot file' if f == 'proof' else 'the page that was read' if f == 'url' else 'word for word as the site shows it'}")
         if d.get("dept", "sales") not in DEPTS: P.append(p + ".dept: sales (default), service or parts — which website number this listing is compared with")
         if "name_same" in d and not isinstance(d["name_same"], bool): P.append(p + ".name_same: true/false from the JEV decision (same_business)")
+    cited = [k for k in got if str(k).startswith("cited:") or (k in SITES and SITES[k]["method"] == "cited_only")]
+    if len(cited) > 5: P.append(f"nap.directories: {len(cited)} AI-cited sites — check at most the 5 most-cited (time and cost)")
     pc = N.get("postal_cities", [])
     if not (isinstance(pc, list) and all(isinstance(x, str) for x in pc)): P.append("nap.postal_cities: list of postal city names for the dealer's address (empty when none)")
     return P

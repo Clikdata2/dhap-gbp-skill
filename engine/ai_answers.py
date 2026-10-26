@@ -3,13 +3,12 @@
 
 Every run asks the AI tools shoppers use the same three questions about the dealer and saves each answer word for word,
 with its sources and a screenshot. The answers are evidence for findings and the rep brief; they never change a score.
-  tools   google_ai (AI Overview or AI Mode) · gemini · chatgpt · copilot · perplexity · claude (Claude's own web search)
-          · brave (Brave's AI summary; Claude's search source) — each asked the three prompts below
+  tools   google_ai (AI Overview or AI Mode; covers Google's AI) · chatgpt · copilot (Copilot Search) · perplexity
+          · claude (Claude's own web search) · brave (Ask Brave; Claude's search source) — each asked the three prompts
+          below. v15.2 dropped Gemini (sign-in, slow) and the separate Bing and Apple Maps cards (read once, as NAP readings).
   prompts best     "best [Brand] dealer near [City, ST]"                                   (get chosen)
           contact  "[Dealer] [City] phone number for sales and service, address and hours" (get found)
           rating   "Is [Dealer] in [City] a good dealership? What is its rating?"          (get chosen)
-  cards   bing_card (Bing's business card; Copilot reads Bing) · apple_maps (Apple Maps place card; Siri reads it)
-          — each read once, prompt "card"
 Each answer: {tool, prompt, status: answered|blocked, asked, when, named, position, phone, phone_matches_site,
               rating, rating_source, sources, quote, proof}  — blocked needs a reason instead of the answer fields.
 Usage:
@@ -21,9 +20,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import directories
 
 START = "2026-10-24"                       # audits dated before this did not run the check
-TOOLS = ("google_ai", "gemini", "chatgpt", "copilot", "perplexity", "claude", "brave")
+TOOLS = ("google_ai", "chatgpt", "copilot", "perplexity", "claude", "brave")   # v15.2: Gemini dropped (sign-in, hangs; Google AI Mode covers Google's AI)
 PROMPTS = ("best", "contact", "rating")
-CARDS = ("bing_card", "apple_maps")
+CARDS = ()   # v15.2: Bing's card and the Apple Maps card are read once, as the bing and apple_maps NAP readings (rule 8)
 SOURCES = ("google", "yelp", "facebook", "dealer_site", "other")
 NAME = {"google_ai": "Google AI Overview / AI Mode", "gemini": "Gemini", "chatgpt": "ChatGPT", "copilot": "Microsoft Copilot",
         "perplexity": "Perplexity", "claude": "Claude (web search)", "brave": "Brave AI summary (Claude's source)",

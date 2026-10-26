@@ -1,52 +1,371 @@
 {
- "_about": "NAP listing sites checked every run (rule 8, v15.2). group: network = CLIKsearch syndicates to it (deck 'CLIKsearch_Mitsubishi_GBP_Managed_Service_Program_NO_Video_v.07.13.26', pages 17-18); ai = AI tools, search engines or car shoppers read it; both = both. method: headless = engine/listing_scan.py searches it signed out; chrome = read in the user's signed-in Chrome (the site blocks automated browsers); site_search = no search box, find the listing with a web search 'site:<domain> <dealer> <city>'; upstream = not public, fed by the sites in covered_by (checked there); down = unreachable when checked. Placeholders: {name} {city} {st} {zip} {phone} {brand}. checked: the date the method was last confirmed.",
+ "_about": "NAP listing sites checked every run (rule 8, v15.2). group: network = CLIKsearch syndicates to it (deck 'CLIKsearch_Mitsubishi_GBP_Managed_Service_Program_NO_Video_v.07.13.26', pages 17-18); ai = AI tools, search engines or car shoppers read it; both = both. method: headless = engine/listing_scan.py searches it signed out; chrome = read in the user's signed-in Chrome (the site blocks automated browsers); site_search = no search box, find the listing with a web search 'site:<domain> <dealer> <city>'; upstream = not public, fed by the sites in covered_by (checked there); down = unreachable when checked; skip = not checked: no public lookup, a login or bot wall, no result for a real dealer, or the same data as a site that is checked (see why). A site that cannot be read is never retried: record it and move on. cited_only = checked only when the AI answer check cites it. Placeholders: {name} {city} {st} {zip} {phone} {brand}. checked: the date the method was last confirmed.",
  "checked": "2026-10-25",
  "sites": [
-  {"id": "bing", "name": "Bing", "group": "both", "method": "chrome", "url": "https://www.bing.com/search?q={name}+{city}+{st}", "why": "Microsoft Copilot reads Bing; Bing Places can copy the Google profile"},
-  {"id": "apple_maps", "name": "Apple Maps", "group": "both", "method": "chrome", "url": "https://maps.apple.com/search?query={name}%20{city}%20{st}", "why": "Siri and Apple Maps; DuckDuckGo's local results use Apple Maps"},
-  {"id": "data_axle", "name": "Data Axle", "group": "network", "method": "headless", "url": "https://local-listings.data-axle.com/search?query={phone}", "why": "data provider that feeds search engines, directories and navigation"},
-  {"id": "localeze", "name": "Neustar Localeze", "group": "network", "method": "upstream", "covered_by": [], "why": "data provider; no public lookup — confirm through CLIKsearch's listing platform"},
-  {"id": "foursquare", "name": "Foursquare / Swarm", "group": "both", "method": "chrome", "url": "https://foursquare.com/explore?near={city}%2C%20{st}&q={name}", "why": "data provider behind many apps and maps; login required"},
-  {"id": "yellowpages", "name": "Yellow Pages", "group": "both", "method": "headless", "url": "https://www.yellowpages.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}", "why": "cited by AI answers for local businesses"},
-  {"id": "superpages", "name": "SuperPages", "group": "both", "method": "headless", "url": "https://www.superpages.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}", "why": "same listing network as Yellow Pages and DexKnows"},
-  {"id": "dexknows", "name": "DexKnows", "group": "network", "method": "headless", "url": "https://www.dexknows.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}"},
-  {"id": "yellowbot", "name": "YellowBot", "group": "network", "method": "chrome", "url": "https://www.yellowbot.com/search?q={name}&place={city}%2C+{st}"},
-  {"id": "hotfrog", "name": "Hotfrog", "group": "network", "method": "headless", "url": "https://www.hotfrog.com/search?what={name}&where={city}%2C+{st}"},
-  {"id": "chamberofcommerce", "name": "Chamber of Commerce", "group": "network", "method": "headless", "url": "https://www.chamberofcommerce.com/search?what={name}&where={city}%2C+{st}"},
-  {"id": "citysquares", "name": "CitySquares", "group": "network", "method": "headless", "url": "https://citysquares.com/search?search%5Bterm%5D={name}&search%5Blocation%5D={city}%2C+{st}"},
-  {"id": "ibegin", "name": "iBegin", "group": "network", "method": "headless", "url": "https://www.ibegin.com/search/phone/?phone={phone}"},
-  {"id": "ezlocal", "name": "EZLocal", "group": "network", "method": "headless", "url": "https://ezlocal.com/search/?q={name}&by={zip}"},
-  {"id": "mylocalservices", "name": "My Local Services", "group": "network", "method": "headless", "url": "https://www.mylocalservices.com/search?business_type={name}&location={city}%2C+{st}"},
-  {"id": "mapquest", "name": "MapQuest", "group": "both", "method": "chrome", "url": "https://www.mapquest.com/search?query={name}%20{city}%20{st}", "why": "map and directions site"},
-  {"id": "citysearch", "name": "CitySearch", "group": "network", "method": "site_search"},
-  {"id": "insiderpages", "name": "InsiderPages", "group": "network", "method": "site_search"},
-  {"id": "judysbook", "name": "Judy's Book", "group": "network", "method": "site_search"},
-  {"id": "tupalo", "name": "Tupalo", "group": "network", "method": "site_search"},
-  {"id": "uscity", "name": "US City", "group": "network", "method": "site_search"},
-  {"id": "botw", "name": "Best of the Web", "group": "network", "method": "chrome", "url": "https://botw.org/"},
-  {"id": "enrollbusiness", "name": "Enroll Business", "group": "network", "method": "chrome", "url": "https://enrollbusiness.com/"},
-  {"id": "infobel", "name": "Infobel", "group": "network", "method": "chrome", "url": "https://www.infobel.com/"},
-  {"id": "opendi", "name": "OpenDi", "group": "network", "method": "chrome", "url": "https://www.opendi.us/"},
-  {"id": "instagram", "name": "Instagram", "group": "network", "method": "chrome", "url": "https://www.instagram.com/", "why": "business profile contact details"},
-  {"id": "nextdoor", "name": "Nextdoor", "group": "both", "method": "chrome", "url": "https://nextdoor.com/search/businesses/?query={name}%20{city}%20{st}", "why": "neighborhood recommendations (deck page 17)"},
-  {"id": "here", "name": "HERE (WeGo)", "group": "network", "method": "chrome", "url": "https://wego.here.com/search/{name}%20{city}%20{st}", "why": "map data behind many in-car navigation systems"},
-  {"id": "tomtom", "name": "TomTom", "group": "network", "method": "chrome", "url": "https://plan.tomtom.com/en/", "why": "map data behind many in-car and phone navigation systems"},
-  {"id": "network_sites", "name": "CLIKsearch directory network (ArriveBusiness, Bizmetron, CityOptimum, GalacticVibe, GoLocalPages, JoomLocal, Local469, LocalizedListings, LoclFocus, MyBizWinner, MyLocalEdge, NetLocalBiz, PassPages, ProSearchDirectory, Sediora, SmartBusinessSearch, SpeedyLocal, YpListing, Zoom Local Search)", "group": "network", "method": "site_search", "why": "one shared network; a listing exists only after it is syndicated, so 'not listed' is expected for a prospect"},
-  {"id": "deal_apps", "name": "Date on Deals, Localtunity, MerchantsNearby", "group": "network", "method": "upstream", "covered_by": [], "why": "mobile apps with no public listing pages"},
-  {"id": "gps_and_voice", "name": "In-car, GPS and voice (Garmin, OnStar, automaker navigation, CoPilot, Telenav, Scout, Kanzi, SiriusXM, Lyft, AT&T 24/7, Allstate Roadside, Zenrin/Denso, Alexa, Google Assistant, Siri, Cortana)", "group": "network", "method": "upstream", "covered_by": ["here", "tomtom", "data_axle", "localeze", "apple_maps", "bing"], "why": "no public lookup; they read the map and data providers checked above"},
-  {"id": "down", "name": "BeLocalFocussed, BubbleLife, EBusiness Pages", "group": "network", "method": "down", "why": "unreachable on Oct 25 2026 (no address, certificate error, server down)"},
-  {"id": "out_of_market", "name": "Jersey VIP, Shore VIP, Moorestown VIP, Your Town VIP, N49 (Canada), iGlobal (Ibero-America), eLocal (pay-per-call), Where To? app, Mint", "group": "network", "method": "upstream", "covered_by": [], "why": "regional, foreign or app-only; checked only when the dealer is in their market"},
-  {"id": "yelp", "name": "Yelp", "group": "ai", "method": "chrome", "url": "https://www.yelp.com/search?find_desc={name}&find_loc={city}%2C+{st}", "why": "Apple Maps, Bing and Perplexity show the Yelp rating"},
-  {"id": "facebook", "name": "Facebook", "group": "ai", "method": "chrome", "url": "https://www.facebook.com/search/pages/?q={name}%20{city}", "why": "official profile; often in the website's sameAs"},
-  {"id": "brand_locator", "name": "Brand dealer locator", "group": "ai", "method": "chrome", "url": "https://www.mitsubishicars.com/car-dealerships-near-me", "why": "where shoppers of the brand find the dealer"},
-  {"id": "bbb", "name": "Better Business Bureau", "group": "ai", "method": "headless", "url": "https://www.bbb.org/search?find_text={name}&find_loc={city}%2C+{st}", "why": "trust and complaints profile"},
-  {"id": "cargurus", "name": "CarGurus", "group": "ai", "method": "chrome", "find": "site:cargurus.com {name} {city}", "why": "car shoppers' listing site"},
-  {"id": "autotrader", "name": "Autotrader", "group": "ai", "method": "chrome", "find": "site:autotrader.com {name} {city}", "why": "car shoppers' listing site (Cox)"},
-  {"id": "kbb", "name": "Kelley Blue Book", "group": "ai", "method": "chrome", "find": "site:kbb.com {name} {city}", "why": "car shoppers' research and dealer site (Cox)"},
-  {"id": "cars_com", "name": "Cars.com", "group": "ai", "method": "chrome", "find": "site:cars.com {name} {city}", "why": "car shoppers' listing site"},
-  {"id": "dealerrater", "name": "DealerRater", "group": "ai", "method": "chrome", "find": "site:dealerrater.com {name} {city}", "why": "dealer reviews (Cars.com)"},
-  {"id": "edmunds", "name": "Edmunds", "group": "ai", "method": "chrome", "find": "site:edmunds.com {name} {city}", "why": "car shoppers' research and dealer site"},
-  {"id": "truecar", "name": "TrueCar", "group": "ai", "method": "chrome", "find": "site:truecar.com {name} {city}", "why": "car shoppers' pricing and dealer site"},
-  {"id": "carfax", "name": "CARFAX", "group": "ai", "method": "chrome", "find": "site:carfax.com {name} {city}", "why": "car shoppers' history and dealer site"}
+  {
+   "id": "bing",
+   "name": "Bing",
+   "group": "both",
+   "method": "chrome",
+   "url": "https://www.bing.com/search?q={name}+{city}+{st}",
+   "why": "Microsoft Copilot reads Bing; Bing Places can copy the Google profile"
+  },
+  {
+   "id": "apple_maps",
+   "name": "Apple Maps",
+   "group": "both",
+   "method": "chrome",
+   "url": "https://maps.apple.com/search?query={name}%20{city}%20{st}",
+   "why": "Siri and Apple Maps; DuckDuckGo's local results use Apple Maps"
+  },
+  {
+   "id": "data_axle",
+   "name": "Data Axle",
+   "group": "network",
+   "method": "headless",
+   "url": "https://local-listings.data-axle.com/search?query={phone}",
+   "why": "data provider that feeds search engines, directories and navigation"
+  },
+  {
+   "id": "localeze",
+   "name": "Neustar Localeze",
+   "group": "network",
+   "method": "skip",
+   "covered_by": [],
+   "why": "data provider; no public lookup — confirm through CLIKsearch's listing platform; skipped: no public lookup"
+  },
+  {
+   "id": "foursquare",
+   "name": "Foursquare / Swarm",
+   "group": "both",
+   "method": "skip",
+   "url": "https://foursquare.com/explore?near={city}%2C%20{st}&q={name}",
+   "why": "data provider behind many apps and maps; login required; skipped: login required"
+  },
+  {
+   "id": "yellowpages",
+   "name": "Yellow Pages",
+   "group": "both",
+   "method": "headless",
+   "url": "https://www.yellowpages.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}",
+   "why": "cited by AI answers for local businesses"
+  },
+  {
+   "id": "superpages",
+   "name": "SuperPages",
+   "group": "both",
+   "method": "headless",
+   "url": "https://www.superpages.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}",
+   "why": "same listing network as Yellow Pages and DexKnows"
+  },
+  {
+   "id": "dexknows",
+   "name": "DexKnows",
+   "group": "network",
+   "method": "headless",
+   "url": "https://www.dexknows.com/search?search_terms={name}&geo_location_terms={city}%2C+{st}"
+  },
+  {
+   "id": "yellowbot",
+   "name": "YellowBot",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.yellowbot.com/search?q={name}&place={city}%2C+{st}",
+   "why": "skipped: no result for a real dealer (Oct 25 2026)"
+  },
+  {
+   "id": "hotfrog",
+   "name": "Hotfrog",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.hotfrog.com/search?what={name}&where={city}%2C+{st}",
+   "why": "skipped: the listing shows no phone signed out, so every run would need a manual look (Oct 25 2026)"
+  },
+  {
+   "id": "chamberofcommerce",
+   "name": "Chamber of Commerce",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.chamberofcommerce.com/search?what={name}&where={city}%2C+{st}",
+   "why": "skipped: the listing shows no phone signed out, so every run would need a manual look (Oct 25 2026)"
+  },
+  {
+   "id": "citysquares",
+   "name": "CitySquares",
+   "group": "network",
+   "method": "headless",
+   "url": "https://citysquares.com/search?search%5Bterm%5D={name}&search%5Blocation%5D={city}%2C+{st}"
+  },
+  {
+   "id": "ibegin",
+   "name": "iBegin",
+   "group": "network",
+   "method": "headless",
+   "url": "https://www.ibegin.com/search/phone/?phone={phone}"
+  },
+  {
+   "id": "ezlocal",
+   "name": "EZLocal",
+   "group": "network",
+   "method": "skip",
+   "url": "https://ezlocal.com/search/?q={name}&by={zip}",
+   "why": "skipped: the listing shows no phone signed out, so every run would need a manual look (Oct 25 2026)"
+  },
+  {
+   "id": "mylocalservices",
+   "name": "My Local Services",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.mylocalservices.com/search?business_type={name}&location={city}%2C+{st}",
+   "why": "skipped: no result for a real dealer (Oct 25 2026)"
+  },
+  {
+   "id": "mapquest",
+   "name": "MapQuest",
+   "group": "both",
+   "method": "cited_only",
+   "url": "https://www.mapquest.com/search?query={name}%20{city}%20{st}",
+   "why": "map and directions site; checked only when the AI answer check cites it"
+  },
+  {
+   "id": "citysearch",
+   "name": "CitySearch",
+   "group": "network",
+   "method": "skip",
+   "why": "skipped: no search box; low reach"
+  },
+  {
+   "id": "insiderpages",
+   "name": "InsiderPages",
+   "group": "network",
+   "method": "skip",
+   "why": "skipped: no search box; low reach"
+  },
+  {
+   "id": "judysbook",
+   "name": "Judy's Book",
+   "group": "network",
+   "method": "skip",
+   "why": "skipped: no search box; low reach"
+  },
+  {
+   "id": "tupalo",
+   "name": "Tupalo",
+   "group": "network",
+   "method": "skip",
+   "why": "skipped: no search box; low reach"
+  },
+  {
+   "id": "uscity",
+   "name": "US City",
+   "group": "network",
+   "method": "skip",
+   "why": "skipped: no search box; low reach"
+  },
+  {
+   "id": "botw",
+   "name": "Best of the Web",
+   "group": "network",
+   "method": "skip",
+   "url": "https://botw.org/",
+   "why": "skipped: bot wall"
+  },
+  {
+   "id": "enrollbusiness",
+   "name": "Enroll Business",
+   "group": "network",
+   "method": "skip",
+   "url": "https://enrollbusiness.com/",
+   "why": "skipped: bot wall"
+  },
+  {
+   "id": "infobel",
+   "name": "Infobel",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.infobel.com/",
+   "why": "skipped: bot wall"
+  },
+  {
+   "id": "opendi",
+   "name": "OpenDi",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.opendi.us/",
+   "why": "skipped: bot wall"
+  },
+  {
+   "id": "instagram",
+   "name": "Instagram",
+   "group": "network",
+   "method": "skip",
+   "url": "https://www.instagram.com/",
+   "why": "business profile contact details; skipped: login wall; contact details rarely shown"
+  },
+  {
+   "id": "nextdoor",
+   "name": "Nextdoor",
+   "group": "both",
+   "method": "skip",
+   "url": "https://nextdoor.com/search/businesses/?query={name}%20{city}%20{st}",
+   "why": "neighborhood recommendations (deck page 17); skipped: login wall"
+  },
+  {
+   "id": "here",
+   "name": "HERE (WeGo)",
+   "group": "network",
+   "method": "skip",
+   "url": "https://wego.here.com/search/{name}%20{city}%20{st}",
+   "why": "map data behind many in-car navigation systems; skipped: map app with no readable listing page"
+  },
+  {
+   "id": "tomtom",
+   "name": "TomTom",
+   "group": "network",
+   "method": "skip",
+   "url": "https://plan.tomtom.com/en/",
+   "why": "map data behind many in-car and phone navigation systems; skipped: map app with no readable listing page"
+  },
+  {
+   "id": "network_sites",
+   "name": "CLIKsearch directory network (ArriveBusiness, Bizmetron, CityOptimum, GalacticVibe, GoLocalPages, JoomLocal, Local469, LocalizedListings, LoclFocus, MyBizWinner, MyLocalEdge, NetLocalBiz, PassPages, ProSearchDirectory, Sediora, SmartBusinessSearch, SpeedyLocal, YpListing, Zoom Local Search)",
+   "group": "network",
+   "method": "skip",
+   "why": "one shared network; a listing exists only after it is syndicated, so 'not listed' is expected for a prospect; skipped: a prospect is not on CLIKsearch's own network until CLIKsearch syndicates it; report it as what CLIKsearch adds, no search needed"
+  },
+  {
+   "id": "deal_apps",
+   "name": "Date on Deals, Localtunity, MerchantsNearby",
+   "group": "network",
+   "method": "upstream",
+   "covered_by": [],
+   "why": "mobile apps with no public listing pages"
+  },
+  {
+   "id": "gps_and_voice",
+   "name": "In-car, GPS and voice (Garmin, OnStar, automaker navigation, CoPilot, Telenav, Scout, Kanzi, SiriusXM, Lyft, AT&T 24/7, Allstate Roadside, Zenrin/Denso, Alexa, Google Assistant, Siri, Cortana)",
+   "group": "network",
+   "method": "upstream",
+   "covered_by": [
+    "here",
+    "tomtom",
+    "data_axle",
+    "localeze",
+    "apple_maps",
+    "bing"
+   ],
+   "why": "no public lookup; they read the map and data providers checked above"
+  },
+  {
+   "id": "down",
+   "name": "BeLocalFocussed, BubbleLife, EBusiness Pages",
+   "group": "network",
+   "method": "down",
+   "why": "unreachable on Oct 25 2026 (no address, certificate error, server down)"
+  },
+  {
+   "id": "out_of_market",
+   "name": "Jersey VIP, Shore VIP, Moorestown VIP, Your Town VIP, N49 (Canada), iGlobal (Ibero-America), eLocal (pay-per-call), Where To? app, Mint",
+   "group": "network",
+   "method": "upstream",
+   "covered_by": [],
+   "why": "regional, foreign or app-only; checked only when the dealer is in their market"
+  },
+  {
+   "id": "yelp",
+   "name": "Yelp",
+   "group": "ai",
+   "method": "chrome",
+   "url": "https://www.yelp.com/search?find_desc={name}&find_loc={city}%2C+{st}",
+   "why": "Apple Maps, Bing and Perplexity show the Yelp rating"
+  },
+  {
+   "id": "facebook",
+   "name": "Facebook",
+   "group": "ai",
+   "method": "chrome",
+   "url": "https://www.facebook.com/search/pages/?q={name}%20{city}",
+   "why": "official profile; often in the website's sameAs"
+  },
+  {
+   "id": "brand_locator",
+   "name": "Brand dealer locator",
+   "group": "ai",
+   "method": "chrome",
+   "url": "https://www.mitsubishicars.com/car-dealerships-near-me",
+   "why": "where shoppers of the brand find the dealer"
+  },
+  {
+   "id": "bbb",
+   "name": "Better Business Bureau",
+   "group": "ai",
+   "method": "headless",
+   "url": "https://www.bbb.org/search?find_text={name}&find_loc={city}%2C+{st}",
+   "why": "trust and complaints profile"
+  },
+  {
+   "id": "cargurus",
+   "name": "CarGurus",
+   "group": "ai",
+   "method": "chrome",
+   "find": "site:cargurus.com {name} {city}",
+   "why": "car shoppers' listing site"
+  },
+  {
+   "id": "autotrader",
+   "name": "Autotrader",
+   "group": "ai",
+   "method": "chrome",
+   "find": "site:autotrader.com {name} {city}",
+   "why": "car shoppers' listing site (Cox)"
+  },
+  {
+   "id": "kbb",
+   "name": "Kelley Blue Book",
+   "group": "ai",
+   "method": "skip",
+   "find": "site:kbb.com {name} {city}",
+   "why": "car shoppers' research and dealer site (Cox); skipped: same Cox dealer data as Autotrader (Autotrader is checked)"
+  },
+  {
+   "id": "cars_com",
+   "name": "Cars.com",
+   "group": "ai",
+   "method": "chrome",
+   "find": "site:cars.com {name} {city}",
+   "why": "car shoppers' listing site"
+  },
+  {
+   "id": "dealerrater",
+   "name": "DealerRater",
+   "group": "ai",
+   "method": "chrome",
+   "find": "site:dealerrater.com {name} {city}",
+   "why": "dealer reviews (Cars.com)"
+  },
+  {
+   "id": "edmunds",
+   "name": "Edmunds",
+   "group": "ai",
+   "method": "cited_only",
+   "find": "site:edmunds.com {name} {city}",
+   "why": "car shoppers' research and dealer site; checked only when the AI answer check cites it"
+  },
+  {
+   "id": "truecar",
+   "name": "TrueCar",
+   "group": "ai",
+   "method": "cited_only",
+   "find": "site:truecar.com {name} {city}",
+   "why": "car shoppers' pricing and dealer site; checked only when the AI answer check cites it"
+  },
+  {
+   "id": "carfax",
+   "name": "CARFAX",
+   "group": "ai",
+   "method": "cited_only",
+   "find": "site:carfax.com {name} {city}",
+   "why": "car shoppers' history and dealer site; checked only when the AI answer check cites it"
+  }
  ]
 }

@@ -42,7 +42,7 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `directories.py` | Rule 8 (v15.2): decides each listing site's NAP match from the saved readings, against the website (department to department; toll-free not compared), and scores the two groups |
 | `listing_sites.json` | The listing sites checked every run: CLIKsearch's 60+ network and the AI and car-shopper sites, with how each is read |
 | `listing_scan.py` | Searches the sites that allow it signed out and saves draft readings with screenshots for the run to confirm |
-| `ai_answers.py` | AI answer check (v15.1, every run): checks the saved answers of 7 AI tools to 3 questions plus the Bing and Apple Maps cards, and writes the rep-brief table and flags. The evidence check refuses to score without it |
+| `ai_answers.py` | AI answer check (v15.1, every run): checks the saved answers of 6 AI tools to 3 questions (v15.2; the Bing and Apple Maps cards are NAP readings), and writes the rep-brief table and flags. The evidence check refuses to score without it |
 | `places.py` | Optional Google Places cross-check of the Maps collector (see below) |
 | `probe_mobile.py`, `spellcheck.py` | Checks 6 and 7 |
 | `examples/` | James Mitsubishi Greece (the locked reference) and Vacaville Mitsubishi, plus live Chrome readings for those two and Music City Mitsubishi |

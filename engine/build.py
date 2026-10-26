@@ -164,7 +164,7 @@ def nap_tables(ev, date=""):
                ref + " These are the sites AI answers, search engines and car shoppers read. A wrong phone or address here can send a shopper to the wrong number, even when CLIKsearch does not list you there.",
                "AI &amp; CAR-SHOPPER SITES")
     net = table("network", "Directory Network Check &mdash; CLIKsearch Syndication",
-                ref + " These are the directories CLIKsearch keeps accurate for its clients. &ldquo;Not listed&rdquo; is a directory CLIKsearch adds; GPS, in-car and voice systems read the map and data providers checked here.",
+                ref + " These are the main directories CLIKsearch keeps accurate for its clients; CLIKsearch also syndicates to 40+ smaller directories and the map and data providers behind GPS, in-car and voice systems. &ldquo;Not listed&rdquo; is a directory CLIKsearch adds.",
                 "CLIKSEARCH NETWORK")
     flags = DIR.local_flags(ev)   # the always-local rule: a finding card for each toll-free main or department number
     if flags:
