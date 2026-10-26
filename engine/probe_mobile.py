@@ -2,12 +2,12 @@
 """Required mobile probe (SKILL.md RULE J): Playwright + headless Chromium at 360/390/430 (is_mobile, touch).
 Clicks all 8 DHAP tabs and asserts scrollWidth == the real viewport width (clientWidth: with is_mobile, window.innerWidth grows to hide overflow) and no element past the viewport; walks the three
 hot sheet screens; waits for the count-up and prints the final stat values; saves screenshots at 390.
-Usage: python3 probe_mobile.py DHAP.html HEALTH_ALERT.html [shots_dir]   (exit 1 on problems)"""
+Usage: python3 probe_mobile.py DHAP.html HEALTH_ALERT.html [shots_dir]   (exit 1 on problems; HEALTH_ALERT.html = - when there is no Alert, rule 7)"""
 import asyncio, pathlib, sys
 from playwright.async_api import async_playwright
 
 async def main(dhap, hot, shots):
-    D = pathlib.Path(dhap).resolve().as_uri(); H = pathlib.Path(hot).resolve().as_uri()
+    D = pathlib.Path(dhap).resolve().as_uri(); H = None if hot == "-" else pathlib.Path(hot).resolve().as_uri()
     shots = pathlib.Path(shots); shots.mkdir(parents=True, exist_ok=True)
     problems = []
     async with async_playwright() as p:
@@ -27,6 +27,7 @@ async def main(dhap, hot, shots):
                   return {id:p.id,sw:document.documentElement.scrollWidth,vw,bad}}""")
                 if r["sw"] != r["vw"] or r["bad"]: problems.append((w, r))
                 if w == 390: await pg.screenshot(path=str(shots / f"dhap_390_{i}_{r['id']}.png"))
+            if H is None: await ctx.close(); return
             await pg.goto(H); await pg.wait_for_timeout(500)
             for sel in ("#s1 .step-btn", "#s2 .step-btn"):
                 await pg.click(sel); await pg.wait_for_timeout(300)

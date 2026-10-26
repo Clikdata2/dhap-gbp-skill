@@ -14,7 +14,7 @@ Refuses (exit 1) when content is incomplete or unsafe (script tags, unbalanced <
 """
 import argparse, datetime, html as H, json, pathlib, re, sys
 ENG = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(ENG))
-import score as S
+import score as S, alert_cards as AC
 
 MITS_LOGO = None   # read from SKILL.md "VERIFIED LOGO / IMAGE URLS" at run time, so the link lives in one place
 def load_logo(repo):
@@ -85,7 +85,7 @@ ALERT_MOBILE_CSS = """<style>
 </style>
 """
 
-def check_content(c):
+def check_content(c, picked=False):
     P = []
     def need(cond, why):
         if not cond: P.append(why)
@@ -109,11 +109,15 @@ def check_content(c):
     A = c["alert"]
     need(len(A.get("tiles", [])) == 6, "alert.tiles needs exactly 6")
     need(any("Reviews Not Shown on Website" in t[3] for t in A.get("tiles", [])) or A.get("reviews_shown_on_site"), "alert.tiles: one tile must be 'Reviews Not Shown on Website' unless the rendered site shows reviews (then set reviews_shown_on_site: true)")
-    need(len(A.get("stats", [])) == 4, "alert.stats needs exactly 4 stat cards")
-    heads = [s[0] for s in A.get("stats", [])]
-    need("SAMEAS_LINKS" in heads and "AI_VIS_GAPS" in heads, "alert.stats must include SAMEAS_LINKS and AI_VIS_GAPS")
-    for h in heads: need(len("> " + h) <= 18 and re.match(r"^[A-Z0-9_]+$", h), f"stat header '{h}' must be CAPS_WITH_UNDERSCORES and at most 16 characters")
-    for s in A.get("stats", []): need(isinstance(s[1], int) and s[1] >= 0, f"stat {s[0]} target must be a whole number")
+    if picked:   # rule 7 (v15.2): the engine picks the cards and writes the Revenue Impact paragraph from the evidence
+        for k in ("stats", "impact_para2"): need(k not in A, f"alert.{k}: leave it out — from v15.2 the engine writes it from the evidence (rule 7)")
+    else:
+        need(len(A.get("stats", [])) == 4, "alert.stats needs exactly 4 stat cards")
+        heads = [s[0] for s in A.get("stats", [])]
+        need("SAMEAS_LINKS" in heads and "AI_VIS_GAPS" in heads, "alert.stats must include SAMEAS_LINKS and AI_VIS_GAPS")
+        for h in heads: need(len("> " + h) <= 18 and re.match(r"^[A-Z0-9_]+$", h), f"stat header '{h}' must be CAPS_WITH_UNDERSCORES and at most 16 characters")
+        for s in A.get("stats", []): need(isinstance(s[1], int) and s[1] >= 0, f"stat {s[0]} target must be a whole number")
+        need("impact_para2" in A, "alert.impact_para2 missing")
     need(len(A.get("locked", [])) == 3, "alert.locked needs exactly 3 blurred findings (06-08)")
     need(len(c["opportunities"]) >= 3, "opportunities needs at least 3 rows (Omni-Social and ACT NOW rows are added automatically)")
     return P
@@ -263,7 +267,7 @@ def build_dhap(tpl, c, ev, sc):
     return h
 
 # ----------------------------------------------------------------------------------------------- health alert
-def build_alert(tpl, c, sc):
+def build_alert(tpl, c, sc, picked=None):
     st, ovr = sc["status"], sc["overall"]; fill = round(ovr * 10); col = st["color"]; A = c["alert"]
     s = tpl
     s = rep(s, "James Mitsubishi Greece &mdash; Greece, NY", f'{c["dealer"]} &mdash; {c["city_st"]}', what="identity strip")
@@ -289,12 +293,15 @@ def build_alert(tpl, c, sc):
     kp = ('<!-- KPI ROW 1 -->\n  <div class="section-lbl" style="margin-top:4px;">GBP Activity &amp; Profile Status</div>\n  <div class="kpi-grid">\n' + "".join(tile(t) for t in A["tiles"][:3]) +
           '  </div>\n\n  <!-- KPI ROW 2 -->\n  <div class="section-lbl">Visibility, Reputation &amp; Authority</div>\n  <div class="kpi-grid">\n' + "".join(tile(t) for t in A["tiles"][3:]) + '  </div>\n\n')
     s = s[:i] + kp + s[j:]
-    s = re.sub(r'(<span style="display:block;margin-top:16px;">)With .*?(, this dealership is surrendering)', lambda m: m.group(1) + A["impact_para2"] + m.group(2), s, count=1, flags=re.S)
-    if A["impact_para2"] not in s: raise Bad("revenue-impact paragraph marker not found (template changed?)")
-    # four stat cards, rebuilt from content (AI_VIS_GAPS always equals the Key Gaps bullets)
+    if picked is not None:   # rule 7: the dealer's weakest areas, picked from the evidence
+        stats = [(x["head"], x["target"], x["suffix"], x["cap"], x["status"]) for x in picked[0]]; para = picked[1]
+    else: stats, para = A["stats"], A["impact_para2"]
+    s = re.sub(r'(<span style="display:block;margin-top:16px;">)With .*?(, this dealership is surrendering)', lambda m: m.group(1) + para + m.group(2), s, count=1, flags=re.S)
+    if para not in s: raise Bad("revenue-impact paragraph marker not found (template changed?)")
+    # the stat cards (legacy content: AI_VIS_GAPS always equals the Key Gaps bullets)
     i = s.index('<div class="impact-stats">'); j = s.index("</div>\n  </div>", s.index('class="t-head">&gt; AI_VIS_GAPS'))
     cards = []
-    for head, target, suffix, cap, stat in A["stats"]:
+    for head, target, suffix, cap, stat in stats:
         if head == "AI_VIS_GAPS": target = len(c["ai"]["key_gaps"])
         cards.append(f'''<div class="t-stat" data-status="{stat}" data-target="{target}" data-suffix="{suffix}" data-comma="0">
         <div class="t-head">&gt; {head}</div>
@@ -303,7 +310,8 @@ def build_alert(tpl, c, sc):
         <div class="t-bar"><i></i></div>
         <div class="t-status">&gt; Status: <b>{stat}</b></div>
       </div>''')
-    s = s[:i] + '<div class="impact-stats">\n      ' + "\n      ".join(cards) + "\n    " + s[j:]
+    grid = f' style="grid-template-columns:repeat({len(cards)},1fr);"' if len(cards) < 4 else ""
+    s = s[:i] + f'<div class="impact-stats"{grid}>\n      ' + "\n      ".join(cards) + "\n    " + s[j:]
     s = rep(s, "c.querySelector('.t-status').innerHTML='&gt; Status: <b>Critical</b>';", "c.querySelector('.t-status').innerHTML='&gt; Status: <b>'+(c.getAttribute('data-status')||'Critical')+'</b>';", what="count-up status")
     # blurred locked findings 06-08
     rows = list(re.finditer(r'<div class="bf-title">(.*?)</div>\s*<div class="bf-detail">(.*?)</div>', s, re.S))
@@ -322,7 +330,8 @@ def main():
     probs = S.check(ev)
     if probs: sys.exit("NOT BUILT — evidence incomplete:\n  - " + "\n  - ".join(probs))
     c.setdefault("dhap_url", FUNNEL_PLACEHOLDER)
-    probs = check_content(c)
+    new = AC.applies(ev)
+    probs = check_content(c, picked=new)
     if probs: sys.exit("NOT BUILT — content problems:\n  - " + "\n  - ".join(probs))
     if c["dealer"] != ev["dealer"]: sys.exit(f"NOT BUILT — content is for {c['dealer']!r} but evidence is for {ev['dealer']!r}")
     c = dict(c, dealer=H.escape(c["dealer"], quote=False), city_st=H.escape(c["city_st"], quote=False))   # plain text -> safe HTML
@@ -333,15 +342,19 @@ def main():
     dh = sorted(T.glob("*_dhap_v*.html"))[-1]; ha = sorted(T.glob("*_hotsheet_v*.html"))[-1]
     try:
         D = build_dhap(dh.read_text(encoding="utf-8"), c, ev, sc)
-        Hs = build_alert(ha.read_text(encoding="utf-8"), c, sc)
-        if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
-        Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
+        picked = AC.pick(ev, rows) if new else None
+        Hs = None if picked is not None and not picked[0] else build_alert(ha.read_text(encoding="utf-8"), c, sc, picked)   # every area at 10: no Alert
+        if Hs is not None:
+            if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
+            Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
     except Bad as e:
         sys.exit(f"NOT BUILT — {e}")
     out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
     n1, n2, _ = names(ev["dealer"], ev["audit_date"])
-    (out / n1).write_text(D, encoding="utf-8"); (out / n2).write_text(Hs, encoding="utf-8")
-    print(json.dumps({"dhap": str(out / n1), "health_alert": str(out / n2), "templates": [dh.name, ha.name], "rows": rows,
+    (out / n1).write_text(D, encoding="utf-8")
+    if Hs is not None: (out / n2).write_text(Hs, encoding="utf-8")
+    print(json.dumps({"dhap": str(out / n1), "health_alert": str(out / n2) if Hs is not None else None,
+                      "alert_cards": [x["head"] for x in picked[0]] if picked else None, "templates": [dh.name, ha.name], "rows": rows,
                       "overall": sc["overall"], "status": sc["status"]["label"], "edge_warnings": S.edge_warnings(raw, rows)}, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__": main()

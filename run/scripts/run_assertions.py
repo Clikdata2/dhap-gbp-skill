@@ -12,6 +12,7 @@ documented deviation. Only skip a condition when it asserts a gap this dealer do
 import argparse, html as H, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lib_dhap as L
+import alert_cards as AC   # the engine's rule 7 picker (lib_dhap puts engine/ on the path)
 
 def remove_cond(blk, token):
     pat = "'" + token + "' in html"
@@ -53,8 +54,9 @@ def main():
         for b in BAN: assert b not in chk, (name, "banned phrase", b)
         assert L.div_depth(t) == 0 and "noindex,nofollow" in t, (name, "div depth / noindex")
         for old in a.leftover: assert old not in t, (name, "leftover from another dealer/run", old)
-    for k in ['id="s1"','id="s2"','id="s3"','id="crumbStep"','SEE ALL ALERTS','SEE REVENUE IMPACT','ACCESS THE FULL REPORT','Reviews Not Shown on Website',
-              'SAMEAS_LINKS','AI_VIS_GAPS','score-method','MASSIVE REVENUE LEAK','Every Alert on this page is Fixable']:
+    picked = AC.pick(L._S.resolve_ages(ev), rows)[0] if AC.applies(ev) else None
+    for k in ['id="s1"','id="s2"','id="s3"','id="crumbStep"','SEE ALL ALERTS','SEE REVENUE IMPACT','ACCESS THE FULL REPORT',
+              'score-method','MASSIVE REVENUE LEAK','Every Alert on this page is Fixable', 'Reviews Not Shown on Website'] + ([] if picked else ['SAMEAS_LINKS', 'AI_VIS_GAPS']):
         assert k in HS, ("health-alert missing", k)
     assert HS.count('class="step-btn"') == 2 and HS.count('class="gap-item"><span class="gx"') == 6
     assert "CLIKsearch" not in HS and "&trade;" not in re.search(r'<div class="header-title"[^>]*>(.*?)</div>', HS).group(1)
@@ -64,7 +66,10 @@ def main():
     tv = re.findall(r'data-target="(\d+)"', HS)
     ai = D[D.find('id="aivisibility"'):D.find('id="findings"')]
     gaps = len(re.findall(r'<div style="display:flex;align-items:flex-start;gap:9px;', ai.split("Key Gaps")[1].split("How This Assessment")[0]))
-    assert gaps == int(tv[3]), ("AI_VIS_GAPS must equal the Key Gaps bullets", gaps, tv)
+    if picked:   # rule 7 (v15.2): the stat cards are the engine's pick for this dealer
+        heads = re.findall(r'class="t-head">&gt; (\w+)', HS)
+        assert heads == [x["head"] for x in picked] and tv == [str(x["target"]) for x in picked], ("stat cards differ from engine/alert_cards.py", heads, tv)
+    else: assert gaps == int(tv[3]), ("AI_VIS_GAPS must equal the Key Gaps bullets", gaps, tv)
     assert a.report_id in HS and a.report_id not in D, "Report ID belongs on the health alert only"
     assert sd == sh == sc_overall == L.overall(rows) and fill == round(L.overall(rows) * 10), "score mismatch"
     assert st["label"].upper() in HS and st["label"] in D and f"{st['lowest_row'].replace('&','&amp;')} is {st['lowest_value']:.1f}/10" in D.replace("&amp;", "&amp;"), "status label / lowest-row note missing"

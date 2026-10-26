@@ -5,7 +5,7 @@ Source of truth for structure, wording and locked rules = the repository's SKILL
 ## Mechanics (what worked)
 1. Load the templates from the freshly fetched repo. Never from memory, never from a previous dealer's output.
 2. DHAP: replace everything between `<!-- SUMMARY TAB -->` and `<!-- SOLUTION TAB -->` with newly written Summary, Scorecard, AI Visibility, Findings, Opportunities panels (use `lib_dhap.swap/card/dot/mits_pill/score_bar`). Replace only the first Why Act Now dealer card; keep the MiDS card, omni-social card and banner. Keep Solution and Investment panels. Then global-replace the template dealer name/city (`James Mitsubishi Greece`, `Greece, NY`, `Greece NY`).
-3. Health alert: replace the header/identity strings, the Report ID, the score (`.score-big`, `.score-fill` width), the verdict label, the teaser and the `.score-method` caption, the six KPI tiles, the revenue-impact paragraph and the four stat cards, the three locked findings, and the funnel link.
+3. Health alert: replace the header/identity strings, the Report ID, the score (`.score-big`, `.score-fill` width), the verdict label, the teaser and the `.score-method` caption, the six KPI tiles, the revenue-impact paragraph and the stat cards (v15.2: take both from `python3 REPO/engine/alert_cards.py evidence.json` — rule 7; never pick them by hand), the three locked findings, and the funnel link.
 4. Scores come from `lib_dhap.score_rows(evidence)`; the status label/colour from `status_from_lowest`. Update every occurrence: DHAP `score-num`, OVERALL row + bar width, health alert `score-big`, teaser, slider fill, captions.
 5. Report ID: `GBP-<initials of dealership><ST>-<MMYY>` (James = GBP-JMGNY-1026; Vacaville = GBP-VMVCA-1026). It appears on the health alert only.
 6. The funnel link on "ACCESS THE FULL REPORT" must point at the DHAP page and must be VERIFIED, never guessed: open the dealer's DHAP funnel/page in the signed-in Chrome (GHL funnel builder or the live page), read the real published URL, and use it. If the page does not exist yet or Chrome cannot show the URL, say the link is unverified and leave it flagged.
@@ -15,8 +15,7 @@ The templates are drawn for Critical. For any other status change, consistently:
 
 ## When a locked element's premise is false for this dealer
 The spec is written around James's gaps. Never write a false claim to satisfy it:
-- `DEPTS_MISSING` / "missing Service/Parts profile" cards when a combined (or separate) listing exists → use another verified alert (e.g. `PHONE_NUMBERS`), explain.
-- `GBP_INACTIVITY` / "months of silence" when the dealer posted recently → use a cadence stat (`POSTS_30D`), explain. Months-of-silence copy is only for real silence.
+- Stat cards (audits before Oct 25 2026 only; from v15.2 the engine picks them, rule 7): `DEPTS_MISSING` when a combined (or separate) listing exists → use another verified alert, explain; `GBP_INACTIVITY` when the dealer posted recently → use `POSTS_30D`, explain.
 - sameAs/areaServed findings and the assertion strings `'Google Link in'` and `'No areaServed in Site Schema'` when the schema already has them → drop those findings; run assertions with `--skip-cond` and list each skip for the user.
 - Locked health-alert findings 06–08 → replace with this dealer's verified findings.
 Every such departure goes in the final message to the user.

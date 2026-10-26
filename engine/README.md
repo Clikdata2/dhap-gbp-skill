@@ -38,6 +38,8 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `build.py` | Builds the full report and the health alert from the templates in `templates/` |
 | `check_all.py` | Runs all seven checks |
 | `jev.py` | Optional second opinion on post types (see below) |
+| `alert_cards.py` | Rule 7 (v15.2): picks the four Alert stat cards from the dealer's weakest areas and writes the Revenue Impact paragraph |
+| `directories.py` | Rule 8 (v15.2): decides each directory's NAP match from the saved readings |
 | `ai_answers.py` | AI answer check (v15.1, every run): checks the saved answers of 7 AI tools to 3 questions plus the Bing and Apple Maps cards, and writes the rep-brief table and flags. The evidence check refuses to score without it |
 | `places.py` | Optional Google Places cross-check of the Maps collector (see below) |
 | `probe_mobile.py`, `spellcheck.py` | Checks 6 and 7 |
