@@ -92,6 +92,7 @@ async function dhapSchema(paths) {
   // ---- 3. audit each page (once on the raw pages, once after JavaScript)
   async function audit(get, keep) {
   const pages = {}; let main = null, mainBlocks = null, homeTypes = [];
+  const tels = [];   // v15.2: every telephone in the business schema of the key pages, word for word (the always-local check)
   const roleOf = d => { const t = typesOf(d).join(' ') + ' ' + (d.name || ''); return /parts/i.test(t) ? 'parts' : /repair|service/i.test(t) ? 'service' : /dealer|sales/i.test(t) ? 'sales' : 'other'; };
   const source = {};
   for (const k of KEYS) {
@@ -104,6 +105,7 @@ async function dhapSchema(paths) {
     if (keep && doc && !doc.status) keep[k] = doc;
     if (!doc || doc.status) { pages[k] = { path: clean(P[k]), status: doc ? doc.status : 'NOT FOUND' }; continue; }
     const b = blocksOf(doc);
+    b.ents.forEach(e => [].concat(e.telephone || []).forEach(t => { const v = clean(t).trim(); if (v && !tels.some(x => digits(x) === digits(v))) tels.push(v); }));
     pages[k] = { path: clean(P[k]), blocks: b.blocks, parseErr: b.parseErr, badCtx: b.badCtx, agg: b.hasAgg, faq: b.faq,
       areaServed: b.ents.some(e => e.areaServed), map: b.ents.some(e => e.hasMap || e.map || e.maps) };
     if (k === 'home') {
@@ -157,7 +159,7 @@ async function dhapSchema(paths) {
   KEYS.forEach(k => { const p = pages[k]; if (p && p.parseErr) notes.push(`${k}: ${p.parseErr} block(s) fail to parse`); if (p && p.badCtx) notes.push(`${k}: ${p.badCtx} block(s) with a non-schema.org @context`); });
   // compact page summary: path:blocks b/parse errors e/bad context c[/faq][/area][/map]
   const pg = KEYS.map(k => { const p = pages[k]; return (source[k] ? '(from schema) ' : '') + (p.status ? `${k} ${p.path}:${p.status}` : `${k} ${p.path}:${p.blocks}b/${p.parseErr}e/${p.badCtx}c${p.faq ? '/faq' : ''}${p.areaServed ? '/area' : ''}${p.map ? '/map' : ''}${p.agg ? '/AGG' : ''}`); });
-  return { ev, pg, notes, main, pages, area: main && main.areaServed !== undefined ? main.areaServed : null };
+  return { ev, pg, notes, main, pages, tels, area: main && main.areaServed !== undefined ? main.areaServed : null };
   }
   const R = await audit(getDoc, rawDocs);
   const failed = {};
@@ -184,7 +186,7 @@ async function dhapSchema(paths) {
   });
   window.__dhapText = Object.values(txt).join(' \n ');
   const out = { rendered_failed: Object.keys(failed).length, evidence_schema: R.ev, evidence_schema_rendered: G ? G.ev : null, js_only, pages: R.pg, pages_rendered: G ? G.pg : null,
-                area_served_raw: R.area, sentences: sent, notes: R.notes };
+                area_served_raw: R.area, schema_phones: R.tels, sentences: sent, notes: R.notes };
   return JSON.stringify(out).replace(/[?=&]/g, '~');
 }
 
