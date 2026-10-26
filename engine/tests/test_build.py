@@ -61,6 +61,8 @@ def round_once(n):
         if name.startswith("v15.2"):
             ok("v15.2: the Alert shows the engine's four cards", out["alert_cards"] == ["NAP_MISMATCHES", "POSTS_30D", "PHOTOS_30D", "LAST_REVIEW_DAYS"], out["alert_cards"])
             ok("v15.2: both NAP tables are on the DHAP", "Where AI Tools &amp; Car Shoppers Read Your Name" in D and "Directory Network Check" in D)
+            e = copy.deepcopy(V152); e["nap"]["google_phones"]["sales"] = "888-555-0100"; r2, o2 = build(e, copy.deepcopy(C152), tag="v152tf")
+            ok("v15.2: a toll-free Google number adds a 'should be local' finding", o2 is not None and "Sales Number Is Toll-Free &mdash; It Should Be Local" in pathlib.Path(o2["dhap"]).read_text(), (r2.stdout + r2.stderr)[-300:])
         if name.startswith("odd"): ok("odd names are escaped in the page title", "O'Brien Mitsubishi &amp; Sons" in D and "Coeur d'Alene, ID" in D and "Sons &mdash;" in H)
         hashes[name] = hashlib.sha256((D + H).encode()).hexdigest()[:12]
         if name in ("critical", "fully optimized", "odd names (apostrophe, ampersand)", "james (locked reference, Critical)", "v15.2 (rule 7 cards, rule 8 NAP tables)"):

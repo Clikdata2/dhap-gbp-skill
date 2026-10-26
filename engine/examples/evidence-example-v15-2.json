@@ -83,7 +83,12 @@
     "sales": "707-532-2052",
     "service": "707-353-4579",
     "parts": "707-475-0868"
-   }
+   },
+   "schema_phones": [
+    "707-532-2052",
+    "707-353-4579",
+    "707-475-0868"
+   ]
   },
   "postal_cities": [],
   "directories": [
@@ -457,7 +462,12 @@
     "phone": "(707) 532-2052",
     "proof": "proof/capitalone.png"
    }
-  ]
+  ],
+  "google_phones": {
+   "sales": "(707) 926-3135",
+   "service": "(707) 348-0555",
+   "parts": null
+  }
  },
  "schema": {
   "pages_with_jsonld": 5,

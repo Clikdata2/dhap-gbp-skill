@@ -64,11 +64,28 @@ def run_once():
     ok("authority: a toll-free phone on a listing does not count against it (name and address still checked)", r0["agree"] and not r0["phone_compared"], r0)
     e = copy.deepcopy(V); e["nap"]["site"]["phones"]["parts"] = None; e["nap"]["site"]["phones"]["sales"] = "800-555-0100"
     n = D.notes(e)
-    ok("authority: no local number on the website goes in the rep brief, Sales first", len(n) == 2 and n[0].startswith("The website's only Sales number is toll-free") and "Parts" in n[1], n)
+    ok("authority: a toll-free-only website number and a missing number go in the rep brief, Sales first", len(n) == 2 and "Sales" in n[0] and "toll-free" in n[0] and "no Parts number" in n[1], n)
     e = copy.deepcopy(V); e["nap"]["site"].pop("phones")
     ok("authority: the website's department numbers are required", any("nap.site.phones" in x for x in S.check(fresh(e))))
     e = copy.deepcopy(V); e["nap"]["dept_phones"] = [{"dept": "service", "gbp": "877-555-0100", "site": "707-353-4579"}]
     ok("rule 1: a toll-free department phone is not compared (point earned)", S.score_rows(fresh(e))[1][5] >= S.score_rows(fresh(dict(copy.deepcopy(V), nap=dict(copy.deepcopy(V)["nap"], dept_phones=None))))[1][5])
+    # ---------------- always local (Travis, Oct 25 2026): toll-free is flagged wherever it is the business number
+    def flags(sales_site=None, sales_google=None, schema=None):
+        e = copy.deepcopy(V)
+        if sales_site: e["nap"]["site"]["phones"]["sales"] = sales_site; e["nap"]["site"]["phone"] = sales_site
+        if sales_google: e["nap"]["google_phones"]["sales"] = sales_google
+        if schema is not None: e["nap"]["site"]["schema_phones"] = schema
+        return D.local_flags(e)
+    ok("local: all local -> no flag", flags() == [])
+    f = flags("800-555-0100", "(888) 555-0199"); ok("local: toll-free on the website and Google -> flagged", [x["case"] for x in f] == ["both"] and "should be a local number" in f[0]["text"], f)
+    f = flags("800-555-0100"); ok("local: toll-free website, local Google -> flagged (the website should show the local number)", [x["case"] for x in f] == ["website"] and "website should show the local number" in f[0]["text"], f)
+    f = flags(None, "866-555-0100"); ok("local: local website, toll-free Google -> flagged (Google should show the local number)", [x["case"] for x in f] == ["google"] and "Google should show the local number" in f[0]["text"], f)
+    f = flags(schema=["888-352-3107"]); ok("local: schema with only toll-free numbers -> flagged", [x["case"] for x in f] == ["schema"], f)
+    ok("local: flags never change a score", S.score_rows(fresh(dict(copy.deepcopy(V))))[1] == S.score_rows(fresh(V))[1])
+    e = copy.deepcopy(V); next(d for d in e["nap"]["directories"] if d["directory"] == "bbb")["phone"] = "888-555-0100"
+    ok("local: a listing site showing a toll-free number is marked", next(r for r in fresh(e)["nap"]["_directory_results"] if r["directory"] == "bbb").get("toll_free"))
+    e = copy.deepcopy(V); e["nap"].pop("google_phones")
+    ok("local: the Google listing phones are required", any("nap.google_phones" in x for x in S.check(fresh(e))))
     # ---------------- rule 7: cards
     c, para = cards(V)
     ok("four cards for a dealer with four weak areas", len(c) == 4, c)

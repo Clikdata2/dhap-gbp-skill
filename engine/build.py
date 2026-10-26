@@ -123,7 +123,7 @@ def check_content(c, picked=False):
     return P
 
 # ----------------------------------------------------------------------------------------------- DHAP
-def nap_tables(ev):
+def nap_tables(ev, date=""):
     """Rule 8 (v15.2): the NAP tables — AI and car-shopper sites (AI Visibility tab) and the CLIKsearch network (Findings tab)."""
     N = ev.get("nap", {}); R = N.get("_directory_results")
     if not R: return "", ""
@@ -138,8 +138,9 @@ def nap_tables(ev):
     def status(r):
         if r["status"] == "not_found": return '<span style="color:#6b7280;font-weight:700;">Not listed</span>'
         if r["status"] == "blocked": return '<span style="color:#6b7280;font-weight:700;">Not readable</span>'
-        if r["agree"]: return '<span style="color:#15803d;font-weight:800;">&#10003; Matches</span>'
-        return f'<span style="color:#dc2626;font-weight:800;">&#10007; {H.escape(r["why"].replace("differs: ", "Wrong "))}</span>'
+        tf = '<div style="color:#b45309;font-weight:700;font-size:.78rem;margin-top:3px;">Toll-free &mdash; should be local</div>' if r.get("toll_free") else ""
+        if r["agree"]: return '<span style="color:#15803d;font-weight:800;">&#10003; Matches</span>' + tf
+        return f'<span style="color:#dc2626;font-weight:800;">&#10007; {H.escape(r["why"].split(" (")[0].replace("differs: ", "Wrong "))}</span>' + tf
     def shows(r): return "&mdash;" if r["status"] != "found" else "<br/>".join(H.escape(r["shows"][x]) for x in ("name", "address", "phone"))
     P = N["_directory_points"]
     def table(g, title, intro, sumlabel, extra=""):
@@ -165,6 +166,13 @@ def nap_tables(ev):
     net = table("network", "Directory Network Check &mdash; CLIKsearch Syndication",
                 ref + " These are the directories CLIKsearch keeps accurate for its clients. &ldquo;Not listed&rdquo; is a directory CLIKsearch adds; GPS, in-car and voice systems read the map and data providers checked here.",
                 "CLIKSEARCH NETWORK")
+    flags = DIR.local_flags(ev)   # the always-local rule: a finding card for each toll-free main or department number
+    if flags:
+        cards = "".join(card({"kind": "major", "title": f"{f['dept'].title()} Number Is Toll-Free &mdash; It Should Be Local", "tag": "v-date",
+                              "body": H.escape(f["text"]) + (" CLIKsearch sets the local number on the Google listing." if f["case"] in ("google", "both") else "") +
+                                      (" The dealer&rsquo;s website company updates the website and its schema." if f["case"] in ("website", "both", "schema") else ""),
+                              "pill": "CLIKsearch &mdash; GBP Profile Management" if f["case"] in ("google", "both") else None}, date) for f in flags)
+        net = f'\n  <div class="section-title">&#9888;&#65039; Phone Numbers Should Be Local</div>\n' + cards + net
     return ai, net
 
 def build_dhap(tpl, c, ev, sc):
@@ -224,7 +232,7 @@ def build_dhap(tpl, c, ev, sc):
     kgh = "\n".join("          " + dot(g[0], g[1], g[2], last=(i == len(kg) - 1)) for i, g in enumerate(kg))
     badge_emoji = {"CRITICAL": "&#128308;", "MAJOR": "&#128992;", "PARTIAL": "&#128993;", "STRONG": "&#128994;"}.get(A["badge"], "&#128992;")
     secs = "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
-    nap_ai, nap_net = nap_tables(ev)
+    nap_ai, nap_net = nap_tables(ev, date)
     aiv = f'''<!-- AI VISIBILITY SCORE TAB -->
 <div id="aivisibility" class="tab-panel">
   <div class="hero-card">

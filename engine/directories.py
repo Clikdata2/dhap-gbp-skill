@@ -14,6 +14,10 @@ address, time and a screenshot), and the engine decides whether it agrees with t
   phone    the digits match (country code ignored). Toll-free numbers (800, 833, 844, 855, 866, 877, 888) are not local:
            a toll-free number is never compared with a local one, either way, and never counts against the dealer
            ("not compared"). A department with no local number on the website is noted for the rep brief.
+  local    the main rule: every business number should be LOCAL. A toll-free Sales, Service or Parts number on the
+           website (header or schema) or on the Google listing is flagged (local_flags): toll-free on both; toll-free on
+           the website while Google is local; local on the website while Google is toll-free. Flags are findings, not
+           points. A listing site that shows a toll-free number is marked "toll-free (should be local)".
   address  the street number and street name match, ignoring abbreviations (Rd/Road), N/S/E/W and suite numbers;
            then the ZIP matches, or, when the site shows no ZIP, the city matches the website's or a postal name
            recorded in nap.postal_cities (for example Rochester for Greece, NY 14626)
@@ -55,13 +59,24 @@ def phone_check(shown, site, dept="sales"):
     ref = site_phone(site, dept)
     if not shown or not ref or toll_free(shown) or toll_free(ref): return None
     return digits(shown) == digits(ref)
-def notes(ev):
-    """Rep-brief notes: departments with no local number on the website (Sales first)."""
-    site = (ev.get("nap") or {}).get("site") or {}; out = []
+def local_flags(ev):
+    """The always-local rule (Travis, Oct 25 2026): toll-free numbers on the website or the Google listing, per department, Sales first."""
+    N = ev.get("nap") or {}; site = N.get("site") or {}; g = N.get("google_phones") or {}; out = []
     for d in DEPTS:
-        ref = site_phone(site, d) if site else None
-        if not ref: out.append(f"The website shows no {d.title()} number." if d != "sales" else "The website shows no Sales number.")
-        elif toll_free(ref): out.append(f"The website's only {d.title()} number is toll-free ({ref}); there is no local {d.title()} number to compare listings with.")
+        w, gp, D_ = site_phone(site, d) if site else None, g.get(d), d.title()
+        if w and toll_free(w) and gp and toll_free(gp): out.append({"dept": d, "case": "both", "website": w, "google": gp, "text": f"The website and the Google listing both use a toll-free {D_} number ({w}). It should be a local number."})
+        elif w and toll_free(w) and gp: out.append({"dept": d, "case": "website", "website": w, "google": gp, "text": f"Google shows a local {D_} number ({gp}), but the website shows only a toll-free one ({w}). The website should show the local number."})
+        elif w and toll_free(w): out.append({"dept": d, "case": "website", "website": w, "google": gp, "text": f"The website shows only a toll-free {D_} number ({w}). It should be a local number."})
+        elif gp and toll_free(gp): out.append({"dept": d, "case": "google", "website": w, "google": gp, "text": f"The website shows a local {D_} number ({w}), but the Google listing shows a toll-free one ({gp}). Google should show the local number." if w else f"The Google listing shows a toll-free {D_} number ({gp}). It should be a local number."})
+    sch = [p for p in site.get("schema_phones") or [] if p]
+    if sch and all(toll_free(p) for p in sch): out.append({"dept": "sales", "case": "schema", "website": ", ".join(sch), "google": None, "text": f"The website's business schema lists only toll-free numbers ({', '.join(sch)}). The main number in the schema should be local."})
+    return out
+
+def notes(ev):
+    """Rep-brief notes: the always-local flags, then departments with no number on the website (Sales first)."""
+    site = (ev.get("nap") or {}).get("site") or {}; out = [f["text"] for f in local_flags(ev)]
+    for d in DEPTS:
+        if site and not site_phone(site, d): out.append(f"The website shows no {d.title()} number, so {d.title()} listings are not phone-compared.")
     return out
 def digits(t): return re.sub(r"\D", "", str(t or "")).removeprefix("1")[-10:]
 def words(t): return re.sub(r"[^a-z0-9#& ]+", " ", str(t or "").casefold().replace("&amp;", "&")).split()
@@ -106,6 +121,10 @@ def check(ev):
         P.append("nap.site: the website's name, address and phone, word for word (rule 8)")
     elif not (isinstance(st.get("phones"), dict) and set(st["phones"]) == set(DEPTS) and all(v is None or str(v).strip() for v in st["phones"].values())):
         P.append("nap.site.phones: the website's sales, service and parts numbers word for word (null when the website shows none) — the website is the authority")
+    if isinstance(st, dict) and not isinstance(st.get("schema_phones"), list): P.append("nap.site.schema_phones: every telephone in the website's raw business schema (empty list when none) — the always-local check")
+    gp = N.get("google_phones")
+    if not (isinstance(gp, dict) and set(gp) == set(DEPTS) and all(v is None or str(v).strip() for v in gp.values())):
+        P.append("nap.google_phones: the phone on the Google listing for sales (main listing), service and parts, word for word (null when there is no listing) — the always-local check")
     if "directories_agree" in N and "_directory_results" not in N: P.append("nap.directories_agree: not typed from v15.2 — the engine decides it from nap.directories (rule 8)")
     D = N.get("directories")
     if not isinstance(D, list): return P + ["nap.directories: one saved reading per listing site in engine/listing_sites.json (rule 8)"]
@@ -149,6 +168,7 @@ def results(ev):
         r.update(agree=nm and ad and ph is not False, why="matches" if not why else "differs: " + ", ".join(why), shows={x: d[x] for x in ("name", "address", "phone")}, url=d["url"],
                  dept=d.get("dept", "sales"), phone_compared=ph is not None)
         if ph is None: r["why"] += " (phone not compared: toll-free or no local website number)"
+        if toll_free(d["phone"]): r["toll_free"] = True
         if not nm_rule and "name_same" not in d: r["review"] = f"name {d['name']!r} vs {st['name']!r}: send to JEV (same_business) or a person"
         out.append(r)
     return out
@@ -173,4 +193,4 @@ if __name__ == "__main__":
     if len(sys.argv) != 2: print(__doc__); sys.exit(2)
     ev = json.load(open(sys.argv[1])); p = check(ev)
     if p: sys.exit("DIRECTORIES INCOMPLETE:\n  - " + "\n  - ".join(p))
-    R = results(ev); print(json.dumps({"sites": R, "points": points(R), "rep_brief_notes": notes(ev)}, indent=2, ensure_ascii=False))
+    R = results(ev); print(json.dumps({"sites": R, "points": points(R), "local_flags": local_flags(ev), "rep_brief_notes": notes(ev)}, indent=2, ensure_ascii=False))
