@@ -36,6 +36,7 @@ KNOWN_RULES = {
     "15.0": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},
     "15.1": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},   # AI answer check added; scoring text unchanged
     "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
+    "15.3": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "cf0f56718ea5276f"},   # v15.3: NAP site-list wording matches the trimmed run; arithmetic unchanged
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
