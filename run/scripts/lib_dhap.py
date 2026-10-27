@@ -45,7 +45,7 @@ def overall(rows): return _S.overall(rows)
 def status_from_lowest(rows):
     """Weakest-link status rule (repo v14): lowest <=5.0 Critical; >5.0 and <7.0 Major Issues; 7.0-8.9 Needs Improvement; >=9.0 Fully Optimized."""
     low = min(rows)
-    name = ROW_NAMES[rows.index(low)]
+    name = _S.row_names(rows)[rows.index(low)]
     if low <= 5.0: label, icon, color = "Critical", "\U0001F534", "#dc2626"
     elif low < 7.0: label, icon, color = "Major Issues", "\U0001F7E0", "#ea580c"
     elif low < 9.0: label, icon, color = "Needs Improvement", "\U0001F7E1", "#ca8a04"

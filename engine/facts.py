@@ -33,6 +33,9 @@ def check(ev, content):
     phones_ok = {norm_phone(p) for p in ev.get("facts", {}).get("phones", [])}
     allowed = numbers_in(ev) | set(PROGRAM)
     raw, rows = S.score_rows(ev); allowed |= {f"{x:.1f}" for x in rows} | {str(int(x)) for x in rows if float(x).is_integer()} | {f"{S.overall(rows):.1f}"}
+    if S.ai_visibility.applies(ev):   # v16.0: the AI visibility counts and scores are computed from the evidence
+        V = S.ai_visibility.scores(ev)
+        allowed |= {str(V["named"]), str(V["answered"]), str(round(10 * V["row"]))} | {str(q[k]) for q in V["questions"].values() for k in ("named", "answered", "score")}
     allowed_f = set()
     for a in allowed:
         try: allowed_f.add(float(a))

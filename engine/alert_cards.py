@@ -15,7 +15,7 @@ Usage: python3 alert_cards.py evidence.json   -> the cards and the paragraph (JS
 """
 import json, pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import score as S
+import score as S, ai_visibility as AV
 
 START = "2026-10-25"
 AREAS = ["Profile Completeness", "GBP Claimed & Verified", "Google Maps / NAP Consistency", "AI Answers",
@@ -106,7 +106,12 @@ def menus(ev):
         if n: M["Schema Field Completeness"].append(card("AREAS_UNSTATED", n, "Served Towns Not<br/>Stated in Schema", f"{w(n)} served town{s(n)} not stated in the website schema"))
     n = (6 - Sc["core_fields"]) + (not Sc["logo_or_image"]) + (not Sc["sameas_other"]) + (not Sc["hasmap_or_map"]) + (not Sc["services_or_offers"])
     if n: M["Schema Field Completeness"].append(card("MISSING_FIELDS", n, "Business Details<br/>Missing From Schema", f"{w(n)} business detail{s(n)} missing from the website schema"))
-    # 9 AI answers
+    # 9 AI answers (v16.0: the AI visibility check — how often AI names the dealer, out of all answers given)
+    if AV.applies(ev):
+        V = AV.scores(ev)
+        if V["answered"] and V["named"] < V["answered"]:
+            M["AI Answers"].append(card("AI_ANSWERS_NAMED", V["named"], "AI Answers Naming<br/>This Dealership", f"{w(V['named'])} of {V['answered']:,} AI answers naming the dealership", f" / {V['answered']}"))
+        return M
     ans = [a for a in (ev.get("ai_answers") or {}).get("answers", []) if a.get("status") == "answered"]
     best = [a for a in ans if a["prompt"] == "best"]; n = sum(1 for a in best if a.get("named") is False)
     if n: M["AI Answers"].append(card("AI_TOOLS_MISSED", n, "AI Tools That Left Out<br/>This Dealership", f"{w(n)} of {w(len(best))} AI tools leaving the dealership out when asked for the best dealer nearby", f" / {len(best)}"))
@@ -116,8 +121,9 @@ def menus(ev):
 
 def pick(ev, rows):
     """The cards for this dealer (0 to 4) and the Revenue Impact paragraph."""
-    score = dict(zip(S.ROW_NAMES, rows)); a = ai_area(ev)
-    if a is not None: score["AI Answers"] = a
+    score = dict(zip(S.row_names(rows), rows)); a = ai_area(ev)
+    if S.AI_ROW in score: score["AI Answers"] = score.pop(S.AI_ROW)   # v16.0: scorecard row 9 is the AI answers area
+    elif a is not None: score["AI Answers"] = a
     M = menus(ev)
     ranked = sorted((x for x in AREAS if x in score and score[x] < 10 and M[x]), key=lambda x: (score[x] - WEIGHT[x], AREAS.index(x)))
     cards = [dict(M[x][0], area=x, area_score=score[x], status=status(score[x])) for x in ranked[:4]]
