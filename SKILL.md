@@ -40,9 +40,9 @@ JEV (TypeSafe's decision model, `engine/decide.py`) makes **every yes/no judgmen
 ## 🔎 AI VISIBILITY CHECK — EVERY RUN (v16.0, decided by Travis Oct 27 2026) — MANDATORY
 The DHAP measures how often AI tools send local shoppers to the dealer. Every run **asks what shoppers actually ask** and counts how often the answer names the dealer. It replaces the v15.1 AI answer check: questions that name the dealer skew the answer (a false positive), so **no question names the dealer or a brand** unless Travis explicitly says so. The engine refuses to score an audit dated Oct 27 2026 or later without it (`engine/ai_visibility.py`).
 1. **The same 5 questions every run (v16.1, audits dated Oct 28 2026 or later)**, word for word, with only the dealer's city and state (`[City, ST]` from the website):
-   - Sales: "Where's the best place to buy a new car near [City, ST]?" · "Where's the best place to buy a used car near [City, ST]?"
-   - Service: "Where's the cheapest place to get my oil changed today near [City, ST]?" · "Where can I get my tires rotated near [City, ST]?"
-   - Parts: "Where can I buy windshield wipers for my car near [City, ST]?"
+   - Sales (new): "best family SUV under 40k near [City, ST]" · Sales (used): "used midsize SUV near [City, ST]"
+   - Service: "oil change near [City, ST]" · "brake job near [City, ST]"
+   - Parts: "brake pads for my SUV near [City, ST]"
    (`python3 engine/ai_visibility.py questions "Greece, NY"` prints them.) Audits dated Oct 27 2026 kept the v16.0 questions:
    - Sales: "What's the best car dealership near [City, ST]?" · "Where can I get a good deal on a new SUV near [City, ST]?" · "Where's the best place to buy a used car near [City, ST]?"
    - Service: "Where's the cheapest place to get my oil changed today near [City, ST]?" · "Where can I get a good deal on tires near [City, ST]?"

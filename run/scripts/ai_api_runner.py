@@ -27,11 +27,11 @@ import urllib.error, urllib.parse, urllib.request
 
 HERE = pathlib.Path(__file__).resolve().parent
 QUESTIONS = {   # v16.1, word for word (engine/ai_visibility.py QUESTIONS)
-    "sales_new_car": "Where's the best place to buy a new car near {c}?",
-    "sales_used_car": "Where's the best place to buy a used car near {c}?",
-    "service_oil_change": "Where's the cheapest place to get my oil changed today near {c}?",
-    "service_tire_rotation": "Where can I get my tires rotated near {c}?",
-    "parts_wipers": "Where can I buy windshield wipers for my car near {c}?",
+    "sales_new_family_suv": "best family SUV under 40k near {c}",
+    "sales_used_midsize_suv": "used midsize SUV near {c}",
+    "service_oil_change_near": "oil change near {c}",
+    "service_brake_job": "brake job near {c}",
+    "parts_brake_pads": "brake pads for my SUV near {c}",
 }
 TOP = 2
 OUTPUT_CAP = 2500   # tokens, thinking included; an answer that comes back empty at the cap is asked once more without it

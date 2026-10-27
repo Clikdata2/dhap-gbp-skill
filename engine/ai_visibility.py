@@ -41,11 +41,11 @@ RUNS = 5         # v16.1
 RUNS_V160 = 10
 TOP = 2          # v16.1: only the first 2 businesses each answer names are recorded and scored
 QUESTIONS = [   # v16.1 (id, department, question) — word for word; never add the dealer's name or a brand
-    ("sales_new_car", "sales", "Where's the best place to buy a new car near {city_st}?"),
-    ("sales_used_car", "sales", "Where's the best place to buy a used car near {city_st}?"),
-    ("service_oil_change", "service", "Where's the cheapest place to get my oil changed today near {city_st}?"),
-    ("service_tire_rotation", "service", "Where can I get my tires rotated near {city_st}?"),
-    ("parts_wipers", "parts", "Where can I buy windshield wipers for my car near {city_st}?"),
+    ("sales_new_family_suv", "sales", "best family SUV under 40k near {city_st}"),
+    ("sales_used_midsize_suv", "sales", "used midsize SUV near {city_st}"),
+    ("service_oil_change_near", "service", "oil change near {city_st}"),
+    ("service_brake_job", "service", "brake job near {city_st}"),
+    ("parts_brake_pads", "parts", "brake pads for my SUV near {city_st}"),
 ]
 QUESTIONS_V160 = [
     ("sales_dealership", "sales", "What's the best car dealership near {city_st}?"),

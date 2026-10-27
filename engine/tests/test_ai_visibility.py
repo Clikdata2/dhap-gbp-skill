@@ -72,7 +72,7 @@ def run_once():
     A161 = n["ai_visibility"]["answers"]
     ok("125 answers are expected from Oct 28 2026", len(A161) == len(V.tools(n)) * len(V.questions(n)) * V.runs(n) == 125)
     ok("5 questions: 2 Sales (new, used), 2 Service, 1 Parts", [d for _, d, _ in V.questions(n)] == ["sales"] * 2 + ["service"] * 2 + ["parts"]
-       and "new car" in V.ask("sales_new_car", cs) and "used car" in V.ask("sales_used_car", cs))
+       and V.ask("sales_new_family_suv", cs) == "best family SUV under 40k near " + cs and V.ask("parts_brake_pads", cs) == "brake pads for my SUV near " + cs)
     ok("no v16.1 question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
     ok("Copilot and Perplexity are not asked from Oct 28 2026", not {"copilot", "perplexity"} & set(V.tools(n)))
     ok("a v16.1 audit passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
@@ -87,7 +87,7 @@ def run_once():
     e = copy.deepcopy(ev); e["ai_visibility"]["answers"] = [a for a in ev["ai_visibility"]["answers"] if a["tool"] not in ("copilot", "perplexity")]
     ok("an Oct 27 2026 audit still needs all 7 tools", any("140 of 490" in x for x in V.check(e)), V.check(e)[-1:])
     sc161 = V.scores(n); ok("v16.1 scores dealer-in-top-2 / answered", sc161["answered"] == 125 and sc161["named"] == sum(a["named"] for a in A161), sc161["named"])
-    T = V.winners(n, 2); ok("the top 2 are the 2 named most often", len(T[("sales_new_car", "chatgpt")]) == 2 and {x[0] for x in T[("sales_new_car", "chatgpt")]} <= {b["name"] for b in biz})
+    T = V.winners(n, 2); ok("the top 2 are the 2 named most often", len(T[("sales_new_family_suv", "chatgpt")]) == 2 and {x[0] for x in T[("sales_new_family_suv", "chatgpt")]} <= {b["name"] for b in biz})
     br = V.brief(n); ok("the v16.1 brief shows #1 and #2 per tool and no Copilot", "#2 named most" in br and br.count("| ChatGPT |") == 5 and "| Copilot |" not in br, br[:300])
     raw, rows = S.score_rows(copy.deepcopy(n)); ok("a v16.1 audit scores row 9", len(rows) == 9 and abs(rows[8] - S.r1d(sc161["row"])) < 0.06, rows)
     with tempfile.TemporaryDirectory() as t:
