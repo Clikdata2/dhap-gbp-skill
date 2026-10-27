@@ -182,11 +182,11 @@ def ai_table(ev, c):
     """v16.0: the AI visibility check — how often AI names the dealer for each question (score out of 100)."""
     if not AV.applies(ev): return ""
     V = AV.scores(ev); A = ev["ai_visibility"]
-    body = "\n".join(f'      <tr><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{V["questions"][i]["named"]} of {V["questions"][i]["answered"]}</td><td>{bar(V["questions"][i]["score"] / 10, f'{V["questions"][i]["score"]}/100')}</td></tr>' for i, d, _ in AV.QUESTIONS)
+    body = "\n".join(f'      <tr><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{V["questions"][i]["named"]} of {V["questions"][i]["answered"]}</td><td>{bar(V["questions"][i]["score"] / 10, f'{V["questions"][i]["score"]}/100')}</td></tr>' for i, d, _ in AV.questions(ev))
     tools = ", ".join(AV.NAME[t] for t in AV.tools(ev))
     return f'''
   <div class="section-title">How Often AI Names {c["dealer"]} &mdash; Shopper Questions Near {H.escape(A["city_st"])}</div>
-  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">We asked {len(AV.tools(ev))} AI tools ({tools}) the questions shoppers ask, {AV.RUNS} times each, with only your city and state &mdash; never your name or brand. AI answers change by person, place and time.</p>
+  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">We asked {len(AV.tools(ev))} AI tools ({tools}) the questions shoppers ask, {AV.runs(ev)} times each, with only your city and state &mdash; never your name or brand.{' We count the answers that name you as one of the first two businesses.' if AV.v161(ev) else ''} AI answers change by person, place and time.</p>
   <table class="score-table">
     <thead><tr><th>Dept.</th><th>Question</th><th>Named</th><th>Score</th></tr></thead>
     <tbody>

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """DHAP GBP AI visibility check through official APIs (no browser windows, no robot checks).
 
-Asks the 7 questions 10 times on each of the 5 tools (350 asks), all in parallel, and saves every answer word for word
-to <out>/dhap_ai_<tool>.json in the same record format as ai_runner.py / aicap.js, so ai_merge.py reads it unchanged.
+Asks the 5 questions 5 times on each of the 5 tools (125 asks, v16.1), all in parallel, and saves every answer to
+<out>/dhap_ai_<tool>.json in the same record format as ai_runner.py / aicap.js, so ai_merge.py reads it unchanged.
+v16.1 keeps only the top 2: each answer is capped at OUTPUT_CAP tokens (the first names come first) and Claude Haiku
+pulls the first 2 businesses it names, in its order, into "top2": [{name, type}]. The answer text is kept as proof.
 
   chatgpt    OpenAI Responses API + web_search tool, approximate user location = the dealer's city
   gemini     Gemini API + Grounding with Google Search
@@ -17,22 +19,24 @@ Rate limits and server errors are retried with backoff (an API asking us to slow
 still fails is recorded as blocked with the reason, never counted.
 
 Usage:
-  ~/.dhap-gbp-venv/bin/python ai_api_runner.py --city "Greece, NY" --out <run>/ai [--tools chatgpt,gemini,...] [--runs 1-10]
+  ~/.dhap-gbp-venv/bin/python ai_api_runner.py --city "Greece, NY" --out <run>/ai [--tools chatgpt,gemini,...] [--runs 1-5]
   ~/.dhap-gbp-venv/bin/python ai_api_runner.py --check-keys
 """
 import argparse, concurrent.futures as cf, datetime, json, os, pathlib, random, re, threading, time
 import urllib.error, urllib.parse, urllib.request
 
 HERE = pathlib.Path(__file__).resolve().parent
-QUESTIONS = {
-    "sales_dealership": "What's the best car dealership near {c}?",
-    "sales_new_suv": "Where can I get a good deal on a new SUV near {c}?",
+QUESTIONS = {   # v16.1, word for word (engine/ai_visibility.py QUESTIONS)
+    "sales_new_car": "Where's the best place to buy a new car near {c}?",
     "sales_used_car": "Where's the best place to buy a used car near {c}?",
     "service_oil_change": "Where's the cheapest place to get my oil changed today near {c}?",
-    "service_tires": "Where can I get a good deal on tires near {c}?",
+    "service_tire_rotation": "Where can I get my tires rotated near {c}?",
     "parts_wipers": "Where can I buy windshield wipers for my car near {c}?",
-    "parts_car_parts": "Where's the best place to buy car parts near {c}?",
 }
+TOP = 2
+OUTPUT_CAP = 2500   # tokens, thinking included; an answer that comes back empty at the cap is asked once more without it
+EXTRACT_MODEL = "claude-haiku-5-5"
+TYPES = ["dealership", "oil_change", "tire_shop", "parts_store", "repair_shop", "retailer", "other"]
 TOOLS = ("chatgpt", "gemini", "google_ai", "claude", "brave")
 KEY = {"chatgpt": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY", "google_ai": "SERPAPI_API_KEY",
        "claude": "ANTHROPIC_API_KEY", "brave": "BRAVE_API_KEY"}
@@ -90,12 +94,13 @@ def with_retries(fn, tries=5):
 
 # ---- one function per tool: (question, place) -> (answer text, [source urls], via) ----
 
-def ask_chatgpt(q, p):
+def ask_chatgpt(q, p, cap=OUTPUT_CAP):
     model = os.environ.get("DHAP_OPENAI_MODEL", MODEL_DEFAULT["chatgpt"])
     loc = {"type": "approximate", "country": "US", "city": p["city"], "region": p["state_name"]}
     r = with_retries(lambda: http("POST", "https://api.openai.com/v1/responses",
                                   {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]},
-                                  {"model": model, "input": q, "tools": [{"type": "web_search", "user_location": loc}]}))
+                                  {"model": model, "input": q, "tools": [{"type": "web_search", "user_location": loc}],
+                                   **({"max_output_tokens": cap} if cap else {})}))
     text, src = [], []
     for item in r.get("output", []):
         if item.get("type") == "message":
@@ -106,15 +111,16 @@ def ask_chatgpt(q, p):
     return "\n".join(text), src, f"OpenAI API {model} + web search, location {p['city_st']}"
 
 
-def ask_gemini(q, p):
+def ask_gemini(q, p, cap=OUTPUT_CAP):
     model = os.environ.get("DHAP_GEMINI_MODEL", MODEL_DEFAULT["gemini"])
     r = with_retries(lambda: http("POST", f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
                                   {"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
-                                  {"contents": [{"parts": [{"text": q}]}], "tools": [{"google_search": {}}]}))
+                                  {"contents": [{"parts": [{"text": q}]}], "tools": [{"google_search": {}}],
+                                   **({"generationConfig": {"maxOutputTokens": cap}} if cap else {})}))
     cand = (r.get("candidates") or [{}])[0]
     text = "".join(part.get("text", "") for part in (cand.get("content") or {}).get("parts", []))
     src = [(c.get("web") or {}).get("uri") for c in (cand.get("groundingMetadata") or {}).get("groundingChunks", [])]
-    if not text and cand.get("finishReason"):
+    if not text and cand.get("finishReason") and cand["finishReason"] != "MAX_TOKENS":
         raise Blocked(f"no answer (finishReason {cand['finishReason']})")
     return text, src, f"Gemini API {model} + Grounding with Google Search"
 
@@ -134,7 +140,7 @@ def _blocks_text(blocks, depth=0):
     return out
 
 
-def ask_google_ai(q, p):
+def ask_google_ai(q, p, cap=None):   # SerpApi returns what Google showed; nothing to cap
     key = os.environ["SERPAPI_API_KEY"]
     serp = lambda **kw: with_retries(lambda: http("GET", "https://serpapi.com/search.json?" + urllib.parse.urlencode({**kw, "api_key": key, "no_cache": "true"})))
     loc = f"{p['city']}, {p['state_name']}, United States"
@@ -153,7 +159,7 @@ def ask_google_ai(q, p):
 
 
 _claude = None
-def ask_claude(q, p):
+def ask_claude(q, p, cap=OUTPUT_CAP):
     global _claude
     import anthropic
     _claude = _claude or anthropic.Anthropic(max_retries=4)
@@ -163,7 +169,7 @@ def ask_claude(q, p):
     messages = [{"role": "user", "content": q}]
     for _ in range(4):   # pause_turn: the server's search loop paused; send the turn back to let it finish
         r = with_retries(lambda: _claude.beta.messages.create(
-            model=model, max_tokens=16000, messages=messages, tools=[tool],
+            model=model, max_tokens=cap or 16000, messages=messages, tools=[tool],
             betas=["server-side-fallback-2026-07-01"], fallbacks="default"), tries=2)
         if r.stop_reason != "pause_turn":
             break
@@ -178,7 +184,7 @@ def ask_claude(q, p):
     return "".join(text), src, f"Claude API {r.model} + web search, location {p['city_st']}"
 
 
-def ask_brave(q, p):
+def ask_brave(q, p, cap=None):
     r = with_retries(lambda: http("POST", "https://api.search.brave.com/res/v1/chat/completions",
                                   {"X-Subscription-Token": os.environ["BRAVE_API_KEY"], "Accept": "application/json"},
                                   {"model": "brave", "stream": False, "country": "us", "language": "en",
@@ -186,6 +192,28 @@ def ask_brave(q, p):
     text = ((r.get("choices") or [{}])[0].get("message") or {}).get("content", "")
     src = re.findall(r"https?://[^\s\"'<>)\]]+", text)
     return text, src, "Brave Search API, AI Grounding"
+
+
+_extractor = None
+def top2(answer):
+    """The first 2 businesses the answer names, in its order, as [{name, type}] (Claude Haiku, structured output)."""
+    global _extractor
+    import anthropic
+    _extractor = _extractor or anthropic.Anthropic(max_retries=4)
+    schema = {"type": "object", "additionalProperties": False, "required": ["businesses"], "properties": {
+        "businesses": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["name", "type"],
+                       "properties": {"name": {"type": "string"}, "type": {"type": "string", "enum": TYPES}}}}}}
+    r = _extractor.messages.create(
+        model=EXTRACT_MODEL, max_tokens=1024,
+        output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema}},
+        messages=[{"role": "user", "content":
+            "Below is an AI assistant's answer to a local shopper. List the first two businesses it names, in the order "
+            "it names them, with each name written exactly as in the answer. Count only specific businesses or stores "
+            "(not websites like Yelp or Google, and not generic advice). type: dealership, oil_change (quick lube), "
+            "tire_shop, parts_store, repair_shop, retailer (big-box or general store), or other. Return fewer if it "
+            "names fewer.\n\n<answer>\n" + answer[:12000] + "\n</answer>"}])
+    text = next(b.text for b in r.content if b.type == "text")
+    return json.loads(text)["businesses"][:TOP]
 
 
 ASK = {"chatgpt": ask_chatgpt, "gemini": ask_gemini, "google_ai": ask_google_ai, "claude": ask_claude, "brave": ask_brave}
@@ -202,7 +230,7 @@ def main():
     ap.add_argument("--out", help="the run's ai/ folder")
     ap.add_argument("--tools", default=",".join(TOOLS))
     ap.add_argument("--questions", default=",".join(QUESTIONS))
-    ap.add_argument("--runs", default="1-10")
+    ap.add_argument("--runs", default="1-5")
     ap.add_argument("--check-keys", action="store_true")
     a = ap.parse_args()
     load_keys()
@@ -234,9 +262,15 @@ def main():
         rec = {"tool": t, "q": q, "run": run, "asked": asked}
         try:
             text, src, via = ASK[t](asked, place)
+            if len(text.strip()) < 40 and t in ("chatgpt", "gemini", "claude"):   # the cap cut it before any text: once more, uncapped
+                text, src, via = ASK[t](asked, place, cap=None)
             if len(text.strip()) < 40:
                 raise Blocked("empty or near-empty answer")
             rec.update(status="answered", answer=text.strip(), complete=True, via=via, sources=[s for s in src if s][:40])
+            try:
+                rec["top2"] = top2(rec["answer"])
+            except Exception as e:   # ai_merge.py falls back to its own name list; the answer is still saved
+                rec["top2_error"] = f"{type(e).__name__}: {str(e)[:200]}"
         except Blocked as e:
             rec.update(status="blocked", reason=str(e), via=f"{t} API")
         except KeyError as e:
@@ -245,7 +279,7 @@ def main():
         with lock:
             recs[t].append(rec)
             (out / f"dhap_ai_{t}.json").write_text(json.dumps(recs[t], indent=1, ensure_ascii=False))
-            print(t, q, run, rec["status"], len(rec.get("answer", "")), rec.get("reason", "")[:80], flush=True)
+            print(t, q, run, rec["status"], " | ".join(b["name"] for b in rec.get("top2", [])), rec.get("reason", "")[:80], flush=True)
 
     jobs = [(t, q, r) for t in tools for q in a.questions.split(",") for r in parse_runs(a.runs) if (t, q, r) not in done]
     pools = {t: cf.ThreadPoolExecutor(PARALLEL[t]) for t in tools}

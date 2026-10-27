@@ -110,7 +110,7 @@ def menus(ev):
     if AV.applies(ev):
         V = AV.scores(ev)
         if V["answered"] and V["named"] < V["answered"]:
-            M["AI Answers"].append(card("AI_ANSWERS_NAMED", V["named"], "AI Answers Naming<br/>This Dealership", f"{w(V['named'])} of {V['answered']:,} AI answers naming the dealership", f" / {V['answered']}"))
+            M["AI Answers"].append(card("AI_ANSWERS_NAMED", V["named"], "AI Answers Naming<br/>This Dealership", f"{w(V['named'])} of {V['answered']:,} AI answers naming the dealership" + (" in their top 2" if AV.v161(ev) else ""), f" / {V['answered']}"))
         return M
     ans = [a for a in (ev.get("ai_answers") or {}).get("answers", []) if a.get("status") == "answered"]
     best = [a for a in ans if a["prompt"] == "best"]; n = sum(1 for a in best if a.get("named") is False)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools on Oct 27 2026, 5 tools from Oct 28 2026 (v16.1), row 9, the v16 listing-site rules,
+"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools on Oct 27 2026, 5 questions x 5 runs x 5 tools, top 2, from Oct 28 2026 (v16.1), row 9, the v16 listing-site rules,
 the spreadsheet. Rounds: argv[1] (default 3)."""
 import copy, json, pathlib, sys, tempfile
 ENG = pathlib.Path(__file__).resolve().parent.parent; sys.path.insert(0, str(ENG))
@@ -14,9 +14,9 @@ def ok(name, cond, extra=""):
 def run_once():
     ev = copy.deepcopy(EX)
     ok("the worked example is complete", not S.check(copy.deepcopy(ev)), S.check(copy.deepcopy(ev)))
-    ok("490 answers are expected on Oct 27 2026", len(ev["ai_visibility"]["answers"]) == len(V.tools(ev)) * len(V.QUESTIONS) * V.RUNS == 490)
-    ok("no question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
-    ok("3 Sales, 2 Service, 2 Parts", [d for _, d, _ in V.QUESTIONS] == ["sales"] * 3 + ["service"] * 2 + ["parts"] * 2)
+    ok("490 answers are expected on Oct 27 2026", len(ev["ai_visibility"]["answers"]) == len(V.tools(ev)) * len(V.questions(ev)) * V.runs(ev) == 490)
+    ok("no question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS_V160))
+    ok("3 Sales, 2 Service, 2 Parts", [d for _, d, _ in V.QUESTIONS_V160] == ["sales"] * 3 + ["service"] * 2 + ["parts"] * 2)
     # scoring
     sc = V.scores(ev); A = [a for a in ev["ai_visibility"]["answers"] if a["status"] == "answered"]
     ok("blocked answers are not counted", sc["answered"] == len(A) == 476, sc["answered"])
@@ -61,26 +61,47 @@ def run_once():
     e = copy.deepcopy(ev); e["audit_date"] = "2026-10-26"; e["ai_answers"] = {"method": "x", "answers": []}
     R = {r["directory"]: r for r in D.results(e)}
     ok("before Oct 27 2026 the legal name is still compared", R["data_axle"]["status"] == "found", R["data_axle"])
-    # v16.1: 5 tools through their APIs from Oct 28 2026
-    n = copy.deepcopy(ev); n["audit_date"] = "2026-10-28"
-    n["ai_visibility"]["answers"] = [a for a in n["ai_visibility"]["answers"] if a["tool"] not in ("copilot", "perplexity")]
-    ok("350 answers are expected from Oct 28 2026", len(n["ai_visibility"]["answers"]) == len(V.tools(n)) * len(V.QUESTIONS) * V.RUNS == 350)
+    # v16.1: 5 questions x 5 runs x 5 tools through their APIs, top 2 only, from Oct 28 2026
+    n = copy.deepcopy(ev); n["audit_date"] = "2026-10-28"; cs = n["ai_visibility"]["city_st"]
+    biz = [{"name": "Example Mitsubishi", "type": "dealership"}, {"name": "Example Auto Mall", "type": "dealership"}, {"name": "Example Quick Lube", "type": "oil_change"}]
+    n["ai_visibility"]["answers"] = [
+        {"tool": t, "q": q, "run": r, "status": "answered", "asked": V.ask(q, cs), "when": "2026-10-28 10:00",
+         "answer": "1. " + biz[(r + k) % 3]["name"] + " 2. " + biz[(r + k + 1) % 3]["name"] + " 3. Other Shop",
+         "businesses": [biz[(r + k) % 3], biz[(r + k + 1) % 3]], "named": (r + k) % 3 != 1}
+        for k, t in enumerate(V.TOOLS) for q, _, _ in V.QUESTIONS for r in range(1, V.RUNS + 1)]
+    A161 = n["ai_visibility"]["answers"]
+    ok("125 answers are expected from Oct 28 2026", len(A161) == len(V.tools(n)) * len(V.questions(n)) * V.runs(n) == 125)
+    ok("5 questions: 2 Sales (new, used), 2 Service, 1 Parts", [d for _, d, _ in V.questions(n)] == ["sales"] * 2 + ["service"] * 2 + ["parts"]
+       and "new car" in V.ask("sales_new_car", cs) and "used car" in V.ask("sales_used_car", cs))
+    ok("no v16.1 question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
     ok("Copilot and Perplexity are not asked from Oct 28 2026", not {"copilot", "perplexity"} & set(V.tools(n)))
-    ok("a 5-tool audit dated Oct 28 2026 passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
+    ok("a v16.1 audit passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
+    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["businesses"].append(biz[2])
+    ok("refuses: a third business on a v16.1 answer", any("first 2 businesses" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["tool"] = "copilot"
     ok("refuses: a Copilot answer on an Oct 28 2026 audit", any("unknown tool" in x for x in V.check(e)), V.check(e)[:2])
-    e = copy.deepcopy(ev); e["ai_visibility"]["answers"] = n["ai_visibility"]["answers"]
+    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["q"] = "sales_dealership"
+    ok("refuses: a v16.0 question on an Oct 28 2026 audit", any("unknown tool / question" in x for x in V.check(e)), V.check(e)[:2])
+    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["run"] = 6
+    ok("refuses: a 6th run on an Oct 28 2026 audit", any("unknown tool / question / run" in x for x in V.check(e)), V.check(e)[:2])
+    e = copy.deepcopy(ev); e["ai_visibility"]["answers"] = [a for a in ev["ai_visibility"]["answers"] if a["tool"] not in ("copilot", "perplexity")]
     ok("an Oct 27 2026 audit still needs all 7 tools", any("140 of 490" in x for x in V.check(e)), V.check(e)[-1:])
-    ok("the brief has no Copilot row from Oct 28 2026", "| Copilot |" not in V.brief(n) and "| Copilot |" in V.brief(ev))
-    raw, rows = S.score_rows(copy.deepcopy(n)); ok("a 5-tool audit scores row 9", len(rows) == 9, rows)
+    sc161 = V.scores(n); ok("v16.1 scores dealer-in-top-2 / answered", sc161["answered"] == 125 and sc161["named"] == sum(a["named"] for a in A161), sc161["named"])
+    T = V.winners(n, 2); ok("the top 2 are the 2 named most often", len(T[("sales_new_car", "chatgpt")]) == 2 and {x[0] for x in T[("sales_new_car", "chatgpt")]} <= {b["name"] for b in biz})
+    br = V.brief(n); ok("the v16.1 brief shows #1 and #2 per tool and no Copilot", "#2 named most" in br and br.count("| ChatGPT |") == 5 and "| Copilot |" not in br, br[:300])
+    raw, rows = S.score_rows(copy.deepcopy(n)); ok("a v16.1 audit scores row 9", len(rows) == 9 and abs(rows[8] - S.r1d(sc161["row"])) < 0.06, rows)
+    with tempfile.TemporaryDirectory() as t:
+        from openpyxl import load_workbook
+        wb = load_workbook(V.sheet(n, pathlib.Path(t) / "y.xlsx"))
+        ok("v16.1 spreadsheet: 5 tabs, 25 rows each, Top 2 column", wb.sheetnames == [V.NAME[x] for x in V.TOOLS] and all(wb[V.NAME[x]].max_row == 26 for x in V.TOOLS) and wb["ChatGPT"]["I1"].value == "Top 2 Named")
     # outputs
     W = V.winners(ev); ok("the winner is the business named most", W[("service_oil_change", "chatgpt")][0] == "Example Quick Lube", W[("service_oil_change", "chatgpt")])
-    b = V.brief(ev); ok("the brief has one table row per tool per question", b.count("| ChatGPT |") == len(V.QUESTIONS))
+    b = V.brief(ev); ok("the brief has one table row per tool per question", b.count("| ChatGPT |") == len(V.questions(ev)))
     with tempfile.TemporaryDirectory() as t:
         from openpyxl import load_workbook
         p = V.sheet(ev, pathlib.Path(t) / "x.xlsx"); wb = load_workbook(p)
         ok("one spreadsheet tab per tool, named for the tool", wb.sheetnames == [V.NAME[x] for x in V.tools(ev)], wb.sheetnames)
-        ok("one row per answer on each tab", all(wb[V.NAME[x]].max_row == 1 + len(V.QUESTIONS) * V.RUNS for x in V.tools(ev)))
+        ok("one row per answer on each tab", all(wb[V.NAME[x]].max_row == 1 + len(V.questions(ev)) * V.runs(ev) for x in V.tools(ev)))
     ok("file name", V.file_name("James Mitsubishi Greece", "2026-10-27") == "james-mitsubishi-greece_ai-answers_10-27-26.xlsx")
 
 rounds = int(sys.argv[1]) if len(sys.argv) > 1 else 3
