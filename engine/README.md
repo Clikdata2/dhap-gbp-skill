@@ -7,7 +7,7 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 ## How a run goes
 
 1. **Collect.** Open the dealer's website and Google Maps listing in the signed-in Chrome. Paste `collectors/schema_collect.min.js` on the website and `collectors/maps_collect.min.js` on the Maps listing. Each one does in one step what used to take 8 to 15 steps, and gives back a short answer.
-2. **Record.** Write what you saw in an evidence file, including the AI answer check (`ai_answers`). Copy `examples/evidence-example-vacaville.json` and change it. Every group needs a "method" (how you checked) and a "when" (the date).
+2. **Record.** Write what you saw in an evidence file, including the AI visibility check (`ai_visibility`, v16.0). Copy `examples/evidence-example-vacaville.json` and change it. Every group needs a "method" (how you checked) and a "when" (the date).
 3. **Write.** Write the report wording in a content file. Copy `examples/content-example-vacaville.json` and change it. It holds only words and numbers, not page code.
 4. **Check and build.** Run one command:
    `python3 engine/check_all.py --evidence ev.json --content content.json --out OUT`
@@ -42,7 +42,8 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `directories.py` | Rule 8 (v15.2): decides each listing site's NAP match from the saved readings, against the website (department to department; toll-free not compared), and scores the two groups |
 | `listing_sites.json` | The listing sites checked every run: CLIKsearch's 60+ network and the AI and car-shopper sites, with how each is read |
 | `listing_scan.py` | Searches the sites that allow it signed out and saves draft readings with screenshots for the run to confirm |
-| `ai_answers.py` | AI answer check (v15.1, every run): checks the saved answers of 6 AI tools to 3 questions (v15.2; the Bing and Apple Maps cards are NAP readings), and writes the rep-brief table and flags. The evidence check refuses to score without it |
+| `ai_visibility.py` | AI visibility check (v16.0, every run): 7 shopper questions with only the city and state, 10 times on each of 7 AI tools; scores how often AI names the dealer (row 9, AI Answer Visibility), writes the rep-brief winners table and the one-tab-per-tool spreadsheet |
+| `ai_answers.py` | AI answer check (v15.1; audits Oct 24–26 2026 only): checks the saved answers of 6 AI tools to 3 questions (v15.2; the Bing and Apple Maps cards are NAP readings), and writes the rep-brief table and flags. The evidence check refuses to score without it |
 | `places.py` | Optional Google Places cross-check of the Maps collector (see below) |
 | `probe_mobile.py`, `spellcheck.py` | Checks 6 and 7 |
 | `examples/` | James Mitsubishi Greece (the locked reference) and Vacaville Mitsubishi, plus live Chrome readings for those two and Music City Mitsubishi |

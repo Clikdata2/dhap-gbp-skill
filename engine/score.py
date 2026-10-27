@@ -2,7 +2,7 @@
 """DHAP GBP engine — evidence checker + scorer.
 
 The RULES live only in SKILL.md of the Clikdata2/dhap-gbp-skill repository. This file turns recorded evidence into
-the eight rubric rows the way that SKILL.md describes them, so the arithmetic is identical every run.
+the eight rubric rows (nine from v16: row 9 is AI Answer Visibility) the way that SKILL.md describes them, so the arithmetic is identical every run.
 Three safety gates:
   1. RULES GUARD  — fingerprints the "OVERALL SCORE METHOD" and "CATEGORY RUBRICS" sections of the repository's
                     SKILL.md. If the text changed since this file was checked, it STOPS: a person must re-check the
@@ -18,7 +18,7 @@ Usage:
 """
 import calendar, datetime, hashlib, json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import areas, ai_answers, directories
+import areas, ai_answers, ai_visibility, directories
 
 def default_repo():
     """The rules folder: the repository this engine/ folder sits in, else a local copy at ~/.cache/dhap-gbp-skill."""
@@ -37,9 +37,12 @@ KNOWN_RULES = {
     "15.1": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "f5a8ea6d0450b93b"},   # AI answer check added; scoring text unchanged
     "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
     "15.3": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "cf0f56718ea5276f"},   # v15.3: NAP site-list wording matches the trimmed run; arithmetic unchanged
+    "16.0": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "6ae54a3ea960afe0"},   # v16.0: row 9 AI Answer Visibility; listing sites: no phone = not agreeing, legal name skipped (audits from Oct 27 2026)
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
+AI_ROW = "AI Answer Visibility"                       # row 9 (v16.0, audits dated on or after Oct 27 2026)
+def row_names(rows): return ROW_NAMES + [AI_ROW] if len(rows) == 9 else ROW_NAMES
 BENCH_POSTS = {"sales": 8, "service": 4, "parts": 4}
 WEIGHT = {"sales": 50, "service": 25, "parts": 25}
 REVIEW_WINDOW = {"sales": (15, 1.5), "service": (30, .75), "parts": (90, .75)}
@@ -184,7 +187,8 @@ def check(ev):
         e = led.get(g)
         need("ledger." + g, isinstance(e, dict) and str(e.get("method", "")).strip() and re.match(r"^\d{4}-\d{2}-\d{2}", str(e.get("when", ""))),
              "say HOW it was observed (method) and WHEN (YYYY-MM-DD) — proof ledger")
-    P += ai_answers.check(ev)                                  # v15.1: the AI answer check is mandatory (audits from Oct 24 2026)
+    P += ai_answers.check(ev)                                  # v15.1: the AI answer check (audits Oct 24 to Oct 26 2026)
+    P += ai_visibility.check(ev)                               # v16.0: the AI visibility check replaces it (audits from Oct 27 2026)
     return [p for p in P if p]
 
 # ----------------------------------------------------------------------------------------------- scoring
@@ -246,12 +250,14 @@ def score_rows(ev):
     A = S["areaserved"]
     r8 = base + areas.score(A["code_places"], A["page_places"], A["code_on_page"])[0] if A["delivery_offered"] else base / 8 * 10
     raw = [r1, r2, r3, r4, r5, r6, r7, r8]
+    # 9 AI Answer Visibility (v16.0): answers naming the dealer / all answers given x 10
+    if ai_visibility.applies(ev): raw.append(ai_visibility.scores(ev)["row"])
     return raw, [r1d(x) for x in raw]
 
 def overall(rows): return r1d(sum(rows) / len(rows))
 
 def status(rows):
-    low = min(rows); name = ROW_NAMES[rows.index(low)]
+    low = min(rows); name = row_names(rows)[rows.index(low)]
     if low <= 5.0: lab, icon, col = "Critical", "🔴", "#dc2626"
     elif low < 7.0: lab, icon, col = "Major Issues", "🟠", "#ea580c"
     elif low < 9.0: lab, icon, col = "Needs Improvement", "🟡", "#ca8a04"
@@ -261,7 +267,7 @@ def status(rows):
 def edge_warnings(raw, rows):
     """Flag scores sitting on a band edge, where one small fact flips the status."""
     W = []
-    for n, r, x in zip(ROW_NAMES, raw, rows):
+    for n, r, x in zip(row_names(rows), raw, rows):
         for edge in (5.0, 7.0, 9.0):
             if abs(r - edge) <= 0.2 + 1e-9: W.append(f"{n} is {r:.2f} (shown {x:.1f}), within 0.2 of the {edge} status edge")
     return W
@@ -280,7 +286,7 @@ def main():
         v, kv = rules_guard(repo)
         if probs: print("NOT SCORED — evidence incomplete:\n  - " + "\n  - ".join(probs)); sys.exit(1)
         raw, rows = score_rows(ev)
-        print(json.dumps({"rules_version": v, "rows": dict(zip(ROW_NAMES, rows)), "overall": overall(rows), "status": status(rows),
+        print(json.dumps({"rules_version": v, "rows": dict(zip(row_names(rows), rows)), "overall": overall(rows), "status": status(rows),
                           "edge_warnings": edge_warnings(raw, rows), "raw": [round(x, 3) for x in raw]}, indent=2, ensure_ascii=False))
 
 if __name__ == "__main__": main()

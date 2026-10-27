@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DHAP GBP engine — AI answer check (v15.1, mandatory on every audit dated on or after Oct 24 2026).
+"""DHAP GBP engine — AI answer check (v15.1, mandatory on audits dated Oct 24 to Oct 26 2026; replaced by ai_visibility.py from Oct 27 2026).
 
 Every run asks the AI tools shoppers use the same three questions about the dealer and saves each answer word for word,
 with its sources and a screenshot. The answers are evidence for findings and the rep brief; they never change a score.
@@ -28,8 +28,10 @@ NAME = {"google_ai": "Google AI Overview / AI Mode", "gemini": "Gemini", "chatgp
         "perplexity": "Perplexity", "claude": "Claude (web search)", "brave": "Brave AI summary (Claude's source)",
         "bing_card": "Bing business card", "apple_maps": "Apple Maps card (Siri)"}
 
+END = "2026-10-27"                         # v16.0: the AI visibility check (ai_visibility.py) replaces this one from this date
+
 def required(ev):
-    return str(ev.get("audit_date", "")) >= START
+    return START <= str(ev.get("audit_date", "")) < END
 
 def expected():
     return [(t, p) for t in TOOLS for p in PROMPTS] + [(c, "card") for c in CARDS]

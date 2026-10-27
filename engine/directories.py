@@ -26,6 +26,13 @@ address, time and a screenshot), and the engine decides whether it agrees with t
            ("same_business", saved as name_same) is used; with neither, the rule's no stands and the site is listed for a person
   points   each group: 2 x (listings that agree) / (listings found); a group with no listing found earns 0. A site with
            no listing ("not_found") is reported, not scored; a site that refused even the signed-in Chrome is "blocked".
+  v16.0 (audits dated on or after Oct 27 2026; decided by Travis):
+  no phone a found listing that shows no phone number is an incomplete listing: it counts as NOT agreeing ("no phone shown").
+  legal    a listing that shows only the legal company name (LLC, Inc, Corp...) where the website shows the dealership name is
+           skipped: not compared and not counted either way (the legal name is the company behind the dealership's DBA).
+  closest  a car-shopper site (CarGurus, Autotrader, Cars.com, DealerRater...) with no listing for the dealer records the
+           closest retailer of the dealer's brand that the site's own search shows from the dealer's ZIP, with the distance
+           as the site shows it (closest: {name, distance, searched}); the rep brief names it.
 Usage: python3 directories.py evidence.json   -> each site's result and the group points (JSON)
 """
 import json, pathlib, re, sys
@@ -48,6 +55,11 @@ DROP = {"the", "inc", "llc", "co", "corp", "ltd", "of", "and", "&"}
 DEPT_WORDS = {"parts", "service", "collision", "body", "express", "quick", "lube"}   # a name that adds one of these is a department, not the dealer
 
 def applies(ev): return str(ev.get("audit_date", "")) >= START
+V16 = "2026-10-27"
+def v16(ev): return str(ev.get("audit_date", "")) >= V16
+CAR_SITES = {"cargurus", "autotrader", "cars_com", "dealerrater", "edmunds", "truecar", "carfax", "kbb"}
+LEGAL = re.compile(r"\b(l\.?l\.?c|inc|incorporated|corp|corporation|co|ltd|limited|l\.?l\.?p|l\.?p|pllc)\.?\s*$", re.I)
+def legal_name(name): return bool(LEGAL.search(str(name or "").strip()))
 TOLL_FREE = {"800", "833", "844", "855", "866", "877", "888"}
 DEPTS = ("sales", "service", "parts")
 def toll_free(p): d = digits(p); return len(d) == 10 and d[:3] in TOLL_FREE
@@ -77,6 +89,11 @@ def notes(ev):
     site = (ev.get("nap") or {}).get("site") or {}; out = [f["text"] for f in local_flags(ev)]
     for d in DEPTS:
         if site and not site_phone(site, d): out.append(f"The website shows no {d.title()} number, so {d.title()} listings are not phone-compared.")
+    if v16(ev):
+        for d in (ev.get("nap") or {}).get("directories") or []:
+            c = d.get("closest") if isinstance(d, dict) else None
+            if d.get("status") == "not_found" and d.get("directory") in CAR_SITES and isinstance(c, dict):
+                out.append(f"Not found on {label(d['directory'])}. The closest retailer the site shows for {c['searched']}: {c['name']} ({c['distance']}).")
     return out
 def digits(t): return re.sub(r"\D", "", str(t or "")).removeprefix("1")[-10:]
 def words(t): return re.sub(r"[^a-z0-9#& ]+", " ", str(t or "").casefold().replace("&amp;", "&")).split()
@@ -142,9 +159,13 @@ def check(ev):
         stt = d.get("status")
         if stt in ("not_found", "blocked"):
             if not str(d.get("searched" if stt == "not_found" else "reason", "")).strip(): P.append(p + (".searched: what was searched to find no listing" if stt == "not_found" else ".reason: what blocked it, even in the signed-in Chrome"))
+            c = d.get("closest")
+            if stt == "not_found" and v16(ev) and k in CAR_SITES and not (isinstance(c, dict) and all(str(c.get(x, "")).strip() for x in ("name", "distance", "searched"))):
+                P.append(p + ".closest: {name, distance, searched} — the closest retailer of the dealer's brand the site's own search shows from the dealer's ZIP, distance as the site shows it (v16)")
             continue
         if stt != "found": P.append(p + ".status: found | not_found | blocked"); continue
         for f in ("name", "address", "phone", "url", "proof"):
+            if f == "phone" and v16(ev) and d.get("phone") is None and "phone" in d: continue   # v16: null = the listing shows no phone (counts as not agreeing)
             if not str(d.get(f, "")).strip(): P.append(f"{p}.{f}: {'the screenshot file' if f == 'proof' else 'the page that was read' if f == 'url' else 'word for word as the site shows it'}")
         if d.get("dept", "sales") not in DEPTS: P.append(p + ".dept: sales (default), service or parts — which website number this listing is compared with")
         if "name_same" in d and not isinstance(d["name_same"], bool): P.append(p + ".name_same: true/false from the JEV decision (same_business)")
@@ -164,13 +185,17 @@ def results(ev):
         if d["status"] != "found":
             r.update(agree=None, why="no listing found" if d["status"] == "not_found" else "blocked: " + d.get("reason", "")); out.append(r); continue
         nm_rule = same_name(st["name"], d["name"], place)
+        if v16(ev) and not nm_rule and legal_name(d["name"]):     # v16: the legal company name is skipped, not compared
+            r.update(status="skipped", agree=None, why="legal company name shown — not compared", shows={x: d.get(x) for x in ("name", "address", "phone")}, url=d["url"]); out.append(r); continue
         nm = nm_rule or d.get("name_same") is True
         ad = same_address(st["address"], d["address"], postal); ph = phone_check(d["phone"], st, d.get("dept", "sales"))
+        if v16(ev) and not str(d.get("phone") or "").strip(): ph = False                          # v16: no phone shown = incomplete listing
         why = [w for w, ok in (("name", nm), ("address", ad), ("phone", ph is not False)) if not ok]
+        if v16(ev) and not str(d.get("phone") or "").strip(): why = [w if w != "phone" else "no phone shown" for w in why]
         r.update(agree=nm and ad and ph is not False, why="matches" if not why else "differs: " + ", ".join(why), shows={x: d[x] for x in ("name", "address", "phone")}, url=d["url"],
                  dept=d.get("dept", "sales"), phone_compared=ph is not None)
         if ph is None: r["why"] += " (phone not compared: toll-free or no local website number)"
-        if toll_free(d["phone"]): r["toll_free"] = True
+        if toll_free(d.get("phone")): r["toll_free"] = True
         if not nm_rule and "name_same" not in d: r["review"] = f"name {d['name']!r} vs {st['name']!r}: send to JEV (same_business) or a person"
         out.append(r)
     return out

@@ -18,8 +18,8 @@ Rules: SKILL.md v<VERSION> (v13 rubrics, v14 status rule). Methods: <how each so
 ## Phone numbers found
 List every number with its source and which department it belongs to; count distinct local numbers; note possible call-tracking numbers as "not verified".
 
-## AI answer check (v15.1, every run)
-Paste the output of `python3 engine/ai_answers.py brief evidence.json`: one row per tool and question (named, position, phone and whether it matches the site, rating and its source, sources cited), then the flags. Blocked tools are listed with the reason.
+## AI visibility check (v16.0, every run)
+Paste the output of `python3 engine/ai_visibility.py brief evidence.json`: the dealer's AI Answer Visibility score, and for each question its score out of 100 and, on each tool, the business named most and its type. Blocked answers are listed with the reason. Every answer is in the `_ai-answers_` spreadsheet.
 
 ## Other checks
 Departments line (Search panel) · rendered-site reviews check (pages checked) · FAQ/other structured data · locator hours vs website · directory claim status · anything else that became a finding.
