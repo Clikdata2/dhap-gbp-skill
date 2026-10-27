@@ -64,9 +64,10 @@ Also open the dealer's page on Autotrader (and, when time allows, Cars.com, CarG
 - Fill `evidence-example-vacaville.json`-style JSON (values only from the audit) → `python3 run/scripts/lib_dhap.py score evidence.json` (or `python3 engine/score.py score evidence.json`).
 - Write the evidence record (.md) with: scores + working per row, phone inventory, the AI answer check table (`python3 engine/ai_answers.py brief evidence.json`), other checks, not-observable items and judgment calls, method + date. Anything not recorded is listed as such.
 
-## 7. AI visibility check (v16.0, every run — mandatory)
+## 7. AI visibility check (v16.1, every run — mandatory)
 SKILL.md AI VISIBILITY CHECK has the rule. Print the 7 questions for this dealer, word for word: `python3 engine/ai_visibility.py questions "<City>, <ST>"`. Never add the dealer's name or a brand to a question.
-- **Where:** Claude in Chrome (same tab rules as §0). A new chat or a new search for every answer; never a follow-up; never sign in or out. Typing the question into the tool's own box is allowed (it is a search, not an edit). Ask each question **10 times on each tool**.
+- **v16.1 (audits dated Oct 28 2026 or later): through the APIs.** `python3 run/scripts/ai_api_runner.py --city "<City>, <ST>" --out <run>/ai` asks all 350 (7 questions × 10 runs × 5 tools: `chatgpt`, `gemini`, `google_ai`, `claude`, `brave`) at once and saves every answer word for word, with its sources, to `<run>/ai/dhap_ai_<tool>.json`. Keys go in `~/.dhap-gbp-local/keys.env` or `run/scripts/keys.env` (copy `keys.env.example`, `chmod 600`, never commit it, never paste a key into chat); `--check-keys` lists what is set. Re-running the same command asks only what is missing. Then tag each answer's businesses and `named` (below) and set `ai_visibility.method` to the line each record's `via` gives (API, model, location). No browser, no tabs.
+- **v16.0 (Oct 27 2026 audits only) — where:** Claude in Chrome (same tab rules as §0). A new chat or a new search for every answer; never a follow-up; never sign in or out. Typing the question into the tool's own box is allowed (it is a search, not an edit). Ask each question **10 times on each tool**.
   | Tool (`tool`) | How |
   |---|---|
   | ChatGPT (`chatgpt`) | `https://chatgpt.com/?q=<question>&hints=search` (new chat, Search on; works signed out) |

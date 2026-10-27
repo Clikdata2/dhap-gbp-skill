@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools from Oct 27 2026, row 9, the v16 listing-site rules,
+"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools on Oct 27 2026, 5 tools from Oct 28 2026 (v16.1), row 9, the v16 listing-site rules,
 the spreadsheet. Rounds: argv[1] (default 3)."""
 import copy, json, pathlib, sys, tempfile
 ENG = pathlib.Path(__file__).resolve().parent.parent; sys.path.insert(0, str(ENG))
@@ -14,7 +14,7 @@ def ok(name, cond, extra=""):
 def run_once():
     ev = copy.deepcopy(EX)
     ok("the worked example is complete", not S.check(copy.deepcopy(ev)), S.check(copy.deepcopy(ev)))
-    ok("490 answers are expected", len(ev["ai_visibility"]["answers"]) == len(V.TOOLS) * len(V.QUESTIONS) * V.RUNS == 490)
+    ok("490 answers are expected on Oct 27 2026", len(ev["ai_visibility"]["answers"]) == len(V.tools(ev)) * len(V.QUESTIONS) * V.RUNS == 490)
     ok("no question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
     ok("3 Sales, 2 Service, 2 Parts", [d for _, d, _ in V.QUESTIONS] == ["sales"] * 3 + ["service"] * 2 + ["parts"] * 2)
     # scoring
@@ -61,14 +61,26 @@ def run_once():
     e = copy.deepcopy(ev); e["audit_date"] = "2026-10-26"; e["ai_answers"] = {"method": "x", "answers": []}
     R = {r["directory"]: r for r in D.results(e)}
     ok("before Oct 27 2026 the legal name is still compared", R["data_axle"]["status"] == "found", R["data_axle"])
+    # v16.1: 5 tools through their APIs from Oct 28 2026
+    n = copy.deepcopy(ev); n["audit_date"] = "2026-10-28"
+    n["ai_visibility"]["answers"] = [a for a in n["ai_visibility"]["answers"] if a["tool"] not in ("copilot", "perplexity")]
+    ok("350 answers are expected from Oct 28 2026", len(n["ai_visibility"]["answers"]) == len(V.tools(n)) * len(V.QUESTIONS) * V.RUNS == 350)
+    ok("Copilot and Perplexity are not asked from Oct 28 2026", not {"copilot", "perplexity"} & set(V.tools(n)))
+    ok("a 5-tool audit dated Oct 28 2026 passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
+    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["tool"] = "copilot"
+    ok("refuses: a Copilot answer on an Oct 28 2026 audit", any("unknown tool" in x for x in V.check(e)), V.check(e)[:2])
+    e = copy.deepcopy(ev); e["ai_visibility"]["answers"] = n["ai_visibility"]["answers"]
+    ok("an Oct 27 2026 audit still needs all 7 tools", any("140 of 490" in x for x in V.check(e)), V.check(e)[-1:])
+    ok("the brief has no Copilot row from Oct 28 2026", "| Copilot |" not in V.brief(n) and "| Copilot |" in V.brief(ev))
+    raw, rows = S.score_rows(copy.deepcopy(n)); ok("a 5-tool audit scores row 9", len(rows) == 9, rows)
     # outputs
     W = V.winners(ev); ok("the winner is the business named most", W[("service_oil_change", "chatgpt")][0] == "Example Quick Lube", W[("service_oil_change", "chatgpt")])
     b = V.brief(ev); ok("the brief has one table row per tool per question", b.count("| ChatGPT |") == len(V.QUESTIONS))
     with tempfile.TemporaryDirectory() as t:
         from openpyxl import load_workbook
         p = V.sheet(ev, pathlib.Path(t) / "x.xlsx"); wb = load_workbook(p)
-        ok("one spreadsheet tab per tool, named for the tool", wb.sheetnames == [V.NAME[x] for x in V.TOOLS], wb.sheetnames)
-        ok("one row per answer on each tab", all(wb[V.NAME[x]].max_row == 1 + len(V.QUESTIONS) * V.RUNS for x in V.TOOLS))
+        ok("one spreadsheet tab per tool, named for the tool", wb.sheetnames == [V.NAME[x] for x in V.tools(ev)], wb.sheetnames)
+        ok("one row per answer on each tab", all(wb[V.NAME[x]].max_row == 1 + len(V.QUESTIONS) * V.RUNS for x in V.tools(ev)))
     ok("file name", V.file_name("James Mitsubishi Greece", "2026-10-27") == "james-mitsubishi-greece_ai-answers_10-27-26.xlsx")
 
 rounds = int(sys.argv[1]) if len(sys.argv) > 1 else 3
