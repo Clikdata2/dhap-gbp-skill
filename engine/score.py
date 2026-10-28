@@ -38,6 +38,7 @@ KNOWN_RULES = {
     "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
     "15.3": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "cf0f56718ea5276f"},   # v15.3: NAP site-list wording matches the trimmed run; arithmetic unchanged
     "16.0": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "6ae54a3ea960afe0"},   # v16.0: row 9 AI Answer Visibility; listing sites: no phone = not agreeing, legal name skipped (audits from Oct 27 2026)
+    "16.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.1: row 9 = dealer in the top 2, 5 questions x 5 runs x 5 tools through their APIs (audits from Oct 28 2026)
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]

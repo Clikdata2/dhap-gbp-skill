@@ -8,3 +8,6 @@ engine/tests/out/
 
 # Local dealer-run working files (dealer data never goes in this public repository)
 work/
+
+# API keys for run/scripts/ai_api_runner.py (v16.1)
+run/scripts/keys.env
