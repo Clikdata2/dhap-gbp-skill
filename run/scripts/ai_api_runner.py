@@ -40,7 +40,7 @@ TYPES = ["dealership", "oil_change", "tire_shop", "parts_store", "repair_shop", 
 TOOLS = ("chatgpt", "gemini", "google_ai", "claude", "brave")
 KEY = {"chatgpt": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY", "google_ai": "SERPAPI_API_KEY",
        "claude": "ANTHROPIC_API_KEY", "brave": "BRAVE_API_KEY"}
-MODEL_DEFAULT = {"chatgpt": "gpt-6-astra", "gemini": "gemini-3.8-flash", "claude": "claude-opus-5-5"}
+MODEL_DEFAULT = {"chatgpt": "gpt-5.4-mini", "gemini": "gemini-3.8-flash", "claude": "claude-sonnet-5-5"}   # the cheaper models (Travis, Oct 27 2026): only the top 2 names count
 PARALLEL = {"chatgpt": 10, "gemini": 10, "google_ai": 10, "claude": 8, "brave": 2}   # Brave's base plan: 2 requests/second
 STATES = dict(AL="Alabama", AK="Alaska", AZ="Arizona", AR="Arkansas", CA="California", CO="Colorado", CT="Connecticut",
               DE="Delaware", DC="District of Columbia", FL="Florida", GA="Georgia", HI="Hawaii", ID="Idaho", IL="Illinois",
