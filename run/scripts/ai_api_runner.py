@@ -3,8 +3,10 @@
 
 Asks the 5 questions 5 times on each of the 5 tools (125 asks, v16.1), all in parallel, and saves every answer to
 <out>/dhap_ai_<tool>.json in the same record format as ai_runner.py / aicap.js, so ai_merge.py reads it unchanged.
-v16.1 keeps only the top 2: each answer is capped at OUTPUT_CAP tokens (the first names come first) and Claude Haiku
-pulls the first 2 businesses it names, in its order, into "top2": [{name, type}]. The answer text is kept as proof.
+v16.1 keeps only the top 2: each answer is capped at OUTPUT_CAP tokens (the first names come first). v16.2: code and
+Claude Haiku list every name in the answer's order, JEV decides which are businesses, what kind and whether one is the
+dealer (--dealer), and a fixed rule checks JEV; the first 2 businesses go into "top2": [{name, type}] and the JEV
+ledger into "jev". The answer text is kept as proof.
 
   chatgpt    OpenAI Responses API + web_search tool, approximate user location = the dealer's city
   gemini     Gemini API + Grounding with Google Search
