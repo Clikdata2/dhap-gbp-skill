@@ -52,6 +52,14 @@ STATES = dict(AL="Alabama", AK="Alaska", AZ="Arizona", AR="Arkansas", CA="Califo
               VT="Vermont", VA="Virginia", WA="Washington", WV="West Virginia", WI="Wisconsin", WY="Wyoming")
 
 
+_u = threading.local()   # usage of the ask running on this thread: tokens, searches, calls (for the cost report)
+def use(**n):
+    d = getattr(_u, "d", None)
+    if d is not None:
+        for k, v in n.items():
+            d[k] = d.get(k, 0) + int(v or 0)
+
+
 class Blocked(Exception):
     """The tool gave no usable answer; the message is the reason recorded."""
 
@@ -101,6 +109,9 @@ def ask_chatgpt(q, p, cap=OUTPUT_CAP):
                                   {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]},
                                   {"model": model, "input": q, "tools": [{"type": "web_search", "user_location": loc}],
                                    **({"max_output_tokens": cap} if cap else {})}))
+    u = r.get("usage") or {}
+    use(calls=1, input_tokens=u.get("input_tokens"), output_tokens=u.get("output_tokens"),
+        searches=sum(i.get("type") == "web_search_call" for i in r.get("output", [])))
     text, src = [], []
     for item in r.get("output", []):
         if item.get("type") == "message":
@@ -118,6 +129,10 @@ def ask_gemini(q, p, cap=OUTPUT_CAP):
                                   {"contents": [{"parts": [{"text": q}]}], "tools": [{"google_search": {}}],
                                    **({"generationConfig": {"maxOutputTokens": cap}} if cap else {})}))
     cand = (r.get("candidates") or [{}])[0]
+    u = r.get("usageMetadata") or {}
+    use(calls=1, input_tokens=(u.get("promptTokenCount") or 0) + (u.get("toolUsePromptTokenCount") or 0),
+        output_tokens=(u.get("candidatesTokenCount") or 0) + (u.get("thoughtsTokenCount") or 0),
+        searches=len((cand.get("groundingMetadata") or {}).get("webSearchQueries") or []))
     text = "".join(part.get("text", "") for part in (cand.get("content") or {}).get("parts", []))
     src = [(c.get("web") or {}).get("uri") for c in (cand.get("groundingMetadata") or {}).get("groundingChunks", [])]
     if not text and cand.get("finishReason") and cand["finishReason"] != "MAX_TOKENS":
@@ -142,7 +157,7 @@ def _blocks_text(blocks, depth=0):
 
 def ask_google_ai(q, p, cap=None):   # SerpApi returns what Google showed; nothing to cap
     key = os.environ["SERPAPI_API_KEY"]
-    serp = lambda **kw: with_retries(lambda: http("GET", "https://serpapi.com/search.json?" + urllib.parse.urlencode({**kw, "api_key": key, "no_cache": "true"})))
+    serp = lambda **kw: (use(calls=1, searches=1), with_retries(lambda: http("GET", "https://serpapi.com/search.json?" + urllib.parse.urlencode({**kw, "api_key": key, "no_cache": "true"}))))[1]
     loc = f"{p['city']}, {p['state_name']}, United States"
     r = serp(engine="google", q=q, location=loc, gl="us", hl="en")
     ov = r.get("ai_overview") or {}
@@ -171,6 +186,9 @@ def ask_claude(q, p, cap=OUTPUT_CAP):
         r = with_retries(lambda: _claude.beta.messages.create(
             model=model, max_tokens=cap or 16000, messages=messages, tools=[tool],
             betas=["server-side-fallback-2026-07-01"], fallbacks="default"), tries=2)
+        stu = getattr(r.usage, "server_tool_use", None)
+        use(calls=1, input_tokens=r.usage.input_tokens + (r.usage.cache_read_input_tokens or 0) + (r.usage.cache_creation_input_tokens or 0),
+            output_tokens=r.usage.output_tokens, searches=getattr(stu, "web_search_requests", 0) if stu else 0)
         if r.stop_reason != "pause_turn":
             break
         messages = [messages[0], {"role": "assistant", "content": r.content}]
@@ -189,6 +207,9 @@ def ask_brave(q, p, cap=None):
                                   {"X-Subscription-Token": os.environ["BRAVE_API_KEY"], "Accept": "application/json"},
                                   {"model": "brave", "stream": False, "country": "us", "language": "en",
                                    "messages": [{"role": "user", "content": q}]}))
+    u = r.get("usage") or {}
+    use(calls=1, input_tokens=u.get("prompt_tokens"), output_tokens=u.get("completion_tokens"),
+        searches=u.get("search_requests") or u.get("searches"))   # Brave bills per search; recorded when its response reports it
     text = ((r.get("choices") or [{}])[0].get("message") or {}).get("content", "")
     src = re.findall(r"https?://[^\s\"'<>)\]]+", text)
     return text, src, "Brave Search API, AI Grounding"
@@ -212,6 +233,7 @@ def top2(answer):
             "(not websites like Yelp or Google, and not generic advice). type: dealership, oil_change (quick lube), "
             "tire_shop, parts_store, repair_shop, retailer (big-box or general store), or other. Return fewer if it "
             "names fewer.\n\n<answer>\n" + answer[:12000] + "\n</answer>"}])
+    use(extract_input_tokens=r.usage.input_tokens, extract_output_tokens=r.usage.output_tokens)
     text = next(b.text for b in r.content if b.type == "text")
     return json.loads(text)["businesses"][:TOP]
 
@@ -260,6 +282,7 @@ def main():
     def one(t, q, run):
         asked = QUESTIONS[q].format(c=place["city_st"])
         rec = {"tool": t, "q": q, "run": run, "asked": asked}
+        _u.d, s0 = {}, time.time()
         try:
             text, src, via = ASK[t](asked, place)
             if len(text.strip()) < 40 and t in ("chatgpt", "gemini", "claude"):   # the cap cut it before any text: once more, uncapped
@@ -276,6 +299,7 @@ def main():
         except KeyError as e:
             rec.update(status="blocked", reason=f"unexpected response shape (missing {e})", via=f"{t} API")
         rec["when"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        rec["seconds"], rec["usage"] = round(time.time() - s0, 1), _u.d
         with lock:
             recs[t].append(rec)
             (out / f"dhap_ai_{t}.json").write_text(json.dumps(recs[t], indent=1, ensure_ascii=False))
@@ -290,6 +314,16 @@ def main():
     for p in pools.values():
         p.shutdown()
     by = {t: sum(r["status"] == "answered" for r in recs[t]) for t in tools}
+    rep = {"city": place["city_st"], "seconds_total": round(time.time() - t0), "models": {t: os.environ.get(f"DHAP_{ {'chatgpt': 'OPENAI', 'gemini': 'GEMINI', 'claude': 'CLAUDE'}[t]}_MODEL", MODEL_DEFAULT[t]) for t in tools if t in MODEL_DEFAULT}, "tools": {}}
+    for t in tools:
+        tot = {}
+        for r in recs[t]:
+            for k, v in (r.get("usage") or {}).items():
+                tot[k] = tot.get(k, 0) + v
+        rep["tools"][t] = {"asks": len(recs[t]), "answered": by[t] if t in by else None, "seconds_longest": max([r.get("seconds", 0) for r in recs[t]] or [0]), **tot}
+    (out / "dhap_ai_usage.json").write_text(json.dumps(rep, indent=1))
+    for t, d in rep["tools"].items():
+        print(f"usage {t:10} " + ", ".join(f"{k} {v}" for k, v in d.items()))
     print(f"done in {time.time() - t0:.0f}s: " + ", ".join(f"{t} {n}/{len(recs[t])} answered" for t, n in by.items()))
 
 
