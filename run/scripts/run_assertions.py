@@ -39,7 +39,8 @@ def main():
     D = STRIP_IMG(pathlib.Path(a.dhap).read_text(encoding="utf-8")); HS = STRIP_IMG(pathlib.Path(a.health_alert).read_text(encoding="utf-8"))
     sd = float(re.search(r'<span class="score-num">([\d.]+)</span>', D).group(1))
     sh = float(re.search(r'<span class="score-big">([\d.]+)</span>', HS).group(1))
-    m = re.search(r'OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:(\d+)%;[^"]*"></div></div>([\d.]+)/10', D)
+    m = (re.search(r'OVERALL</strong></td><td><span class="cc-big" data-fill="(\d+)">([\d.]+)/10', D)   # RULE L (v16.3)
+         or re.search(r'OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:(\d+)%;[^"]*"></div></div>([\d.]+)/10', D))
     fill, sc_overall = int(m.group(1)), float(m.group(2))
     fh = int(re.search(r"\.score-fill\{height:100%;width:(\d+)%", HS).group(1)); assert fh == fill, (fh, fill)
     env = {"re": re, "html": D, "div_depth": L.div_depth, "overall": L.overall, "rows": rows, "score": L.overall(rows),
@@ -72,7 +73,7 @@ def main():
     else: assert gaps == int(tv[3]), ("AI_VIS_GAPS must equal the Key Gaps bullets", gaps, tv)
     assert a.report_id in HS and a.report_id not in D, "Report ID belongs on the health alert only"
     assert sd == sh == sc_overall == L.overall(rows) and fill == round(L.overall(rows) * 10), "score mismatch"
-    assert st["label"].upper() in HS and st["label"] in D and f"{st['lowest_row'].replace('&','&amp;')} is {st['lowest_value']:.1f}/10" in D.replace("&amp;", "&amp;"), "status label / lowest-row note missing"
+    assert st["label"].upper() in HS and st["label"] in D and (f"{st['lowest_row'].replace('&','&amp;')} is {st['lowest_value']:.1f}/10" in D or f"Status set by the lowest category: <b>{st['lowest_row'].replace('&','&amp;')} {st['lowest_value']:.1f}/10</b>" in D), "status label / lowest-row note missing"
     assert f"({st['lowest_row'].replace('&','&amp;')}: {st['lowest_value']:.1f}/10)" in HS or f"({st['lowest_row']}: {st['lowest_value']:.1f}/10)" in HS, "health-alert method caption"
     print("rows", rows, "overall", L.overall(rows), "status", st["label"], "| stat targets", tv, "| AI Visibility gaps", gaps)
     print("ALL ASSERTIONS PASSED")

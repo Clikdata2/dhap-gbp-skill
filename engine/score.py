@@ -40,6 +40,7 @@ KNOWN_RULES = {
     "16.0": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "6ae54a3ea960afe0"},   # v16.0: row 9 AI Answer Visibility; listing sites: no phone = not agreeing, legal name skipped (audits from Oct 27 2026)
     "16.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.1: row 9 = dealer in the top 2, 5 questions x 5 runs x 5 tools through their APIs (audits from Oct 28 2026)
     "16.2": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.2: JEV decides the top 2; scoring text unchanged
+    "16.3": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.3: RULE L colour codes and point breakdowns; scoring text unchanged
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -240,7 +241,7 @@ def score_rows(ev):
     # 6 NAP: 4 Google vs site + 4 five-directory sample + 1 department phones + 1 map pin
     N = ev["nap"]
     dirs = N["_directory_points"]["network"][0] + N["_directory_points"]["ai"][0] if "_directory_points" in N else 4 * sum(N["directories_agree"]) / 5   # v15.2 rule 8: two groups of 2
-    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + dirs + (1 if not N["dept_phones"] or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in N["dept_phones"]) else 0) + (1 if N["map_pin_ok"] else 0)
+    r6 = 4 * N["google_vs_site_fields_matching"] / 3 + dirs + (1 if _dept_phones_ok(ev) else 0) + (1 if N["map_pin_ok"] else 0)
     # 7 Schema structure: 3 page coverage + 1 type + 3 department entities + 1 parses + 2 (own page address, own phone)
     S = ev["schema"]
     r7 = 3 * S["pages_with_jsonld"] / 5 + int(S["business_type_ok"]) + S["department_entities"] + int(S["parses_cleanly"]) \
@@ -255,6 +256,87 @@ def score_rows(ev):
     # 9 AI Answer Visibility (v16.0): answers naming the dealer / all answers given x 10
     if ai_visibility.applies(ev): raw.append(ai_visibility.scores(ev)["row"])
     return raw, [r1d(x) for x in raw]
+
+def _dept_phones_ok(ev):
+    """Row 6, department phones: every department listing's phone matches the website's (toll-free never compared, rule 8)."""
+    D = ev["nap"]["dept_phones"]
+    return not D or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in D)
+
+def row_parts(ev):
+    """RULE L (v16.3): how each row's 10 points add up, for the scorecard. One entry per row:
+    {"parts": [(label, earned, most) or (label, "not scored")], "note": why a part is not scored, or None}.
+    Row score = sum(earned) / sum(most) x 10 — the same arithmetic as score_rows() (tests and check_all compare them). Labels are plain text."""
+    resolve_ages(ev)
+    L = ev["listings"]; roles = _roles(L)
+    tot = sum(WEIGHT[r] for r in roles) or 1; w = {r: WEIGHT[r] / tot for r in roles}
+    def wavg(f): return sum(w[r] * f(roles[r], r) for r in roles)
+    out = []
+    # 1 Claimed & Verified
+    p = [("Google listing found", 0, 10)] if not roles else [("\u201cClaim this business\u201d link showing", 2, 10)] if ev["claimed"]["main_claim_link"] else [("No \u201cClaim this business\u201d link", 10, 10)]
+    out.append({"parts": p, "note": None})
+    # 2 Profile Completeness: structure 4 + information 6
+    pct = lambda l: l["checklist_done"] / l["checklist_total"]
+    info = lambda name, l, most: (f"{name} info ({l['checklist_done']} of {l['checklist_total']})", most * pct(l), most) if l else (f"{name} info", 0, most)
+    p = [("Sales listing", 2 if L.get("sales") else 0, 2)]
+    if L.get("combined"): p += [("Service & Parts listing (combined)", 2, 2), info("Sales", L.get("sales"), 2), info("Service & Parts", L["combined"], 4)]
+    else: p += [("Service listing", 1 if L.get("service") else 0, 1), ("Parts listing", 1 if L.get("parts") else 0, 1),
+                info("Sales", L.get("sales"), 2), info("Service", L.get("service"), 2), info("Parts", L.get("parts"), 2)]
+    if not roles: p = [(x[0], 0, x[2]) for x in p]
+    out.append({"parts": p, "note": None})
+    # 3 Photos
+    out.append({"parts": [("New photos, last 30 days", 6 * wavg(lambda l, r: min(l["photos_30d"] / 4, 1)), 6),
+                          ("Logo + cover", wavg(lambda l, r: int(l["logo"]) + int(l["cover"])), 2),
+                          ("Coverage", wavg(lambda l, r: 2 * sum(1 for k in ("exterior", "interior_or_team", "department") if l["coverage"][k]) / 3), 2)], "note": None})
+    # 4 Reviews
+    R = ev["reviews"]; rt = R["google_rating"] or 0
+    rating = 3 if rt >= 4.5 else 2 if rt >= 4.0 else 1 if rt >= 3.5 else 0
+    earned = mx = 0
+    for r in roles:
+        days, pts = REVIEW_WINDOW[r]; d = roles[r]["newest_review_days"]; mx += pts
+        earned += 0 if d is None else pts if d <= days else pts / 2 if d <= 2 * days else 0
+    fb = R["facebook"]
+    p = [("Google rating 4.5+" if rating == 3 else f"Google rating {rt:g}", rating, 3), ("Recent reviews", 3 * earned / mx if mx else 0, 3),
+         (f"Owner replies ({R['owner_replies_of_10_newest']} of 10)", 2 * R["owner_replies_of_10_newest"] / 10, 2),
+         ("Reviews on website", 1 if R["real_reviews_visible_on_site"] else 0, 1)]
+    if fb["mode"] == "percent": p.append(("Facebook vs Google", "not scored")); note = "Facebook shows a recommend %, not stars, so that point is dropped."
+    else: p.append(("Facebook within 0.5 stars", 1 if fb.get("within_half") else 0, 1)); note = None
+    out.append({"parts": p, "note": note})
+    # 5 Posts
+    rec = lambda l: 0 if l["last_post_days"] is None else 2 if l["last_post_days"] <= 7 else 1 if l["last_post_days"] <= 14 else 0
+    out.append({"parts": [("Posts, last 30 days", 6 * wavg(lambda l, r: min(l["posts_30d"] / BENCH_POSTS[r], 1)), 6),
+                          ("Post within 7 days", wavg(lambda l, r: rec(l)), 2),
+                          ("Offers, events, calls to action", wavg(lambda l, r: 2 * sum(1 for k in ("offers", "events", "cta") if l["variety"][k]) / 3), 2)], "note": None})
+    # 6 NAP
+    N = ev["nap"]; p = [("Google vs website", 4 * N["google_vs_site_fields_matching"] / 3, 4)]
+    if "_directory_points" in N:
+        (n_pts, n_ok, n_f), (a_pts, a_ok, a_f) = N["_directory_points"]["network"], N["_directory_points"]["ai"]
+        p += [(f"CLIKsearch network sites ({n_ok} of {n_f})", n_pts, 2), (f"AI & car-shopper sites ({a_ok} of {a_f})", a_pts, 2)]
+    else: p.append(("Five-directory sample", 4 * sum(N["directories_agree"]) / 5, 4))
+    p += [("Department phones", 1 if _dept_phones_ok(ev) else 0, 1), ("Map pin", 1 if N["map_pin_ok"] else 0, 1)]
+    out.append({"parts": p, "note": None})
+    # 7 Schema structure
+    S = ev["schema"]
+    out.append({"parts": [(f"Key pages with schema ({S['pages_with_jsonld']} of 5)", 3 * S["pages_with_jsonld"] / 5, 3), ("Business type", int(S["business_type_ok"]), 1),
+                          (f"Department entities ({S['department_entities']} of 3)", S["department_entities"], 3), ("Parses cleanly", int(S["parses_cleanly"]), 1),
+                          ("Own page + phone per dept.", S["dept_own_page_address"] / 3 + S["dept_own_phone"] / 3, 2)], "note": None})
+    # 8 Schema fields
+    sa = "sameAs (Google + other profiles)" if S["sameas_google"] and S["sameas_other"] else "sameAs (Google link missing)" if not S["sameas_google"] else "sameAs (other profiles missing)"
+    p = [(f"Core fields ({S['core_fields']} of 6)", 3 * S["core_fields"] / 6, 3), ("Logo or image", int(S["logo_or_image"]), 1), (sa, int(S["sameas_google"]) + int(S["sameas_other"]), 2)]
+    A = S["areaserved"]
+    if A["delivery_offered"]: p.append(("areaServed", areas.score(A["code_places"], A["page_places"], A["code_on_page"])[0], 2)); note = None
+    else: p.append(("areaServed", "not scored")); note = "The dealer offers no delivery, so areaServed is not scored (rule 4)."
+    p += [("Map link", int(S["hasmap_or_map"]), 1), ("Services", int(S["services_or_offers"]), 1)]
+    out.append({"parts": p, "note": note})
+    # 9 AI Answer Visibility
+    if ai_visibility.applies(ev):
+        V = ai_visibility.scores(ev)
+        out.append({"parts": [("AI answers with the dealer in the top 2" if ai_visibility.v161(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
+    return out
+
+def parts_total(entry):
+    """The row score a breakdown adds up to: sum(earned) / sum(most) x 10."""
+    P = [x for x in entry["parts"] if len(x) == 3]
+    return 10 * sum(x[1] for x in P) / sum(x[2] for x in P)
 
 def overall(rows): return r1d(sum(rows) / len(rows))
 

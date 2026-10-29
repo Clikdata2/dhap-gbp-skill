@@ -8,7 +8,31 @@ A condition in the repository suite is skipped ONLY when the evidence proves the
 Usage: python3 check_all.py [--repo REPO] --evidence ev.json --content content.json --out OUTDIR [--venv PATH]"""
 import argparse, html as H, json, pathlib, re, subprocess, sys, time
 ENG = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(ENG))
-import score as S, facts as F, build as B, alert_cards as AC
+import score as S, facts as F, build as B, alert_cards as AC, design as DS
+
+def rule_l(D, ev, raw, rows, st):
+    """RULE L (v16.3): status colours, tints and point breakdowns on the DHAP's tables."""
+    tab = lambda a, b: D[D.find(f'id="{a}"'):D.find(f'id="{b}"')]
+    sc = tab("scorecard", "aivisibility"); sc = sc[:sc.index("</table>")]
+    trs = re.findall(r'<tr class="([^"]+)">(.*?)</tr>', sc, re.S)
+    assert len(trs) == len(rows) + 1, ("RULE L: scorecard rows", len(trs))
+    P = S.row_parts(ev)
+    for i, (cls, body) in enumerate(trs[:-1]):
+        k = DS.band(rows[i])
+        assert cls == f"cc-{k}", ("RULE L: scorecard row colour", S.row_names(rows)[i], cls, k)
+        assert abs(S.parts_total(P[i]) - raw[i]) < 1e-9, ("RULE L: the breakdown does not add up to the row", S.row_names(rows)[i])
+        assert 'class="cc-pts"' in body and 'class="cc-why"' in body, ("RULE L: breakdown or why missing", S.row_names(rows)[i])
+    assert trs[-1][0] == f"cc-total cc-t-{DS.STATUS_BAND[st['label']]}", ("RULE L: the OVERALL row must take the status colour (lowest category)", trs[-1][0])
+    for t in re.findall(r"<table class=\"score-table[^\"]*\">.*?</table>", tab("scorecard", "opportunities"), re.S):
+        assert 'tr style="background' not in t, "RULE L: rows are tinted only by class"
+        for cls in re.findall(r'<tr class="([^"]+)"', t):
+            assert cls.startswith(("cc-red", "cc-org", "cc-yel", "cc-grn", "cc-gry", "cc-total cc-t-")), ("RULE L: row without a status colour", cls)
+    tinted = re.findall(r'<table class="score-table cc-tint-red">', D)
+    assert len(tinted) == (1 if "_directory_results" in ev["nap"] else 0), "RULE L: only the CLIKsearch network table tints its red rows"
+    if "_directory_results" in ev["nap"]:
+        for t in re.findall(r'<tr class="cc-total[^"]*">.*?</tr>', D, re.S):
+            if "of 2 points" in t:
+                assert f"cc-t-{DS.band(rows[5])}" in t and f"Part of <b>NAP Consistency {rows[5]:.1f}/10</b>" in t, "RULE L: a listing-site total must say it is part of NAP Consistency, in its colour"
 
 def suite(repo, D, HS, ev, report_id, dealer_words):
     raw, rows = S.score_rows(ev); st = S.status(rows); ovr = S.overall(rows)
@@ -30,7 +54,8 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         blk = re.sub(re.escape(pat) + r"\s+and\s+", "", blk, count=1) if re.search(re.escape(pat) + r"\s+and\s+", blk) else blk.replace(pat, "True", 1)
         print(f"   skipped repository condition {pat!r}: {why}")
     sd = float(re.search(r'<span class="score-num">([\d.]+)</span>', D).group(1)); sh = float(re.search(r'<span class="score-big">([\d.]+)</span>', HS).group(1)) if HS else sd
-    m = re.search(r'OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:(\d+)%;[^"]*"></div></div>([\d.]+)/10', D)
+    m = (re.search(r'OVERALL</strong></td><td><span class="cc-big" data-fill="(\d+)">([\d.]+)/10', D)   # RULE L (v16.3)
+         or re.search(r'OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:(\d+)%;[^"]*"></div></div>([\d.]+)/10', D))
     fill, sco = int(m.group(1)), float(m.group(2))
     if HS: assert int(re.search(r"\.score-fill\{height:100%;width:(\d+)%", HS).group(1)) == fill, "slider fill differs from the scorecard bar"
     try:
@@ -56,12 +81,14 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     if HS is None:
         assert picked is not None and not picked[0], "health alert missing"
         assert sd == sco == ovr and fill == round(ovr * 10), "score mismatch on the DHAP"
+        rule_l(D, ev, raw, rows, st)
         return f"rows {rows} overall {ovr} {st['label']} | no Digital Health Alert: every area scored 10 (rule 7)"
     for k in ['id="s1"','id="s2"','id="s3"','id="crumbStep"','SEE ALL ALERTS','SEE REVENUE IMPACT','ACCESS THE FULL REPORT','score-method',
               'MASSIVE REVENUE LEAK','Every Alert on this page is Fixable'] + ([] if picked else ['SAMEAS_LINKS', 'AI_VIS_GAPS']):
         assert k in HS, ("health alert missing", k)
     assert HS.count('class="step-btn"') == 2 and HS.count('class="gap-item"><span class="gx"') == 6
     assert "CLIKsearch" not in HS and "&trade;" not in re.search(r'<div class="header-title"[^>]*>(.*?)</div>', HS).group(1)
+    assert "KPI_DEFINITIONS.TXT_OF YOUR CRITICAL ISSUES IDENTIFIED</div>" in HS and ".term-line{font-size:.95rem;line-height:1.65;color:#fff;font-weight:400;" in HS, "Alert terminal card (v16.3)"
     assert 'Critical Alerts Identified</span><span class="term-cursor">' in HS and "local searches and revenue go to someone else.<br>" in HS
     for t in re.findall(r'class="t-head">(.*?)</div>', HS): assert len(H.unescape(t)) <= 18, ("stat header too long", t)
     tv = re.findall(r'data-target="(\d+)"', HS); heads = re.findall(r'class="t-head">&gt; (\w+)', HS)
@@ -70,7 +97,7 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         for part, g, head in ((ai, "ai", "Where AI Tools &amp; Car Shoppers Read Your Name"), (fi, "network", "Directory Network Check")):
             assert head in part, ("NAP table missing", head)
             t = part[part.index(head):]; t = t[:t.index("</table>")]
-            assert t.count("<tr>") == 1 + sum(1 for r in R if g in r["groups"]) + 1, ("NAP table rows", g)
+            assert len(re.findall(r"<tr[ >]", t)) == 1 + sum(1 for r in R if g in r["groups"]) + 1, ("NAP table rows", g)
     if picked:   # rule 7: exactly the engine's cards, in order, with their numbers and statuses
         assert heads == [x["head"] for x in picked[0]] and tv == [str(x["target"]) for x in picked[0]], ("stat cards differ from the engine's pick", heads, tv)
         assert re.findall(r'class="t-stat" data-status="([^"]+)"', HS) == [x["status"] for x in picked[0]], "stat card statuses differ from their area scores"
@@ -82,7 +109,8 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     assert report_id in HS and report_id not in D, "Report ID belongs on the health alert only"
     assert sd == sh == sco == ovr and fill == round(ovr * 10), "score mismatch between pages"
     low = st["lowest_row"].replace("&", "&amp;")
-    assert st["label"] in D and f"{low} is {st['lowest_value']:.1f}/10" in D, "status / lowest-row note missing on the DHAP"
+    assert st["label"] in D and f"Status set by the lowest category: <b>{low} {st['lowest_value']:.1f}/10</b>" in D, "status / lowest-row note missing on the DHAP"
+    rule_l(D, ev, raw, rows, st)
     assert f"({low}: {st['lowest_value']:.1f}/10)" in HS, "health-alert method caption"
     if st["label"] == "Critical": assert "[</span>CRITICAL<" in HS
     else: assert f"[</span>{st['label'].upper()}<" in HS and "[</span>CRITICAL<" not in HS, "verdict label must follow the status"

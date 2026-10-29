@@ -14,7 +14,7 @@ Refuses (exit 1) when content is incomplete or unsafe (script tags, unbalanced <
 """
 import argparse, datetime, html as H, json, pathlib, re, sys
 ENG = pathlib.Path(__file__).resolve().parent; sys.path.insert(0, str(ENG))
-import score as S, alert_cards as AC, directories as DIR, ai_answers as AA, ai_visibility as AV
+import score as S, alert_cards as AC, directories as DIR, ai_answers as AA, ai_visibility as AV, design as DS
 
 MITS_LOGO = None   # read from SKILL.md "VERIFIED LOGO / IMAGE URLS" at run time, so the link lives in one place
 def load_logo(repo):
@@ -32,6 +32,8 @@ ROW_LABELS = ["GBP Claimed &amp; Verified", "Profile Completeness", "Photos &amp
               "AI Answer Visibility"]   # row 9 from v16.0
 COUNT_WORD = {8: "eight", 9: "nine"}
 COL = {"red": "#e82b39", "orange": "#f97316"}
+
+DS_ORDER = {"red": 0, "org": 1, "grn": 2, "gry": 3}
 
 class Bad(Exception): pass
 
@@ -59,7 +61,6 @@ def fact(f):
     val, lbl, color = f[0], f[1], f[2] if len(f) > 2 else "red"
     small = ' style="font-size:1.6rem;"' if len(re.sub(r"<[^>]+>|&[a-z]+;", "x", val)) > 3 else ""
     return f'<div class="hero-fact"><div class="hero-fact-num {color}"{small}>{val}</div><div class="hero-fact-lbl">{lbl}</div></div>'
-def bar(v, label=None): return f'<div class="bar-wrap"><div class="bar-fill" style="width:{round(v*10)}%;background:{"#22c55e" if v >= 9 else "#f59e0b" if v >= 7 else "#f97316" if v > 5 else "#e82b39"};"></div></div>{f"{v:.1f}/10" if label is None else label}'
 def swap(t, a, b, new):
     if a not in t or b not in t: raise Bad(f"template marker missing: {a!r} / {b!r} (template changed? check the repository)")
     i = t.index(a); j = t.index(b); return t[:i] + new + t[j:]
@@ -125,7 +126,7 @@ def check_content(c, picked=False, n_rows=8):
     return P
 
 # ----------------------------------------------------------------------------------------------- DHAP
-def nap_tables(ev, date=""):
+def nap_tables(ev, date="", rows=None):
     """Rule 8 (v15.2): the NAP tables — AI and car-shopper sites (AI Visibility tab) and the CLIKsearch network (Findings tab)."""
     N = ev.get("nap", {}); R = N.get("_directory_results")
     if not R: return "", ""
@@ -137,30 +138,36 @@ def nap_tables(ev, date=""):
         k = r["directory"]
         if k.startswith("cited:"): return "Cited by " + ", ".join(sorted(cites.get(k[6:], []))) + " in the AI answer check" if cites.get(k[6:]) else "Cited in the AI answer check"
         w = DIR.SITES[k].get("why", "CLIKsearch syndication network"); return w[0].upper() + w[1:]
-    def status(r):
-        if r["status"] == "not_found": return '<span style="color:#6b7280;font-weight:700;">Not listed</span>'
-        if r["status"] == "skipped": return '<span style="color:#6b7280;font-weight:700;">Legal name &mdash; not compared</span>'
-        if r["status"] == "blocked": return '<span style="color:#6b7280;font-weight:700;">Not readable</span>'
-        tf = '<div style="color:#b45309;font-weight:700;font-size:.78rem;margin-top:3px;">Toll-free &mdash; should be local</div>' if r.get("toll_free") else ""
-        if r["agree"]: return '<span style="color:#15803d;font-weight:800;">&#10003; Matches</span>' + tf
-        return f'<span style="color:#dc2626;font-weight:800;">&#10007; {H.escape(r["why"].split(" (")[0].replace("differs: ", "Wrong ").replace("Wrong no phone shown", "No phone shown"))}</span>' + tf
-    def shows(r): return "&mdash;" if r["status"] not in ("found", "skipped") else "<br/>".join(H.escape(r["shows"].get(x) or "No phone shown") for x in ("name", "address", "phone"))
+    TF = '<div style="color:#c2410c;font-weight:700;font-size:.74rem;margin-top:4px;">Should be the local number</div>'
+    def band(r):   # RULE L: red wrong or missing, orange matches with a warning (toll-free), green matches, grey not scored
+        if r["status"] != "found": return "gry"
+        return "red" if not r["agree"] else "org" if r.get("toll_free") else "grn"
+    def status(r, k):
+        if k == "gry": return DS.chip(k, {"not_found": "NOT LISTED", "skipped": "LEGAL NAME &mdash; NOT COMPARED"}.get(r["status"], "NOT READABLE"))
+        if k == "red": return DS.chip(k, "&#10007; " + H.escape(r["why"].split(" (")[0].replace("differs: ", "Wrong ").replace("Wrong no phone shown", "No phone shown")).upper()) + (TF if r.get("toll_free") else "")
+        return DS.chip(k, "&#9888; MATCHES &middot; TOLL-FREE") + TF if k == "org" else DS.chip(k, "&#10003; MATCHES")
+    def shows(r, k):
+        if r["status"] not in ("found", "skipped"): return "&mdash;"
+        bad = r["why"] if k == "red" else "phone" if k == "org" else ""   # the field that is wrong (red) or toll-free (orange) is highlighted
+        return "<br/>".join(f'<mark class="cc-m{" o" if k == "org" else ""}">{t}</mark>' if f in bad else t
+                            for f in ("name", "address", "phone") for t in [H.escape(r["shows"].get(f) or "No phone shown")])
     P = N["_directory_points"]
     def table(g, title, intro, sumlabel, extra=""):
-        rows = [r for r in R if g in r["groups"]]
-        rows.sort(key=lambda r: (r["status"] != "found", bool(r.get("agree")), r["label"]))   # wrong first, then matches, then not listed
-        body = "\n".join(f'      <tr><td><strong>{H.escape(r["label"])}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{H.escape(why(r))}</div></td><td>{shows(r)}</td><td>{status(r)}</td></tr>' for r in rows)
-        pts, ok, found = P[g]
+        rs = [(DS_ORDER[band(r)], r["label"], band(r), r) for r in R if g in r["groups"]]
+        rs.sort(key=lambda x: x[:2])   # wrong first, then warnings, then matches, then not scored
+        body = "\n".join(f'      <tr class="cc-{k}"><td><strong>{H.escape(r["label"])}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{H.escape(why(r))}</div></td><td>{shows(r, k)}</td><td>{status(r, k)}</td></tr>' for _, _, k, r in rs)
+        pts, ok, found = P[g]; k = DS.band(rows[5])   # the total takes the colour of NAP Consistency, the category it is part of
         return f'''
   <div class="section-title">{title}</div>
   <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">{intro}</p>
-  <table class="score-table">
+  <table class="score-table{" cc-tint-red" if g == "network" else ""}">
     <thead><tr><th>Site</th><th>What It Shows</th><th>Status</th></tr></thead>
     <tbody>
 {body}
-      <tr><td><strong>{sumlabel}</strong></td><td>{ok} of {found} listings found match your website{extra}</td><td>{pts:.1f} / 2 points</td></tr>
+      <tr class="cc-total cc-t-{k}"><td><strong>{sumlabel}</strong></td><td>{ok} of {found} listings found match your website{extra}</td><td><span class="cc-big">{DS.num(pts)} of 2 points</span><span class="cc-sub">{DS.nap_sum(ev, rows, g)}</span></td></tr>
     </tbody>
   </table>
+{DS.legend("site")}
 '''
     site = N["site"]; ref = f'Your website shows {H.escape(site["name"])}, {H.escape(site["address"])}, {H.escape(site["phone"])}.'
     ai = table("ai", "Where AI Tools &amp; Car Shoppers Read Your Name, Address &amp; Phone",
@@ -178,11 +185,16 @@ def nap_tables(ev, date=""):
         net = f'\n  <div class="section-title">&#9888;&#65039; Phone Numbers Should Be Local</div>\n' + cards + net
     return ai, net
 
-def ai_table(ev, c):
+def ai_table(ev, c, rows):
     """v16.0: the AI visibility check — how often AI names the dealer for each question (score out of 100)."""
     if not AV.applies(ev): return ""
     V = AV.scores(ev); A = ev["ai_visibility"]
-    body = "\n".join(f'      <tr><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{V["questions"][i]["named"]} of {V["questions"][i]["answered"]}</td><td>{bar(V["questions"][i]["score"] / 10, f'{V["questions"][i]["score"]}/100')}</td></tr>' for i, d, _ in AV.questions(ev))
+    def qrow(i, d):
+        q = V["questions"][i]; k = DS.band(q["score"] / 10)
+        return (f'      <tr class="cc-{k}"><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{q["named"]} of {q["answered"]}</td>'
+                f'<td>{DS.bar(q["score"] / 10, k, str(q["score"]) + "/100")} {DS.chip(k, DS.LABEL[k])}</td></tr>')
+    body = "\n".join(qrow(i, d) for i, d, _ in AV.questions(ev))
+    k = DS.band(rows[8])
     tools = ", ".join(AV.NAME[t] for t in AV.tools(ev))
     return f'''
   <div class="section-title">How Often AI Names {c["dealer"]} &mdash; Shopper Questions Near {H.escape(A["city_st"])}</div>
@@ -191,9 +203,10 @@ def ai_table(ev, c):
     <thead><tr><th>Dept.</th><th>Question</th><th>Named</th><th>Score</th></tr></thead>
     <tbody>
 {body}
-      <tr><td><strong>AI ANSWER VISIBILITY</strong></td><td>All questions, all tools</td><td>{V["named"]} of {V["answered"]}</td><td>{S.r1d(V["row"]):.1f}/10</td></tr>
+      <tr class="cc-total cc-t-{k}"><td><strong>AI ANSWER VISIBILITY</strong></td><td>All questions, all tools</td><td>{V["named"]} of {V["answered"]}</td><td><span class="cc-big">{rows[8]:.1f}/10</span>{DS.pill(k)}<span class="cc-sub">This is the whole category: scorecard row 9, <b>{rows[8]:.1f} of 10</b> ({V["named"]} &divide; {V["answered"]} &times; 10).</span></td></tr>
     </tbody>
   </table>
+{DS.legend("score")}
 '''
 
 def build_dhap(tpl, c, ev, sc):
@@ -222,38 +235,45 @@ def build_dhap(tpl, c, ev, sc):
 </div>
 
 '''
-    trs = "\n".join(f'      <tr><td><strong>{ROW_LABELS[i]}</strong></td><td>{bar(rows[i])}</td><td>{c["scorecard_notes"][i]}</td><td>{pill()}</td></tr>' for i in range(len(rows)))
-    ocol = {"Critical": "#e82b39", "Major Issues": "#f97316", "Needs Improvement": "#f59e0b", "Fully Optimized": "#22c55e"}[st["label"]]
-    low = st["lowest_row"].replace("&", "&amp;")
-    trs += (f'\n      <tr><td><strong>OVERALL</strong></td><td><div class="bar-wrap"><div class="bar-fill" style="width:{fill}%;background:{ocol};"></div></div>{ovr}/10</td>'
-            f'<td>{st["icon"]} {st["label"]} <span style="font-size:.7rem;font-weight:600;color:#6b7280;">(status set by the lowest category: {low} is {st["lowest_value"]:.1f}/10)</span></td><td><span class="pill pill-green">✅ CLIKsearch 3-Pack</span></td></tr>')
+    # RULE L: each row in its status colour, with how its 10 points add up and why; the OVERALL row follows the lowest category
+    raw = S.score_rows(ev)[0]; parts = S.row_parts(ev)
+    def srow(i):
+        k = DS.band(rows[i])
+        return (f'      <tr class="cc-{k}"><td><strong>{ROW_LABELS[i]}</strong></td><td>{DS.bar(rows[i], k, f"{rows[i]:.1f}/10")}<br>{DS.chip(k, DS.LABEL[k])}</td>'
+                f'<td>{c["scorecard_notes"][i]}{DS.chips(parts[i]["parts"])}<div class="cc-why">{DS.why(i, parts[i], raw[i], ev)}</div></td><td>{pill()}</td></tr>')
+    trs = "\n".join(srow(i) for i in range(len(rows)))
+    k = DS.STATUS_BAND[st["label"]]; low = st["lowest_row"].replace("&", "&amp;")
+    trs += (f'\n      <tr class="cc-total cc-t-{k}"><td><strong>OVERALL</strong></td><td><span class="cc-big" data-fill="{fill}">{ovr}/10</span></td>'
+            f'<td>{DS.pill(k)}<span class="cc-sub">Average of the {len(rows)} categories (<b>{S.r1d(sum(rows)):.1f} &divide; {len(rows)} = {ovr}</b>). Status set by the lowest category: <b>{low} {st["lowest_value"]:.1f}/10</b>.</span></td>'
+            f'<td><span class="pill pill-green">✅ CLIKsearch 3-Pack</span></td></tr>')
     scorecard = f'''<!-- SCORECARD TAB -->
 <div id="scorecard" class="tab-panel">
   <div class="section-title">GBP &amp; Schema Scorecard</div>
   <p style="font-size:.75rem;color:#6b7280;margin-bottom:14px;font-style:italic;">Category ratings are scored from direct audit findings against a fixed rubric. Photo and post cadence are rated against a standard we set &mdash; one new photo per week per profile; 8 posts a month for Sales and 4 each for Service and Parts &mdash; not a Google requirement. The overall score is the equal-weight average of the {COUNT_WORD[len(rows)]} categories; the overall status follows the lowest category: 5.0 or below is Critical, above 5.0 to 6.9 is Major Issues, 7.0 to 8.9 is Needs Improvement, 9.0 or higher is Fully Optimized.</p>
   <table class="score-table">
-    <thead><tr><th>Category</th><th>Score</th><th>Status</th><th>Solution</th></tr></thead>
+    <thead><tr><th>Category</th><th>Score</th><th>What we found &middot; how the 10 points add up</th><th>Solution</th></tr></thead>
     <tbody>
 {trs}
     </tbody>
   </table>
+{DS.legend("score")}
 </div>
 
 '''
     A = c["ai"]
-    ST = {"c": ("#e82b39", "&#128308; Critical Gap"), "m": ("#f97316", "&#9888;&#65039; Major Gap"), "p": ("#d97706", "&#9899; Partial Signal"), "s": ("#15803d", "&#10003; Strength")}
+    ST = {"c": ("#e82b39", "Critical Gap"), "m": ("#f97316", "Major Gap"), "p": ("#d97706", "Partial Signal"), "s": ("#15803d", "Strength")}
+    SB = {"c": "red", "m": "org", "p": "yel", "s": "grn"}
     sig_rows = []
     for (name, fix), (note, tg, stt) in zip(SIGNALS, A["signals"]):
         tgh = '<span class="tag-green">Audit Verified</span>' if tg == "v" else '<span class="tag-orange">Inferred</span>'
-        sig_rows.append(f'      <tr><td><strong>{name}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{note}</div></td><td>{tgh}</td><td style="color:{ST[stt][0]};font-weight:700;white-space:nowrap;">{ST[stt][1]}</td><td><span class="pill pill-blue">{fix}</span></td></tr>')
-    oa = A.get("overall", "m"); oa_bg = {"c": "#fef2f2", "m": "#fff7ed", "p": "#fffbeb", "s": "#f0fdf4"}[oa]
-    oa_txt = {"c": "&#128308; Critical", "m": "&#9888;&#65039; Major Gaps", "p": "&#9899; Partial", "s": "&#10003; Strong"}[oa]
-    sig_rows.append(f'      <tr style="background:{oa_bg};"><td><strong>OVERALL ASSESSMENT</strong></td><td>&mdash;</td><td style="color:{ST[oa][0]};font-weight:800;white-space:nowrap;">{oa_txt}</td><td><span class="pill pill-green">&#10003; Full CLIKsearch Stack</span></td></tr>')
+        sig_rows.append(f'      <tr class="cc-{SB[stt]}"><td><strong>{name}</strong><div style="font-size:.78rem;color:#555;margin-top:3px;">{note}</div></td><td>{tgh}</td><td>{DS.chip(SB[stt], ST[stt][1].upper())}</td><td><span class="pill pill-blue">{fix}</span></td></tr>')
+    oa = A.get("overall", "m")
+    sig_rows.append(f'      <tr class="cc-total cc-t-{SB[oa]}"><td><strong>OVERALL ASSESSMENT</strong></td><td>&mdash;</td><td><span class="cc-pill">{ {"c": "CRITICAL", "m": "MAJOR GAPS", "p": "PARTIAL", "s": "STRONG"}[oa]}</span></td><td><span class="pill pill-green">&#10003; Full CLIKsearch Stack</span></td></tr>')
     kg = A["key_gaps"]
     kgh = "\n".join("          " + dot(g[0], g[1], g[2], last=(i == len(kg) - 1)) for i, g in enumerate(kg))
     badge_emoji = {"CRITICAL": "&#128308;", "MAJOR": "&#128992;", "PARTIAL": "&#128993;", "STRONG": "&#128994;"}.get(A["badge"], "&#128992;")
     secs = "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
-    nap_ai, nap_net = nap_tables(ev, date)
+    nap_ai, nap_net = nap_tables(ev, date, rows)
     aiv = f'''<!-- AI VISIBILITY SCORE TAB -->
 <div id="aivisibility" class="tab-panel">
   <div class="hero-card">
@@ -290,7 +310,7 @@ def build_dhap(tpl, c, ev, sc):
 {chr(10).join(sig_rows)}
     </tbody>
   </table>
-{ai_table(ev, c)}{nap_ai}{secs}
+{ai_table(ev, c, rows)}{nap_ai}{secs}
   <div class="mids-box" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:rgba(34,197,94,.3);margin-top:20px;">
     <div class="mids-title" style="color:#15803d;">&#129302; CLIKsearch Closes Every Verified Gap</div>
     <div class="mids-body">CLIKsearch&rsquo;s SEO/AEO/GEO-focused content strategy, custom dealership schema build, 60+ directory syndication, and 3-Pack profile management are specifically engineered to address each of the verified gaps identified above. Every deliverable is designed to be AI-readable, AI-indexable, and AI-citable. <strong>MiDS approved &mdash; up to 100% reimbursable.</strong></div>
@@ -338,6 +358,7 @@ def build_dhap(tpl, c, ev, sc):
     h = h.replace("MiDS reimbursement can bring net dealer cost to $0. Get optimized and syndicated in 72 hours.",
                   "Up to 100% MiDS reimbursement, based on available funds. Go-live in 72 hours after onboarding. Results in 90 days.")
     for old, kind in TEMPLATE_DEALER: h = h.replace(old, c["city_st"] if kind else c["dealer"])
+    h = rep(h, "</head>", DS.CSS + "</head>", what="DHAP </head>")
     return h
 
 # ----------------------------------------------------------------------------------------------- health alert
