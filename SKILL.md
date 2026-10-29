@@ -8,7 +8,7 @@ Current builds: **James Mitsubishi Greece DHAP v21 · Digital Health Alert hot s
 
 ## 🔒 GOVERNANCE — MANDATORY (no drift between users)
 1. This skill is the only source of truth for DHAP GBP work. Never keep parallel copies; never follow a stale copy.
-2. **At the start of every run state the revision**: "Using DHAP GBP v16.3." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
+2. **At the start of every run state the revision**: "Using DHAP GBP v16.5." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
 3. Edit this skill ONLY when the user explicitly asks ("update the skill", "lock this in") or states a new standing rule. Never edit silently mid-run.
 4. Every edit: bump the version (v13 → v13.1 …), update the header line above, and append an entry to the change log (`CHANGELOG.md` in the repository) (date · version · what changed · who asked). If two people's instructions conflict, stop and ask rather than choose.
 5. Preferences that must apply to everyone live HERE, not in personal memory (memory is per-user and not shared).
