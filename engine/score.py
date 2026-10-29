@@ -42,6 +42,7 @@ KNOWN_RULES = {
     "16.2": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.2: JEV decides the top 2; scoring text unchanged
     "16.3": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.3: RULE L colour codes and point breakdowns; scoring text unchanged
     "16.4": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.4: owner photos only; Facebook with no rating dropped and rescaled
+    "16.5": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.5: Markdown copies of the DHAP and Alert; scoring text unchanged
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]

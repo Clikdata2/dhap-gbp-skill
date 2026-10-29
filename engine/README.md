@@ -36,7 +36,8 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `score.py` | Turns evidence into the 8 scores, the overall score and the status, exactly as the rubrics say |
 | `facts.py` | The facts gate |
 | `build.py` | Builds the full report and the health alert from the templates in `templates/` |
-| `check_all.py` | Runs all seven checks |
+| `check_all.py` | Runs all eight checks; the eighth writes the Markdown copies |
+| `to_markdown.py` | Writes the Markdown copy (`.md`, same name) of a built DHAP or Alert: every tab, every Alert screen, final numbers, tables as tables (v16.5) |
 | `jev.py` | Optional second opinion on post types (see below) |
 | `alert_cards.py` | Rule 7 (v15.2): picks the four Alert stat cards from the dealer's weakest areas and writes the Revenue Impact paragraph |
 | `directories.py` | Rule 8 (v15.2): decides each listing site's NAP match from the saved readings, against the website (department to department; toll-free not compared), and scores the two groups |
