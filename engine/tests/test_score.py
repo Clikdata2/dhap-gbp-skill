@@ -140,7 +140,8 @@ def run_once():
         if p: bad += 1; continue
         raw1, r1 = S.score_rows(ev); raw2, r2 = S.score_rows(copy.deepcopy(ev))
         if not (r1 == r2 and all(0 <= x <= 10 for x in r1) and 0 <= S.overall(r1) <= 10): bad += 1
-    ok("2,000 random evidence files: valid, 0..10, same answer twice", bad == 0, bad)
+        elif any(abs(S.parts_total(e) - x) > 1e-9 for e, x in zip(S.row_parts(ev), raw1)): bad += 1   # RULE L: the breakdown adds up to every row
+    ok("2,000 random evidence files: valid, 0..10, same answer twice, breakdown adds up (RULE L)", bad == 0, bad)
 
 for rnd in range(3):
     print(f"--- round {rnd + 1}"); run_once()
