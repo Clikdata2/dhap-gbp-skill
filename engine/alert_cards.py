@@ -29,6 +29,7 @@ WORDS = "no one two three four five six seven eight nine ten eleven twelve thirt
 
 def applies(ev): return str(ev.get("audit_date", "")) >= START
 def w(n): return WORDS[n] if 0 <= n < len(WORDS) else f"{n:,}"
+def w_of(n): return "none" if n == 0 else w(n)   # before "of": "none of 125", never "no of 125" (v16.4)
 def s(n, one="", many="s"): return one if n == 1 else many
 def card(head, n, cap, phrase, suffix=""): return {"head": head, "target": n, "suffix": suffix, "cap": cap, "phrase": phrase}
 def status(x): return "Critical" if x <= 5.0 else "Major" if x < 7.0 else "Needs Improvement"
@@ -62,7 +63,7 @@ def menus(ev):
     if pg: M["Photos & Visual Presence"].append(card("PHOTO_GAPS", pg, "Logo, Cover &amp; Photo<br/>Types Missing", f"{w(pg)} missing logo, cover or photo type{s(pg)}"))
     # 4 Reviews (only what CLIKsearch's review answering and review campaign act on)
     R = ev["reviews"]; un = 10 - R["owner_replies_of_10_newest"]
-    if un: M["Reviews & Reputation"].append(card("UNANSWERED_REVS", un, "Newest Reviews With<br/>No Owner Reply", f"{w(un)} of the ten newest reviews with no owner reply", " / 10"))
+    if un: M["Reviews & Reputation"].append(card("UNANSWERED_REVS", un, "Newest Reviews With<br/>No Owner Reply", f"{w_of(un)} of the ten newest reviews with no owner reply", " / 10"))
     for k in order:
         r = "service" if k == "combined" else k; d = L[k]["newest_review_days"]; win = S.REVIEW_WINDOW[r][0]
         if d is not None and d > win:
@@ -110,11 +111,11 @@ def menus(ev):
     if AV.applies(ev):
         V = AV.scores(ev)
         if V["answered"] and V["named"] < V["answered"]:
-            M["AI Answers"].append(card("AI_ANSWERS_NAMED", V["named"], "AI Answers Naming<br/>This Dealership", f"{w(V['named'])} of {V['answered']:,} AI answers naming the dealership" + (" in their top 2" if AV.v161(ev) else ""), f" / {V['answered']}"))
+            M["AI Answers"].append(card("AI_ANSWERS_NAMED", V["named"], "AI Answers Naming<br/>This Dealership", f"{w_of(V['named'])} of {V['answered']:,} AI answers naming the dealership" + (" in their top 2" if AV.v161(ev) else ""), f" / {V['answered']}"))
         return M
     ans = [a for a in (ev.get("ai_answers") or {}).get("answers", []) if a.get("status") == "answered"]
     best = [a for a in ans if a["prompt"] == "best"]; n = sum(1 for a in best if a.get("named") is False)
-    if n: M["AI Answers"].append(card("AI_TOOLS_MISSED", n, "AI Tools That Left Out<br/>This Dealership", f"{w(n)} of {w(len(best))} AI tools leaving the dealership out when asked for the best dealer nearby", f" / {len(best)}"))
+    if n: M["AI Answers"].append(card("AI_TOOLS_MISSED", n, "AI Tools That Left Out<br/>This Dealership", f"{w_of(n)} of {w(len(best))} AI tools leaving the dealership out when asked for the best dealer nearby", f" / {len(best)}"))
     n = sum(1 for a in ans if a.get("phone") and a.get("phone_matches_site") is False)
     if n: M["AI Answers"].append(card("AI_WRONG_PHONES", n, "AI Answers Showing<br/>a Wrong Phone", f"{w(n)} AI answer{s(n)} giving a wrong phone number"))
     return M

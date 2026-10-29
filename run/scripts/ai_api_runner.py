@@ -17,8 +17,9 @@ ledger into "jev". The answer text is kept as proof.
 
 Keys come from keys.env next to this script or ~/.dhap-gbp-local/keys.env (chmod 600; see keys.env.example; never
 commit it), or the environment. A tool with no key is skipped and says so.
-Rate limits and server errors are retried with backoff (an API asking us to slow down is not a robot check); an ask that
-still fails is recorded as blocked with the reason, never counted.
+Rate limits and server errors are retried with backoff (an API asking us to slow down is not a robot check). v16.4: an
+ask that still fails is asked again in up to RETRY_ROUNDS more rounds, and a re-run asks every blocked ask again; the
+command exits with an error until all asks are answered (125 of 125), because a blocked answer is an incomplete run.
 
 Usage:
   ~/.dhap-gbp-venv/bin/python ai_api_runner.py --city "Greece, NY" --out <run>/ai [--tools chatgpt,gemini,...] [--runs 1-5]
@@ -28,6 +29,8 @@ import argparse, concurrent.futures as cf, datetime, json, os, pathlib, random, 
 import urllib.error, urllib.parse, urllib.request
 
 HERE = pathlib.Path(__file__).resolve().parent
+RETRY_ROUNDS, RETRY_WAIT = 4, 20   # v16.4: blocked asks are asked again, waiting 20 s, 40 s, 60 s, 80 s
+CITY_WORDS = set()                 # the dealer's city, folded (set in main); a town word never makes a name another store
 QUESTIONS = {   # v16.1, word for word (engine/ai_visibility.py QUESTIONS)
     "sales_new_family_suv": "best family SUV under 40k near {c}",
     "sales_used_midsize_suv": "used midsize SUV near {c}",
@@ -358,6 +361,27 @@ def _jev(D, url, key, answer, C, dealer):
     return r.get("answers") or {}, float((r.get("usage") or {}).get("input_tokens") or 0), r.get("model")
 
 
+DEALER_FILLER = set("& sales service services parts department dept center centre and of the inc llc co company dealership "
+                    "dealer store new used cars car auto automotive".split())
+
+
+def has_dealer_words(name, dkey):
+    """Every word of the dealer's name except the town is in the candidate ("Vern Eide" alone is the group, not the store)."""
+    core = [w for w in dkey if w not in CITY_WORDS] or dkey
+    return bool(core) and all(w in fold(name).split() for w in core)
+
+
+def is_dealer_name(name, dkey):
+    """The fixed rule (v16.4): every word of the dealer's name is in the candidate, and every other word is filler
+    (Sales, Service, Parts, Inc …) or a word of the dealer's city. "Vern Eide Honda", "Vern Eide Motorcars" and
+    "White Bear Lake Superstore" are other stores of a group or town, so they are not the dealer."""
+    words = fold(name).split()
+    core = [w for w in dkey if w not in CITY_WORDS] or dkey   # "Lumin Mitsubishi" is still Lumin Folsom Mitsubishi
+    if not core or not all(w in words for w in core):
+        return False
+    return all(w in dkey or w in DEALER_FILLER or w in CITY_WORDS for w in words)
+
+
 def top2(answer, dealer=None, scan=True):
     """The first 2 businesses the answer names, in its order -> ([{name, type}], JEV ledger).
     JEV sure (yes >= 0.7, no <= 0.3) decides; JEV unsure or unavailable -> the rule decides. A disagreement on a name
@@ -409,8 +433,10 @@ def top2(answer, dealer=None, scan=True):
             if row["counted"]:
                 top.append({"name": c["name"], "type": typ})
                 if dealer:
-                    drule = bool(dkey) and all(w in fold(c["name"]).split() for w in dkey[:2])
+                    drule = is_dealer_name(c["name"], dkey)
                     row["dealer"], row["dealer_by"], row["dealer_p"] = decide(a, f"dealer_{i}", drule, f"is {dealer}", c["name"], notes)
+                    if row["dealer"] and not has_dealer_words(c["name"], dkey):   # v16.4: a group or partial name is never the dealer, even on JEV's yes
+                        row["dealer"], row["dealer_by"] = False, "rule (name lacks a word of the dealer's name)"
                     dealer_hit |= row["dealer"]
             led["review"] += notes          # only names read up to the 2nd business: these decide the top 2
             led["candidates"].append(row)
@@ -482,12 +508,15 @@ def main():
     if a.reextract:
         if not a.out:
             ap.error("--out is required")
+        if a.city:
+            CITY_WORDS.update(fold(a.city.split(",")[0]).split())
         return reextract(pathlib.Path(a.out), tools, a.dealer)
     if not (a.city and a.out):
         ap.error("--city and --out are required")
     m = re.match(r"^\s*(.+?),\s*([A-Z]{2})\s*$", a.city)
     if not m or m.group(2) not in STATES:
         ap.error('--city must look like "Greece, NY"')
+    CITY_WORDS.update(fold(m.group(1)).split())
     place = {"city": m.group(1), "state": m.group(2), "state_name": STATES[m.group(2)], "city_st": f"{m.group(1)}, {m.group(2)}"}
     for t in missing:
         print(f"SKIPPED {t}: {KEY[t]} is not set (keys.env)")
@@ -500,7 +529,7 @@ def main():
     for t in tools:
         f = out / f"dhap_ai_{t}.json"
         recs[t] = json.loads(f.read_text()) if f.exists() else []
-        done |= {(t, r["q"], r["run"]) for r in recs[t]}
+        done |= {(t, r["q"], r["run"]) for r in recs[t] if r.get("status") == "answered"}   # v16.4: blocked asks are asked again
 
     def one(t, q, run):
         asked = QUESTIONS[q].format(c=place["city_st"])
@@ -524,7 +553,7 @@ def main():
         rec["when"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         rec["seconds"], rec["usage"] = round(time.time() - s0, 1), _u.d
         with lock:
-            recs[t].append(rec)
+            recs[t][:] = [x for x in recs[t] if (x["q"], x["run"]) != (q, run)] + [rec]   # a re-ask replaces the blocked record
             (out / f"dhap_ai_{t}.json").write_text(json.dumps(recs[t], indent=1, ensure_ascii=False))
             print(t, q, run, rec["status"], " | ".join(b["name"] for b in rec.get("top2", [])), rec.get("reason", "")[:80], flush=True)
 
@@ -534,6 +563,15 @@ def main():
     futs = [pools[t].submit(one, t, q, r) for t, q, r in jobs]
     for f in cf.as_completed(futs):
         f.result()
+    want = {(t, q, r) for t in tools for q in a.questions.split(",") for r in parse_runs(a.runs)}
+    for n in range(1, RETRY_ROUNDS + 1):   # v16.4: a blocked ask is asked again; an incomplete run is never accepted
+        again = sorted(k for k in want if not any(x["status"] == "answered" for x in recs[k[0]] if (x["q"], x["run"]) == k[1:]))
+        if not again:
+            break
+        print(f"retry round {n}: {len(again)} blocked, asking again in {RETRY_WAIT * n}s", flush=True)
+        time.sleep(RETRY_WAIT * n)
+        for f in cf.as_completed([pools[t].submit(one, t, q, r) for t, q, r in again]):
+            f.result()
     for p in pools.values():
         p.shutdown()
     by = {t: sum(r["status"] == "answered" for r in recs[t]) for t in tools}
@@ -548,6 +586,12 @@ def main():
     for t, d in rep["tools"].items():
         print(f"usage {t:10} " + ", ".join(f"{k} {v}" for k, v in d.items()))
     print(f"done in {time.time() - t0:.0f}s: " + ", ".join(f"{t} {n}/{len(recs[t])} answered" for t, n in by.items()))
+    left = [(t, r["q"], r["run"], r.get("reason", "")[:80]) for t in tools for r in recs[t] if r.get("status") != "answered"]
+    if left:   # v16.4: never score an incomplete run
+        print(f"INCOMPLETE: {len(left)} ask(s) still blocked after {RETRY_ROUNDS} retry rounds. Run the same command again; do not score.")
+        for x in left:
+            print("  blocked:", *x)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

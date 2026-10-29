@@ -34,6 +34,18 @@ def rule_l(D, ev, raw, rows, st):
             if "of 2 points" in t:
                 assert f"cc-t-{DS.band(rows[5])}" in t and f"Part of <b>NAP Consistency {rows[5]:.1f}/10</b>" in t, "RULE L: a listing-site total must say it is part of NAP Consistency, in its colour"
 
+BAD_TEXT = [(r"\b[Nn]o of\b", '"no of" (write "none of")'), (r"\bundefined\b", '"undefined"'), (r"\bNaN\b", '"NaN"'),
+            (r"\{[a-z_]{2,}\}", "an unfilled {placeholder}")]
+
+def text_lint(pages):
+    """v16.4: wording that is broken in every case never ships (a page with any of these fails the build)."""
+    for name, page in pages.items():
+        if not page: continue
+        body = re.sub(r"<(script|style)\b.*?</\1>", " ", page, flags=re.S | re.I); body = H.unescape(re.sub(r"<[^>]+>", " ", body))
+        for rx, what in BAD_TEXT:
+            m = re.search(rx, body)
+            assert not m, f"text lint: {name} contains {what}: ...{body[max(0, m.start() - 60):m.end() + 40].strip()}..."
+
 def suite(repo, D, HS, ev, report_id, dealer_words):
     raw, rows = S.score_rows(ev); st = S.status(rows); ovr = S.overall(rows)
     skill = (repo / "SKILL.md").read_text(encoding="utf-8")
@@ -146,7 +158,7 @@ def main():
     _strip = lambda t: re.sub(r"data:image/[a-z]+;base64,[A-Za-z0-9+/=]+", "data:image", t)   # RULE K: embedded evidence images must not trip text assertions
     D = _strip(pathlib.Path(out["dhap"]).read_text(encoding="utf-8")); HS = _strip(pathlib.Path(out["health_alert"]).read_text(encoding="utf-8")) if out["health_alert"] else None
     words = ["James Mitsubishi", "Greece, NY", "Greece NY", "Rochester", "GBP-JMGNY"] if "James" not in ev["dealer"] else []
-    gate("5 repository assertions", lambda: suite(repo, D, HS, ev, c["report_id"], words))
+    gate("5 repository assertions", lambda: (text_lint({"DHAP": D, "Digital Health Alert": HS}), suite(repo, D, HS, ev, c["report_id"], words))[1])
     procs = {}
     if not a.no_probe:
         procs["6 phone-width probe"] = subprocess.Popen([py, str(ENG / "probe_mobile.py"), out["dhap"], out["health_alert"] or "-", str(pathlib.Path(a.out) / "shots")], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

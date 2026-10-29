@@ -41,6 +41,7 @@ KNOWN_RULES = {
     "16.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.1: row 9 = dealer in the top 2, 5 questions x 5 runs x 5 tools through their APIs (audits from Oct 28 2026)
     "16.2": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.2: JEV decides the top 2; scoring text unchanged
     "16.3": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.3: RULE L colour codes and point breakdowns; scoring text unchanged
+    "16.4": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.4: owner photos only; Facebook with no rating dropped and rescaled
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -96,6 +97,11 @@ def rules_fingerprint(repo):
         i = s.index("### " + title); j = s.index("\n### ", i + 5)
         out[title] = hashlib.sha256(s[i:j].encode()).hexdigest()[:16]
     return v, out
+
+def fb_dropped(ev):
+    """Facebook point dropped and Reviews rescaled: a recommend %, or (v16.4, audits from Oct 29 2026) no rating at all."""
+    m = ev["reviews"]["facebook"]["mode"]
+    return m == "percent" or (m == "none" and str(ev.get("audit_date", "")) >= "2026-10-29")
 
 def rules_guard(repo):
     v, fp = rules_fingerprint(repo)
@@ -233,7 +239,7 @@ def score_rows(ev):
     owner = 2 * R["owner_replies_of_10_newest"] / 10
     fb = R["facebook"]; fbpt = 1 if (fb["mode"] == "stars" and fb.get("within_half")) else 0
     r4 = rating + flow + owner + fbpt + (1 if R["real_reviews_visible_on_site"] else 0)
-    if fb["mode"] == "percent": r4 = (r4 - fbpt) / 9 * 10          # point dropped, row rescaled to 10
+    if fb_dropped(ev): r4 = (r4 - fbpt) / 9 * 10                   # no star rating: point dropped, row rescaled to 10
     # 5 Posts: 6 cadence (8/4/4) + 2 recency (<=7d 2, <=14d 1) + 2 variety (offers, events, calls to action)
     rec = lambda l: 0 if l["last_post_days"] is None else 2 if l["last_post_days"] <= 7 else 1 if l["last_post_days"] <= 14 else 0
     r5 = 6 * wavg(lambda l, r: min(l["posts_30d"] / BENCH_POSTS[r], 1)) + wavg(lambda l, r: rec(l)) \
@@ -298,7 +304,7 @@ def row_parts(ev):
     p = [("Google rating 4.5+" if rating == 3 else f"Google rating {rt:g}", rating, 3), ("Recent reviews", 3 * earned / mx if mx else 0, 3),
          (f"Owner replies ({R['owner_replies_of_10_newest']} of 10)", 2 * R["owner_replies_of_10_newest"] / 10, 2),
          ("Reviews on website", 1 if R["real_reviews_visible_on_site"] else 0, 1)]
-    if fb["mode"] == "percent": p.append(("Facebook vs Google", "not scored")); note = "Facebook shows a recommend %, not stars, so that point is dropped."
+    if fb_dropped(ev): p.append(("Facebook vs Google", "not scored")); note = ("Facebook shows a recommend %, not stars" if fb["mode"] == "percent" else "Facebook shows no rating") + ", so that point is dropped."
     else: p.append(("Facebook within 0.5 stars", 1 if fb.get("within_half") else 0, 1)); note = None
     out.append({"parts": p, "note": note})
     # 5 Posts
