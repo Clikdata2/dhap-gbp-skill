@@ -3,6 +3,7 @@
   1 rules guard (scoring text unchanged)   2 evidence check   3 facts gate   4 build both pages
   5 repository assertion suite (read from SKILL.md at run time) + health-alert checklist + score consistency
   6 phone-width probe (360/390/430, all tabs, 3 screens)   7 spelling (advisory list)
+  8 Markdown copies of the DHAP and the Alert (v16.5: seven files per dealer; engine/to_markdown.py)
 A condition in the repository suite is skipped ONLY when the evidence proves the gap it asserts is absent
 (Google link present in sameAs; areaServed present); every skip is printed.
 Usage: python3 check_all.py [--repo REPO] --evidence ev.json --content content.json --out OUTDIR [--venv PATH]"""
@@ -33,6 +34,18 @@ def rule_l(D, ev, raw, rows, st):
         for t in re.findall(r'<tr class="cc-total[^"]*">.*?</tr>', D, re.S):
             if "of 2 points" in t:
                 assert f"cc-t-{DS.band(rows[5])}" in t and f"Part of <b>NAP Consistency {rows[5]:.1f}/10</b>" in t, "RULE L: a listing-site total must say it is part of NAP Consistency, in its colour"
+
+BAD_TEXT = [(r"\b[Nn]o of\b", '"no of" (write "none of")'), (r"\bundefined\b", '"undefined"'), (r"\bNaN\b", '"NaN"'),
+            (r"\{[a-z_]{2,}\}", "an unfilled {placeholder}")]
+
+def text_lint(pages):
+    """v16.4: wording that is broken in every case never ships (a page with any of these fails the build)."""
+    for name, page in pages.items():
+        if not page: continue
+        body = re.sub(r"<(script|style)\b.*?</\1>", " ", page, flags=re.S | re.I); body = H.unescape(re.sub(r"<[^>]+>", " ", body))
+        for rx, what in BAD_TEXT:
+            m = re.search(rx, body)
+            assert not m, f"text lint: {name} contains {what}: ...{body[max(0, m.start() - 60):m.end() + 40].strip()}..."
 
 def suite(repo, D, HS, ev, report_id, dealer_words):
     raw, rows = S.score_rows(ev); st = S.status(rows); ovr = S.overall(rows)
@@ -146,7 +159,7 @@ def main():
     _strip = lambda t: re.sub(r"data:image/[a-z]+;base64,[A-Za-z0-9+/=]+", "data:image", t)   # RULE K: embedded evidence images must not trip text assertions
     D = _strip(pathlib.Path(out["dhap"]).read_text(encoding="utf-8")); HS = _strip(pathlib.Path(out["health_alert"]).read_text(encoding="utf-8")) if out["health_alert"] else None
     words = ["James Mitsubishi", "Greece, NY", "Greece NY", "Rochester", "GBP-JMGNY"] if "James" not in ev["dealer"] else []
-    gate("5 repository assertions", lambda: suite(repo, D, HS, ev, c["report_id"], words))
+    gate("5 repository assertions", lambda: (text_lint({"DHAP": D, "Digital Health Alert": HS}), suite(repo, D, HS, ev, c["report_id"], words))[1])
     procs = {}
     if not a.no_probe:
         procs["6 phone-width probe"] = subprocess.Popen([py, str(ENG / "probe_mobile.py"), out["dhap"], out["health_alert"] or "-", str(pathlib.Path(a.out) / "shots")], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -157,6 +170,23 @@ def main():
         if "spell" in name: ok = "MIDS (must be 0): 0" in o and o.count("MIDS (must be 0): 0") == (2 if out["health_alert"] else 1)
         print(f"[{'PASS' if ok else 'FAIL'}] {name}: " + " | ".join(l.strip() for l in o.splitlines()[-4:])); fail |= not ok
     print(f"   checks 6-7 ran side by side in {time.perf_counter() - t0:.1f}s")
+    if not fail:
+        def g8():
+            pages = [out["dhap"]] + ([out["health_alert"]] if out["health_alert"] else [])
+            r = subprocess.run([py, str(ENG / "to_markdown.py"), *pages], capture_output=True, text=True)
+            if r.returncode: raise SystemExit(r.stdout + r.stderr)
+            md = {pathlib.Path(x).with_suffix(".md"): x for x in pages}
+            for m, page in md.items():
+                t = m.read_text(encoding="utf-8")
+                if page == out["dhap"]:
+                    tabs = re.findall(r"(?m)^## (.+)$", t)
+                    assert len(tabs) == 8, ("Markdown copy: the DHAP's 8 tabs", tabs)
+                else:
+                    assert re.search(r"(?m)^## Screen 3 of 3$", t), "Markdown copy: the Alert's 3 screens"
+                    assert "Computing" not in t, "Markdown copy: an Alert stat card was read mid count-up"
+                text_lint({m.name: t})
+            return ", ".join(m.name for m in md)
+        gate("8 Markdown copies (v16.5)", g8)
     if out.get("edge_warnings"): print("   EDGE WARNINGS (tell the user):", "; ".join(out["edge_warnings"]))
     print("ALL GATES PASSED" if not fail else "SOME GATES FAILED"); sys.exit(1 if fail else 0)
 

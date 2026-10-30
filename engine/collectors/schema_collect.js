@@ -66,7 +66,7 @@ async function dhapSchema(paths) {
           if (typesOf(o).includes('FAQPage')) out.faq = true;
           if (isBiz(o) && depth <= 2) out.ents.push(o);
           Object.keys(o).forEach(k => { if (k !== 'department') walk(o[k], depth + 1); });
-          if (o.department) [].concat(o.department).forEach(d => walk(d, depth + 1));
+          if (o.department) [].concat(o.department).flat(Infinity).forEach(d => walk(d, depth + 1));
         };
         items.forEach(i => walk(i, 0));
       });
@@ -97,7 +97,7 @@ async function dhapSchema(paths) {
   const source = {};
   for (const k of KEYS) {
     if (k !== 'home' && main && (!P[k] || P[k] === '/') && (k === 'service' || k === 'parts')) {
-      const d = [].concat(main.department || []).map(mainBlocks.res).find(x => x && roleOf(x) === k && x.url);
+      const d = [].concat(main.department || []).flat(Infinity).map(mainBlocks.res).find(x => x && roleOf(x) === k && x.url);
       if (d) { try { const u = new URL(String(d.url), location.href); let mh = ''; try { mh = new URL(String(main.url)).hostname.replace(/^www\./, ''); } catch (e) {} if ([host, mh].includes(u.hostname.replace(/^www\./, '')) && u.pathname !== '/') { P[k] = u.pathname; source[k] = 'schema'; } } catch (e) {} }
     }
     if (k !== 'home' && P[k] === '/') P[k] = null;
@@ -111,7 +111,7 @@ async function dhapSchema(paths) {
     if (k === 'home') {
       mainBlocks = b; homeTypes = b.ents.map(e => typesOf(e).join('/'));
       // main entity = the top-level business entity with the most fields that carries a department list, else the richest one
-      const tops = b.ents.filter(e => !b.ents.some(p => p !== e && [].concat(p.department || []).map(b.res).includes(e)));
+      const tops = b.ents.filter(e => !b.ents.some(p => p !== e && [].concat(p.department || []).flat(Infinity).map(b.res).includes(e)));
       main = tops.sort((x, y) => (y.department ? 100 : 0) + Object.keys(y).length - (x.department ? 100 : 0) - Object.keys(x).length)[0] || null;
     }
   }
@@ -128,7 +128,7 @@ async function dhapSchema(paths) {
     const r = mainBlocks.res;
     const mt = typesOf(main);
     ev.business_type_ok = mt.some(t => /AutoDealer|AutomotiveBusiness/.test(t));
-    const depts = [].concat(main.department || []).map(r).filter(Boolean);
+    const depts = [].concat(main.department || []).flat(Infinity).map(r).filter(Boolean);
     const role = roleOf;
     const roles = {}; depts.forEach(d => { const k = role(d); if (k !== 'other' && !roles[k]) roles[k] = d; });
     ev.department_entities = Object.keys(roles).length;

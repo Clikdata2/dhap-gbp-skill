@@ -109,6 +109,9 @@ def check(ev):
     missing = [(t, q, r) for t in TOOLS for q in ids for r in range(1, RUNS + 1) if (t, q, r) not in seen]
     if missing: P.append(f"ai_visibility: {len(missing)} of {len(TOOLS) * len(ids) * RUNS} answers not recorded (first: {missing[0]}); record each as answered or blocked")
     if seen and not any(isinstance(a, dict) and a.get("status") == "answered" for a in A["answers"]): P.append("ai_visibility: no tool answered — check the API keys (run/scripts/ai_api_runner.py --check-keys) and re-run the check")
+    blocked = [(a.get("tool"), a.get("q"), a.get("run")) for a in A["answers"] if isinstance(a, dict) and a.get("status") == "blocked"]
+    if blocked and v161(ev):   # v16.4: through the APIs every ask must be answered; a blocked one is asked again, never left out
+        P.append(f"ai_visibility: {len(blocked)} of {len(A['answers'])} answers blocked (first: {blocked[0]}); run ai_api_runner.py again with the same arguments (it re-asks every blocked ask) until all are answered")
     return P
 
 def _answered(ev): return [a for a in (ev.get("ai_visibility") or {}).get("answers", []) if a.get("status") == "answered"]
