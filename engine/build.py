@@ -77,6 +77,19 @@ def walk_strings(o):
         for v in o: yield from walk_strings(v)
 
 FUNNEL_PLACEHOLDER = "REPLACE_WITH_DHAP_FUNNEL_LINK"   # the DHAP funnel link is always added by hand; never guess it
+CLARITY_PROJECT = "z61t7jbioc"   # v16.6: Microsoft Clarity project "CLIKdata Reports" (public: it is in every tracked page's source)
+
+def clarity_tag(dealer, brand, report_type):
+    """v16.6 (RULE M): Microsoft Clarity heatmaps and recordings for every DHAP and Alert, tagged with the dealer, the
+    report type and the brand so Clarity can filter by each. Loads once: if the funnel's own tracking code already
+    started Clarity, only the tags are added. Values are JSON-encoded and '</' is escaped so a name can't end the script."""
+    v = lambda x: json.dumps(str(x or ""), ensure_ascii=False).replace("</", "<\\/")
+    return ('<!-- Microsoft Clarity: CLIKdata Reports (RULE M) -->\n<script type="text/javascript">'
+            '(function(c,l,a,r,i,t,y){if(c[a])return;c[a]=function(){(c[a].q=c[a].q||[]).push(arguments)};'
+            't=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];'
+            f'y.parentNode.insertBefore(t,y);}})(window,document,"clarity","script","{CLARITY_PROJECT}");'
+            f'clarity("set","report_type",{v(report_type)});clarity("set","prospect",{v(dealer)});'
+            f'clarity("set","dealer_group",{v(brand)});</script>\n')
 ALERT_MOBILE_CSS = """<style>
 /* ===== MOBILE LAYOUT — Digital Health Alert (phones <= 520px): header and terminal title may not push the page wider than the screen ===== */
 @media(max-width:520px){
@@ -445,7 +458,9 @@ def main():
         Hs = None if picked is not None and not picked[0] else build_alert(ha.read_text(encoding="utf-8"), c, sc, picked)   # every area at 10: no Alert
         if Hs is not None:
             if Hs.count("</head>") != 1: raise Bad("health alert template must have exactly one </head>")
-            Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + "</head>", 1)
+            Hs = Hs.replace("</head>", ALERT_MOBILE_CSS + clarity_tag(ev["dealer"], ev.get("brand"), "ALERT") + "</head>", 1)
+        if D.count("</head>") != 1: raise Bad("DHAP template must have exactly one </head>")
+        D = D.replace("</head>", clarity_tag(ev["dealer"], ev.get("brand"), "DHAP") + "</head>", 1)
     except Bad as e:
         sys.exit(f"NOT BUILT — {e}")
     out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
