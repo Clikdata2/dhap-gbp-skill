@@ -236,7 +236,7 @@ Open the service address with `/health` added at the end in any web browser, for
 ---
 
 ## Part E — Proof service for Ask AI (CTO and GHL admin, one time)
-Ask AI can't take screenshots by itself. This small second service takes them for it, so Ask AI reports get the same hover proof as everyone else's. It uses the same team codes, so no new codes are needed.
+Ask AI can't take screenshots by itself. This small second service takes them for it, so Ask AI reports get the same click-to-open proof panel as everyone else's. It uses the same team codes, so no new codes are needed.
 
 ### E1. Deploy it (CTO, in Cloud Shell, about 8 minutes)
 1. Go to the setup folder and get the latest files:
@@ -260,7 +260,7 @@ curl -s -H "X-DHAP-Code: YOUR-TEAM-CODE" "PROOF-ADDRESS/screenshot?preset=gmaps_
 ### E3. Tell Ask AI where it is (GHL admin)
 In GHL, **Settings → Custom Values → Add Custom Value**. Name: **DHAP Proof URL**. Value: the proof service address from E1. Save.
 
-✅ Done. Ask AI now builds hover proof on its own: pictures where the site allows them, exact source data where it doesn't.
+✅ Done. Ask AI now builds the proof panels on its own: pictures where the site allows them, exact source data where it doesn't.
 
 ---
 
