@@ -31,7 +31,8 @@ knowledge base and leaves the stepper out if one is no longer there.
 | Step-by-step toggle | Next steps, from the knowledge base |
 
 **Alert** — the same three screens, same order, same words, as one monitored scroll: the breadcrumb follows the reader
-(later steps stay locked until reached), the step buttons scroll to the next screen, alerts fire and numbers count as
+(later steps stay locked until reached), each step button carries the line that used to sit above it and scrolls to
+the next screen, alerts fire and numbers count as
 they come into view.
 
 ## Rebuild

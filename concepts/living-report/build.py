@@ -372,6 +372,11 @@ def living_alert(src_html, proof_block):
     crumbs = [strip(c) for c in re.findall(r'<button[^>]*class="crumb[^"]*"[^>]*>(.*?)</button>', h, re.S)]
     a = h.index("var screens=[document.getElementById('s1')"); s0 = h.rindex("<script>", 0, a); s1 = h.index("</script>", a) + len("</script>")
     h = h[:s0] + f"<script>\n{js}</script>" + h[s1:]
+    # each step button now says the line that used to sit above it, at the button's own size
+    h, folded = re.subn(r'<div class="step-teaser">(.*?)</div>\s*<a([^>]*class="step-btn"[^>]*)>.*?</a>',
+                        lambda m: f'<a{m.group(2)}><span class="lv-say">{m.group(1)}</span><span class="cur"></span></a>', h, flags=re.S)
+    if folded != 2:
+        raise ValueError(f"expected 2 step buttons with a line above them, found {folded}")
     for n in (2, 3):
         label = crumbs[n - 1] if len(crumbs) >= n else ""
         mark = f'<div class="screen" id="s{n}">'

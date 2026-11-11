@@ -259,6 +259,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lv-js .score-fill{transition:width 1.7s cubic-bezier(.2,.8,.2,1) .2s}
 .lv-js .score-fill:not(.go){width:0!important}
 @media(prefers-reduced-motion:reduce){.lv-js .lv-rv{opacity:1;transform:none;transition:none}.lv-line path{animation:none;stroke-dashoffset:0}.lv-js .kpi-tile.alarm.in{animation:none}.lv-js .score-fill{transition:none}}
+.step-btn{display:block;max-width:920px;text-transform:none;letter-spacing:.04em;line-height:1.45;text-align:center;text-wrap:balance}
+.step-btn b{color:#f87171;text-shadow:none}
+.step-btn:hover b{color:#991b1b}
+.step-btn .cur{margin-left:12px;vertical-align:-.18em}
 </style>
 </head>
 <body>
@@ -342,8 +346,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <div class="step-cta-wrap">
-  <div class="step-teaser">&gt; Score logged: <b>5.8/10 &mdash; CRITICAL</b>. Next: the 6 alerts behind it.</div>
-  <a href="#s2" class="step-btn" data-go="2">SEE ALL ALERTS &rarr; <span class="cur"></span></a>
+  <a href="#s2" class="step-btn" data-go="2"><span class="lv-say">&gt; Score logged: <b>5.8/10 &mdash; CRITICAL</b>. Next: the 6 alerts behind it.</span><span class="cur"></span></a>
 </div>
 </div>
 
@@ -404,8 +407,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
 <div class="step-cta-wrap">
-  <div class="step-teaser">&gt; 6 alerts confirmed by direct audit. Next: what they cost the dealership.</div>
-  <a href="#s3" class="step-btn" data-go="3">SEE REVENUE IMPACT &rarr; <span class="cur"></span></a>
+  <a href="#s3" class="step-btn" data-go="3"><span class="lv-say">&gt; 6 alerts confirmed by direct audit. Next: what they cost the dealership.</span><span class="cur"></span></a>
 </div>
   <button type="button" class="step-back" data-go="1">&larr; Back to Critical Alert</button>
 </div>
