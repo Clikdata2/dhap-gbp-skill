@@ -17,7 +17,5 @@
 .lv-js .score-fill{transition:width 1.7s cubic-bezier(.2,.8,.2,1) .2s}
 .lv-js .score-fill:not(.go){width:0!important}
 @media(prefers-reduced-motion:reduce){.lv-js .lv-rv{opacity:1;transform:none;transition:none}.lv-line path{animation:none;stroke-dashoffset:0}.lv-js .kpi-tile.alarm.in{animation:none}.lv-js .score-fill{transition:none}}
-.step-btn{display:block;max-width:920px;text-transform:none;letter-spacing:.04em;line-height:1.45;text-align:center;text-wrap:balance}
-.step-btn b{color:#f87171;text-shadow:none}
-.step-btn:hover b{color:#991b1b}
-.step-btn .cur{margin-left:12px;vertical-align:-.18em}
+.step-teaser{display:block;font-size:1.2rem;line-height:1.5;margin-bottom:0;text-decoration:none;cursor:pointer;text-wrap:balance}
+@media(max-width:680px){.step-teaser{font-size:1rem}}
