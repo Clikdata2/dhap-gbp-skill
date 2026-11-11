@@ -1,7 +1,8 @@
 /* Living Alert: the same three screens as one monitored scroll */
 .screen{display:block!important;animation:none!important;scroll-margin-top:46px}
 .crumbs{position:sticky;top:0;z-index:60}
-.crumb.done,.crumb.active{cursor:pointer}
+.crumb{cursor:pointer}
+.crumb:not(.active):hover{border-color:rgba(74,222,128,.55)}
 .lv-line{display:block;width:100%}
 .lv-line path{fill:none;stroke:var(--ek,#4ade80);stroke-width:2;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:1;animation:lv-trace 4.2s linear infinite}
 @keyframes lv-trace{0%{stroke-dashoffset:1;opacity:1}70%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
@@ -17,5 +18,5 @@
 .lv-js .score-fill{transition:width 1.7s cubic-bezier(.2,.8,.2,1) .2s}
 .lv-js .score-fill:not(.go){width:0!important}
 @media(prefers-reduced-motion:reduce){.lv-js .lv-rv{opacity:1;transform:none;transition:none}.lv-line path{animation:none;stroke-dashoffset:0}.lv-js .kpi-tile.alarm.in{animation:none}.lv-js .score-fill{transition:none}}
-.step-teaser{display:block;font-size:1.2rem;line-height:1.5;margin-bottom:0;text-decoration:none;cursor:pointer;text-wrap:balance}
+.step-teaser{font-size:1.2rem;line-height:1.5;margin-bottom:0;text-wrap:balance}
 @media(max-width:680px){.step-teaser{font-size:1rem}}

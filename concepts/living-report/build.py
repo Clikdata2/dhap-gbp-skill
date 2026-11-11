@@ -10,7 +10,7 @@ pages, and lays the same text out again:
          scorecard is a bar chart whose legend filters it, findings and AI signals open on click, the Opportunities
          table reads as finding -> CLIKsearch action, and the proof still opens in the RULE K side panel.
   Alert  the three screens stay, in the same order with the same words, but as one monitored scroll: the breadcrumb
-         follows the reader and the step buttons scroll to the next screen.
+         follows the reader and all three of its steps are always clickable; the step buttons are gone.
 
 The only text not taken from the built pages is the "Next steps" stepper, which quotes the knowledge base
 (knowledge-base/jessica-kb-qa.json); the build checks each sentence against it and leaves the stepper out if one
@@ -372,13 +372,11 @@ def living_alert(src_html, proof_block):
     crumbs = [strip(c) for c in re.findall(r'<button[^>]*class="crumb[^"]*"[^>]*>(.*?)</button>', h, re.S)]
     a = h.index("var screens=[document.getElementById('s1')"); s0 = h.rindex("<script>", 0, a); s1 = h.index("</script>", a) + len("</script>")
     h = h[:s0] + f"<script>\n{js}</script>" + h[s1:]
-    # the step buttons are gone: the line that sat above each one stays, in its own colours, at the button's type size
-    def line(m):
-        go = re.search(r'data-go="(\d)"', m.group(2)).group(1)
-        return f'<a class="step-teaser" href="#s{go}" data-go="{go}">{m.group(1)}</a>'
-    h, folded = re.subn(r'<div class="step-teaser">(.*?)</div>\s*<a([^>]*class="step-btn"[^>]*)>.*?</a>', line, h, flags=re.S)
+    # the step buttons are gone: the line that sat above each one stays as plain text, at the button's type size
+    h, folded = re.subn(r'(<div class="step-teaser">.*?</div>)\s*<a[^>]*class="step-btn"[^>]*>.*?</a>', r"\1", h, flags=re.S)
     if folded != 2:
         raise ValueError(f"expected 2 step buttons with a line above them, found {folded}")
+    h = re.sub(r'\s*<button[^>]*class="step-back"[^>]*>.*?</button>', "", h, flags=re.S)   # no back links: the breadcrumb is the way around
     for n in (2, 3):
         label = crumbs[n - 1] if len(crumbs) >= n else ""
         mark = f'<div class="screen" id="s{n}">'
