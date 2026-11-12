@@ -1,5 +1,9 @@
 # Knowledge base Q&A set — changelog
 
+## 1.3 — 2026-11-12
+Set stays at 71 entries; one answer reworded (requested by Travis).
+- "What results can I expect?" now opens "Results vary by dealership." The words "and nothing is guaranteed" are removed. That phrase is never used in the knowledge base, a report or any other content: whether anything is guaranteed is a person's call, never the content's or the AI's.
+
 ## 1.2 — 2026-10-19
 Set stays at 71 entries; four answers reworded to match the v14 overall-status rule (status follows the lowest category; the score is still the equal-weight average).
 - "Why does my status say Critical if my average is above 5?" now explains that the status comes from the lowest category: 5.0 or below is Critical.
