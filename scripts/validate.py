@@ -57,7 +57,7 @@ BANNED = ["aggregateRating", "AggregateRating", "Review Markup", "REVIEWS_UNMARK
           "review-rating", "Review-rating", "machine-readable", "Schema-Invisible", "review guidelines",
           "reputation signal", "excluded from schema-based rich results", "invisible to Google",
           "review-enhanced", "highest-impact schema fix", "Deploy aggregateRating",
-          "Reviews Out of Rich Results", "Review Schema Deployed", "4 cities", "SGE", "MIDS"]
+          "Reviews Out of Rich Results", "Review Schema Deployed", "4 cities", "nothing is guaranteed", "Nothing is guaranteed", "SGE", "MIDS"]
 EXEMPT = ["without any review markup in the structured data"]
 
 def div_depth(t):
@@ -113,6 +113,11 @@ if _sp and _sp.split("\n", 1)[1] != _pp:
     errors.append("shot/proof_popup.py must be an exact copy of scripts/proof_popup.py (after its first comment line)")
 if "### RULE K" not in skill:
     errors.append("SKILL.md must contain RULE K (evidence popups)")
+
+# "nothing is guaranteed" is never written (v16.9): not in the knowledge base either
+for f in sorted((root / "knowledge-base").glob("*.json")) if (root / "knowledge-base").exists() else []:
+    if "nothing is guaranteed" in f.read_text(encoding="utf-8").lower():
+        errors.append(f"knowledge-base/{f.name}: banned text found: 'nothing is guaranteed'")
 
 refs = sorted((root / "reference").glob("*.html")) if (root / "reference").exists() else []
 for f in refs:

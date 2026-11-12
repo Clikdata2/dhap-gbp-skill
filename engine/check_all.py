@@ -83,7 +83,7 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
     BAN = ['aggregateRating','AggregateRating','Review Markup','REVIEWS_UNMARKED','Markup Missing','review-rating','Review-rating','machine-readable','Schema-Invisible',
            'review guidelines','reputation signal','excluded from schema-based rich results','invisible to Google','review-enhanced','highest-impact schema fix',
            'Deploy aggregateRating','Reviews Out of Rich Results','Review Schema Deployed','4 cities','review gate','Review gate','Increase in Website Traffic',
-           'More Local Search Traffic','SGE','MIDS']
+           'More Local Search Traffic','nothing is guaranteed','Nothing is guaranteed','SGE','MIDS']
     for name, t in (("DHAP", D), ("health alert", HS or "")):
         if not t: continue
         chk = t.replace("without any review markup in the structured data", "")

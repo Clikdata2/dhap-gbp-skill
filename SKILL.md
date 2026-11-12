@@ -1,4 +1,4 @@
-# DHAP GBP — v16.8 (public repository edition, Nov 11 2026) — SINGLE SOURCE OF TRUTH
+# DHAP GBP — v16.9 (public repository edition, Nov 12 2026) — SINGLE SOURCE OF TRUTH
 Current builds: **James Mitsubishi Greece DHAP v21 · Digital Health Alert hot sheet v28** (in `reference/`, with RULE K evidence popups) — built from the Oct 20 2026 re-audit under the v13 rubrics and the v14 status rule. `templates/` keeps DHAP v20 / hot sheet v27 as the structural base the builds start from. This body supersedes all earlier notes. If anything elsewhere conflicts with this body, this body wins.
 **Running this skill — nothing to install.** Anyone starts a run by pasting the one-line run prompt from the repository README; Ask AI then reads this file fresh from the repository, so every user is on the same version. This public edition writes the knowledge base id as `{{KB_ID}}` and the sub-account id as `{{LOCATION_ID}}`. **Resolve them at run time:** `{{LOCATION_ID}}` = this sub-account's location id from the session context; `{{KB_ID}}` = the id of the knowledge base named "Mitsubishi CLIKsearch" (description "MiDS program-specific details and pricing") — list the sub-account's knowledge bases and pick it by name; if none or more than one match, STOP and tell the user. Never write real ids into this file or into any page.
 
@@ -8,7 +8,7 @@ Current builds: **James Mitsubishi Greece DHAP v21 · Digital Health Alert hot s
 
 ## 🔒 GOVERNANCE — MANDATORY (no drift between users)
 1. This skill is the only source of truth for DHAP GBP work. Never keep parallel copies; never follow a stale copy.
-2. **At the start of every run state the revision**: "Using DHAP GBP v16.8." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
+2. **At the start of every run state the revision**: "Using DHAP GBP v16.9." (no saved copy of this skill is needed or used inside Ask AI — the run prompt in the repository README points Ask AI at this file)
 3. Edit this skill ONLY when the user explicitly asks ("update the skill", "lock this in") or states a new standing rule. Never edit silently mid-run.
 4. Every edit: bump the version (v13 → v13.1 …), update the header line above, and append an entry to the change log (`CHANGELOG.md` in the repository) (date · version · what changed · who asked). If two people's instructions conflict, stop and ask rather than choose.
 5. Preferences that must apply to everyone live HERE, not in personal memory (memory is per-user and not shared).
@@ -64,7 +64,7 @@ The KB's schema example shows an `aggregateRating`, but the KB does NOT say the 
 1. No GBP Q&A — never mention or audit Q&A.
 2. Low reviews → CLIKsearch Reputation Review Reactivation Builder Campaign. Describe it ONLY as automated emails and text messages sent to past customers to help grow a steady stream of reviews. **Never say "review gate"** and never describe filtering, screening or intercepting reviews by star rating (anywhere: reports, hot sheet, Jessica, the knowledge base).
 3. Setup $399 one-time · Month 1 total $1,398 · Ongoing $999/mo · MiDS eligible (Mitsubishi only). Dollar amounts live ONLY in the Investment tab table (not the Why Act Now banner).
-4. Go-live **72 hours** from onboarding. **Results in 90 days** (verified commitment); Day-1 optimizations (profile setup, NAP sync, categories, nesting Service + Parts) have immediate impact; content/GEO posts/photos compound. No guarantees, ever.
+4. Go-live **72 hours** from onboarding. **Results in 90 days** (verified commitment); Day-1 optimizations (profile setup, NAP sync, categories, nesting Service + Parts) have immediate impact; content/GEO posts/photos compound. No guarantees, ever. **Never write "nothing is guaranteed"** (v16.9, decided by Travis Nov 12 2026), or any other line that disclaims a guarantee, anywhere: reports, hot sheet, Jessica, the knowledge base, any other creative or content. Whether anything is guaranteed is a person's judgment and responsibility, never the content's or the AI's. When results need framing, write **"Results vary by dealership."**
 5. **Omni-Social Post Distribution** — standard in every plan, **IN ADDITION to GBP posts, never instead**: Facebook, Instagram, Threads, LinkedIn, Pinterest, Bluesky; platform-native versions; FB/IG auto engagement comments; custom visuals weekly; only GBP service offering this.
 6. Wording: never "SGE" → **SEO/AEO/GEO**. Program name **"MiDS"** (lowercase i) everywhere.
 7. **Start-up order** (reports, Jessica, knowledge base): 1) book a time now; 2) activate in the MiDS Portal (a dedicated optimization specialist then contacts the dealer). The program includes the Local Business Schema build and delivery, with a full schema analysis consult.
@@ -345,7 +345,7 @@ assert 'Omni-Social Post Distribution' in opp and 'Force Multiplier' in opp and 
 for p in re.findall(r'class="pill pill-blue">(.*?)</span>', opp): assert 'img src=' in p
 wa=html[html.find('id="whyact"'):html.find('id="investment"')]
 assert '$399' not in wa and '$999' not in wa and '62.4%' in wa and 'Google Maps' in wa and 'not projections specific to' in wa
-for banned in ['review gate','Review gate','Increase in Website Traffic','More Local Search Traffic']: assert banned not in html, banned
+for banned in ['review gate','Review gate','Increase in Website Traffic','More Local Search Traffic','nothing is guaranteed','Nothing is guaranteed']: assert banned not in html, banned
 assert 'a standard we set' in html          # v13 benchmark disclosure in the scorecard footnote
 assert '6-Platform Social Distribution' in wa and 'APPROVED - UP TO 100% REIMBURSEMENT' in wa
 sol=html[html.find('id="solution"'):html.find('id="whyact"')]
