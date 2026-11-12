@@ -14,7 +14,7 @@ Not included: four older entries managed in the knowledge base itself (pricing, 
 
 ## Rules every entry follows
 1. Short: 50 words or fewer, plain spoken sentences, no markdown, no links.
-2. No guarantees. Results are described as past results, never a promise. The commitment is go-live in 72 hours after onboarding and results within 90 days. The phrase "nothing is guaranteed" is never used: whether anything is guaranteed is a person's call, never the content's or the AI's. When results need framing, the wording is "Results vary by dealership."
+2. No guarantees. Results are described as past results, never a promise. The commitment is go-live in 72 hours after onboarding and results within 90 days. The phrase "nothing is guaranteed" is never used: whether anything is guaranteed is a person's call, never the content's or the AI's. When results need framing, the wording is "Results vary by dealership." A caller who asks about guarantees is offered a strategy call with the team, and Jessica's instructions say so too.
 3. No review-markup claims. Reviews are shown visibly on the page, not marked up in schema.
 4. The review campaign is described only as automated emails and text messages sent to past customers to help grow a steady stream of reviews. The phrase "review gate" is never used, and Jessica's instructions say so too.
 5. Start-up order: first book a time now, second activate in the MiDS Portal.
