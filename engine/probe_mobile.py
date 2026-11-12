@@ -19,7 +19,19 @@ async def main(dhap, hot, shots):
             pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
             await pg.goto(D); await pg.wait_for_timeout(600)
             tabs = await pg.query_selector_all(".tab-btn")
-            if len(tabs) != 8: problems.append((w, "tab count", len(tabs)))
+            living = await pg.evaluate("!!document.querySelector('.lr-main')")
+            if living:   # v17.0 Living Report: one page of 8 chapters; scroll through it all and check the width at every chapter
+                n = await pg.evaluate("document.querySelectorAll('.lr-ch').length")
+                if n != 8: problems.append((w, "chapter count", n))
+                for i in range(n):
+                    await pg.evaluate("i=>document.querySelectorAll('.lr-ch')[i].scrollIntoView()", i); await pg.wait_for_timeout(250)
+                    r = await pg.evaluate("""(i)=>{const vw=document.documentElement.clientWidth;const p=document.querySelectorAll('.lr-ch')[i];
+                      const bad=[...p.querySelectorAll('*')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.right>vw+1&&getComputedStyle(e).position!=='fixed'&&!e.closest('.lr-filter,.lr-nav,svg')}).slice(0,4).map(e=>e.tagName+'.'+e.className);
+                      return {id:p.id,sw:document.documentElement.scrollWidth,vw,bad}}""", i)
+                    if r["sw"] != r["vw"] or r["bad"]: problems.append((w, r))
+                    if w == 390: await pg.screenshot(path=str(shots / f"dhap_390_{i}_{r['id']}.png"))
+                tabs = []
+            elif len(tabs) != 8: problems.append((w, "tab count", len(tabs)))
             for i, t in enumerate(tabs):
                 await t.click(); await pg.wait_for_timeout(250)
                 r = await pg.evaluate("""()=>{const vw=document.documentElement.clientWidth;const p=document.querySelector('.tab-panel.active');
@@ -29,8 +41,11 @@ async def main(dhap, hot, shots):
                 if w == 390: await pg.screenshot(path=str(shots / f"dhap_390_{i}_{r['id']}.png"))
             if H is None: await ctx.close(); return
             await pg.goto(H); await pg.wait_for_timeout(500)
-            for sel in ("#s1 .step-btn", "#s2 .step-btn"):
-                await pg.click(sel); await pg.wait_for_timeout(300)
+            alive = await pg.evaluate("!!document.querySelector('.lv-link')")
+            for sel in (("#s2", "#s3") if alive else ("#s1 .step-btn", "#s2 .step-btn")):
+                if alive: await pg.evaluate("s=>document.querySelector(s).scrollIntoView()", sel)
+                else: await pg.click(sel)
+                await pg.wait_for_timeout(300)
                 sw = await pg.evaluate("[document.documentElement.scrollWidth, document.documentElement.clientWidth]")
                 if sw[0] != sw[1]: problems.append((w, "health-alert overflow", sw))
             if w == 390:

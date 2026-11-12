@@ -228,8 +228,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .score-method{margin-top:10px;font-size:.74rem;font-style:italic;font-weight:600;color:#334155;line-height:1.45;}
 </style>
 <script>document.documentElement.className+=" js";</script>
+<style>
+/* Living Alert: the same three screens as one monitored scroll */
+.screen{display:block!important;animation:none!important;scroll-margin-top:46px}
+.crumbs{position:sticky;top:0;z-index:60}
+.crumb{cursor:pointer}
+.crumb:not(.active):hover{border-color:rgba(74,222,128,.55)}
+.lv-line{display:block;width:100%}
+.lv-line path{fill:none;stroke:var(--ek,#4ade80);stroke-width:2;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:1;animation:lv-trace 4.2s linear infinite}
+@keyframes lv-trace{0%{stroke-dashoffset:1;opacity:1}70%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.lv-ekg{background:#0f172a;border-top:1px solid rgba(74,222,128,.18);line-height:0}
+.lv-ekg .lv-line{height:38px}
+.lv-link{position:relative;background:#0b1220;border-top:1px solid rgba(74,222,128,.3);border-bottom:1px solid rgba(74,222,128,.3);padding:36px 18px;text-align:center;font-family:'Courier New',Courier,monospace;color:#4ade80;font-size:1.1rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;overflow:hidden}
+.lv-link .lv-line{position:absolute;left:0;top:50%;transform:translateY(-50%);height:46px;opacity:.4}
+.lv-link span{position:relative;display:inline-block;background:#0b1220;padding:6px 20px;border:1px solid rgba(74,222,128,.45);border-radius:6px}
+@media(max-width:680px){.lv-link{font-size:.92rem;padding:28px 14px}}
+.lv-js .lv-rv{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.lv-js .lv-rv.in{opacity:1;transform:none}
+.lv-js .kpi-tile.alarm.in{animation:lv-alarm 1.2s ease var(--d,0s) 1}
+@keyframes lv-alarm{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}100%{box-shadow:0 0 0 16px rgba(220,38,38,0)}}
+.lv-js .score-fill{transition:width 1.7s cubic-bezier(.2,.8,.2,1) .2s}
+.lv-js .score-fill:not(.go){width:0!important}
+@media(prefers-reduced-motion:reduce){.lv-js .lv-rv{opacity:1;transform:none;transition:none}.lv-line path{animation:none;stroke-dashoffset:0}.lv-js .kpi-tile.alarm.in{animation:none}.lv-js .score-fill{transition:none}}
+.step-teaser{font-size:1.2rem;line-height:1.5;margin-bottom:0;text-wrap:balance}
+@media(max-width:680px){.step-teaser{font-size:1rem}}
+/* older Alert templates: keep the header badge and the terminal title inside a phone screen */
+@media(max-width:680px){.header-inner{flex-wrap:wrap;gap:10px}.header-badge{white-space:normal}.term-title{min-width:0;overflow-wrap:anywhere;word-break:break-word}.term-bar{min-width:0}}
+.lv-link,.lv-ekg{max-width:100%}
+</style>
 </head>
 <body>
+<!-- LIVING REPORT v17 -->
 
 <!-- HEADER -->
 <header class="report-header">
@@ -260,6 +289,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <!-- BREADCRUMB -->
+<div class="lv-ekg" aria-hidden="true"><svg class="lv-line" viewBox="0 0 1200 46" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="--ek:#4ade80"><path pathLength="1" d="M0 26h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85"/></svg></div>
 <nav class="crumbs" aria-label="Report progress"><div class="crumbs-inner">
   <button type="button" class="crumb active" data-go="1">01 &middot; Critical Alert</button><span class="crumb-sep">&rsaquo;</span>
   <button type="button" class="crumb" data-go="2" disabled>02 &middot; All Alerts</button><span class="crumb-sep">&rsaquo;</span>
@@ -310,14 +340,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <div class="step-cta-wrap">
   <div class="step-teaser">&gt; Score logged: <b>5.8/10 &mdash; CRITICAL</b>. Next: the 6 alerts behind it.</div>
-  <a href="#s2" class="step-btn" data-go="2">SEE ALL ALERTS &rarr; <span class="cur"></span></a>
 </div>
 </div>
 
+<div class="lv-link" aria-hidden="true"><svg class="lv-line" viewBox="0 0 1200 46" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="--ek:#4ade80"><path pathLength="1" d="M0 26h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85"/></svg><span>02 · All Alerts</span></div>
 <div class="screen" id="s2">
 <div class="body-wrap">
   <!-- KPI ROW 1 -->
   <div class="section-lbl" style="margin-top:4px;">GBP Activity &amp; Profile Status</div>
+  
   
   <div class="proof-hint">CLICK or tap any stat to see the audit proof behind it.</div>
   <div class="kpi-grid">
@@ -372,12 +403,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <div class="step-cta-wrap">
   <div class="step-teaser">&gt; 6 alerts confirmed by direct audit. Next: what they cost the dealership.</div>
-  <a href="#s3" class="step-btn" data-go="3">SEE REVENUE IMPACT &rarr; <span class="cur"></span></a>
 </div>
-  <button type="button" class="step-back" data-go="1">&larr; Back to Critical Alert</button>
 </div>
 </div>
 
+<div class="lv-link" aria-hidden="true"><svg class="lv-line" viewBox="0 0 1200 46" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="--ek:#4ade80"><path pathLength="1" d="M0 26h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85h70l7-5 7 5h10l6 9 9-34 9 44 7-19h12l9-8 9 8h85"/></svg><span>03 · Revenue Impact</span></div>
 <div class="screen" id="s3">
 <div class="body-wrap">
   <!-- REVENUE IMPACT — yellow eyebrow, white stat boxes -->
@@ -385,7 +415,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="impact-eyebrow"><span>&#9888;&#65039;</span>&nbsp;Revenue Impact Assessment</div>
     <div class="impact-headline"><span style="display:block;">Every unanswered search query for Mitsubishi service, parts, or financing in Greece, NY is a call, a lead, and a direction request this dealership is NOT getting.</span><span style="display:block;margin-top:16px;">With two revenue departments missing from Google, no owner posts on the listing, and no Google Business Profile link in the website&rsquo;s sameAs schema, this dealership is surrendering the local search position it should own every single day.</span><span style="display:block;margin-top:18px;font-size:1.3rem;font-weight:900;letter-spacing:.03em;color:#fbbf24;">Result: &#9888;&#65039; MASSIVE REVENUE LEAK</span></div>
     
-    <div class="proof-hint">CLICK or tap any stat to see the audit proof behind it.</div>
+    
+  <div class="proof-hint">CLICK or tap any stat to see the audit proof behind it.</div>
   <div class="impact-stats">
       <div class="t-stat" data-status="Critical" data-target="2" data-suffix="" data-comma="0">
         <div class="t-head">&gt; DEPTS_MISSING</div>
@@ -482,9 +513,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="cta-note">Prepared exclusively for James Mitsubishi Greece &nbsp;&bull;&nbsp; CLIKdata Digital Health Alert&trade; &nbsp;&bull;&nbsp; October 2026<br/>Report ID: GBP-JMGNY-1026 &nbsp;&bull;&nbsp; Confidential &mdash; Not for distribution</div>
     </div>
   </div>
-
-
-  <button type="button" class="step-back" data-go="2">&larr; Back to All Alerts</button>
 </div>
 </div>
 
@@ -538,31 +566,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </script>
 <script>
 (function(){
-  var screens=[document.getElementById('s1'),document.getElementById('s2'),document.getElementById('s3')];
-  var crumbs=[].slice.call(document.querySelectorAll('.crumb'));
-  var lbl=document.getElementById('crumbStep');
-  var reached=1;
-  function show(n){
-    if(n>reached) reached=n;
-    screens.forEach(function(s,i){ s.classList.toggle('active', i===n-1); });
-    crumbs.forEach(function(c,i){
-      var k=i+1;
-      c.classList.toggle('active',k===n);
-      c.classList.toggle('done',k<=reached && k!==n);
-      c.disabled = k>reached;
-    });
-    if(lbl) lbl.textContent='STEP '+n+' OF 3';
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
-  document.addEventListener('click',function(e){
-    var go=e.target.closest ? e.target.closest('[data-go]') : null;
-    if(!go) return;
-    e.preventDefault();
-    var n=parseInt(go.getAttribute('data-go'),10);
-    if(n>reached+1) return;
-    show(n);
-  });
-  show(1);
+var d=document,W=window,root=d.documentElement;root.classList.add('lv-js');
+var reduce=W.matchMedia&&W.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function all(s,r){return [].slice.call((r||d).querySelectorAll(s));}
+var screens=[1,2,3].map(function(n){return d.getElementById('s'+n);}),crumbs=all('.crumb'),lbl=d.getElementById('crumbStep'),reached=1,cur=0,tick=false;
+function paint(n){crumbs.forEach(function(c,i){var k=i+1;c.classList.toggle('active',k===n);c.classList.toggle('done',k<=reached&&k!==n);c.disabled=false;});if(lbl)lbl.textContent='STEP '+n+' OF 3';}
+function upd(){tick=false;var vh=W.innerHeight,n=1;screens.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<vh*.55)n=i+1;});
+  var grew=n>reached;if(grew)reached=n;if(n!==cur||grew){cur=n;paint(n);}}
+function go(n){var s=screens[n-1];if(!s)return;if(n>reached)reached=n;s.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+d.addEventListener('click',function(e){var t=e.target.closest?e.target:null;if(!t)return;
+  var c=t.closest('.crumb');if(c){e.preventDefault();var k=crumbs.indexOf(c)+1;if(k)go(k);return;}
+  var g=t.closest('[data-go]');if(!g)return;e.preventDefault();var n=parseInt(g.getAttribute('data-go'),10);go(n);});
+W.addEventListener('scroll',function(){if(!tick){tick=true;W.requestAnimationFrame(upd);}},{passive:true});W.addEventListener('resize',upd);upd();
+/* numbers count up and alarms fire as each part scrolls into view */
+function count(el,dec){if(el._c)return;el._c=1;var m=/^(\d+(?:\.\d+)?)(%?)$/.exec(el.textContent.trim());if(!m||reduce||!parseFloat(m[1]))return;
+  var to=parseFloat(m[1]),suf=m[2],fin=el.textContent,t0=null;dec=dec||(m[1].indexOf('.')>-1?m[1].split('.')[1].length:0);
+  function step(ts){if(t0===null)t0=ts;var p=Math.min((ts-t0)/1500,1),e=1-Math.pow(1-p,3);el.textContent=(to*e).toFixed(dec)+suf;if(p<1){W.requestAnimationFrame(step);}else{el.textContent=fin;}}
+  el.textContent=(0).toFixed(dec)+suf;W.requestAnimationFrame(step);}
+var rv=all('.score-row,.term-card,.kpi-tile,.impact-box,.cta-card');
+all('.kpi-grid').forEach(function(g){all('.kpi-tile',g).forEach(function(t,i){t.style.setProperty('--d',(i*.16)+'s');});});
+function show(el){el.classList.add('in');all('.score-fill',el).forEach(function(f){f.classList.add('go');});all('.score-big,.kpi-val',el).forEach(function(v){count(v);});}
+rv.forEach(function(el){el.classList.add('lv-rv');});
+if(reduce||!('IntersectionObserver' in W)){rv.forEach(show);}
+else{var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){show(x.target);io.unobserve(x.target);}});},{threshold:.2});rv.forEach(function(e){io.observe(e);});}
 })();
 </script>
 <script>

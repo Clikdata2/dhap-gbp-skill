@@ -1,29 +1,30 @@
 #!/usr/bin/env python3
-"""Living Report (design concept, not a rule): re-lays a built DHAP and Digital Health Alert as one continuous,
-interactive scroll.
+"""DHAP GBP engine — Living Report design (v17.0, decided by Travis Nov 12 2026): the live DHAP and Digital Health Alert.
 
-It adds no facts and no wording of its own about the dealer or the product. It first builds the normal pages with
-engine/build.py (so every number and sentence has already been through the engine), reads the text out of those
-pages, and lays the same text out again:
+Turns a DHAP and a Digital Health Alert built by engine/build.py into the Living Report pages, in place, with the
+same file names. It adds no facts and no wording about the dealer or the product: it reads the text out of the
+built pages and lays the same text out again.
 
   DHAP   the eight tabs become eight chapters on one page, joined by a progress spine; the score is a gauge, the
-         scorecard is a bar chart whose legend filters it, findings and AI signals open on click, the Opportunities
-         table reads as finding -> CLIKsearch action, and the proof still opens in the RULE K side panel.
-  Alert  the three screens stay, in the same order with the same words, but as one monitored scroll: the breadcrumb
-         follows the reader and all three of its steps are always clickable; the step buttons are gone.
+         scorecard is a bar chart whose status pills filter it, findings and AI signals open on click, the
+         Opportunities table reads as finding -> CLIKsearch action, and the proof opens in the RULE K side panel.
+  Alert  the three screens stay, in the same order with the same words, as one monitored scroll: the 01/02/03
+         breadcrumb follows the reader and is always clickable; the line above each old step button stays, as plain
+         text at the button's size; heartbeat bands divide the screens.
 
-The only text not taken from the built pages is the "Next steps" stepper, which quotes the knowledge base
-(knowledge-base/jessica-kb-qa.json); the build checks each sentence against it and leaves the stepper out if one
-is no longer there.
+The only text not taken from the built pages is the "Next steps" stepper (Mitsubishi only), which quotes
+knowledge-base/jessica-kb-qa.json; it is left out if a sentence is no longer there.
+
+An existing RULE K popup block on a page is kept and re-inserted, so already-delivered pages can be converted
+without their screenshots. Pages already in the Living design are left alone.
 
 Usage:
-  python3 concepts/living-report/build.py --evidence EV.json --content CONTENT.json \
-      --proof-spec SPEC.json --proof-images DIR --out OUT
-Needs Playwright's Chromium (the engine already does).
+  python3 engine/living.py DHAP.html ALERT.html [--evidence EV.json] [--proof-spec SPEC.json --proof-images DIR]
+  (ALERT.html = - when there is no Alert). Needs Playwright's Chromium (the engine already does).
 """
 import argparse, html as H, json, math, pathlib, re, subprocess, sys, tempfile
 
-HERE = pathlib.Path(__file__).resolve().parent
+HERE = pathlib.Path(__file__).resolve().parent / "living"
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import proof_popup  # noqa: E402  (RULE K side panel)
@@ -60,7 +61,13 @@ const card=c=>{if(!c)return null;const t=q(c,'.finding-title'),tag=t?q(t,'[class
           tagTone:tag?(/green/.test(tag.className)?'green':'amber'):'',body:ih(q(c,'.finding-body')),pill:tx(q(c,'.pill'))}};
 const groups=p=>{const out=[];let cur=null;for(const el of (p?p.children:[])){if(el.classList.contains('section-title')){cur={title:tx(el),cards:[]};out.push(cur)}
   else if(el.classList.contains('finding-card')&&cur){cur.cards.push(card(el))}}return out.filter(g=>g.cards.length)};
-const rowTone=tr=>((tr.className.match(/cc-(?:t-)?(red|org|yel|grn|gry)/)||[])[1])||'gry';
+const rowTone=tr=>((tr.className.match(/cc-(?:t-)?(red|org|yel|grn|gry)/)||[])[1])||'';
+const BANDS=[['Critical','red'],['Major Issues','org'],['Needs Improvement','yel'],['Fully Optimized','grn']];
+const bandOf=v=>isNaN(v)?['','gry']:v<=5?BANDS[0]:v<7?BANDS[1]:v<9?BANDS[2]:BANDS[3];
+const statusIn=t=>BANDS.find(b=>new RegExp(b[0],'i').test(t||''));
+const sigTone=t=>/critical/i.test(t)?'red':/major/i.test(t)?'org':/partial/i.test(t)?'yel':/strength|strong|verified/i.test(t)?'grn':'gry';
+const noEmoji=t=>(t||'').replace(/^[^A-Za-z0-9]+/,'').trim();
+const num=t=>parseFloat(((t||'').match(/\d+(?:\.\d+)?/)||[''])[0]);
 const roi=b=>b?{eyebrow:tx(q(b,'.roi-eyebrow')),amount:tx(q(b,'.roi-amount')),sub:ih(q(b,'.roi-sub')),cta:tx(q(b,'.roi-cta-btn')),href:(q(b,'.roi-cta-btn')||{}).href||''}:null;
 const P=id=>document.getElementById(id);
 const sum=P('summary'),sc=P('scorecard'),ai=P('aivisibility'),fi=P('findings'),op=P('opportunities'),so=P('solution'),wy=P('whyact'),inv=P('investment');
@@ -72,17 +79,21 @@ return {
  tabs:qa(document,'.tab-btn').map(b=>({t:tx(b),id:((b.getAttribute('onclick')||'').match(/'([^']+)'/)||[])[1]||''})),
  summary:{eyebrow:tx(q(sum,'.hero-eyebrow')),title:ih(q(sum,'.hero-title')),sub:ih(q(sum,'.hero-sub')),facts:facts(sum),score:tx(q(sum,'.score-num')),
           denom:tx(q(sum,'.score-denom')),label:tx(q(sum,'.score-banner-context .score-label')),bullets:bullets(sum)},
- scorecard:{title:tx(q(sc,'.section-title')),intro:ih(q(sc,':scope>p')),head:qa(st,'thead th').map(tx),legend:qa(sc,'.cc-legend span').map(tx),
+ scorecard:{title:tx(q(sc,'.section-title')),intro:ih(q(sc,':scope>p')),head:qa(st,'thead th').map(tx),
+  legend:(l=>l.length===4?l:['5.0 or below — Critical','above 5.0 to 6.9 — Major Issues','7.0 to 8.9 — Needs Improvement','9.0 or higher — Fully Optimized'])(qa(sc,'.cc-legend span').map(tx)),
   rows:qa(st,'tbody tr').map(tr=>{const td=tr.children;
-   if(tr.classList.contains('cc-total'))return {total:true,tone:rowTone(tr),name:tx(td[0]),score:tx(q(td[1],'.cc-big'))||tx(td[1]),status:tx(q(td[2],'.cc-pill')),sub:ih(q(td[2],'.cc-sub')),pill:tx(td[3])};
+   if(tr.classList.contains('cc-total')||/^OVERALL/i.test(tx(td[0]))){const st2=tx(q(td[2],'.cc-pill'))||((statusIn(tx(td[2]))||[''])[0]);
+     const sub=q(td[2],'.cc-sub')?ih(q(td[2],'.cc-sub')):(()=>{const c=td[2].cloneNode(true);c.childNodes.forEach(n=>{if(n.nodeType===3)n.textContent=n.textContent.replace(/[^A-Za-z(]*(Critical|Major Issues|Needs Improvement|Fully Optimized)/i,'')});return ih(c)})();
+     return {total:true,tone:rowTone(tr)||(statusIn(st2)||['','gry'])[1],name:tx(td[0]),score:tx(q(td[1],'.cc-big'))||tx(td[1]),status:st2.toUpperCase(),sub,pill:tx(td[3])};}
    const c2=td[2].cloneNode(true);qa(c2,'.cc-pts,.cc-why').forEach(x=>x.remove());
-   return {tone:rowTone(tr),name:tx(td[0]),score:tx(q(td[1],'.cc-sc')),fill:(q(td[1],'.bar-fill')||{style:{}}).style.width||'0%',status:tx(q(td[1],'.cc-b')),found:ih(c2),
+   const sc1=tx(q(td[1],'.cc-sc'))||tx(td[1]),b=bandOf(num(sc1));
+   return {tone:rowTone(tr)||b[1],name:tx(td[0]),score:sc1,fill:(q(td[1],'.bar-fill')||{style:{}}).style.width||'0%',status:tx(q(td[1],'.cc-b'))||b[0].toUpperCase(),found:ih(c2),
            pts:qa(td[2],'.cc-pt').map(p=>({k:['full','part','zero','off'].find(k=>p.classList.contains(k))||'',h:ih(p)})),why:ih(q(td[2],'.cc-why')),pill:tx(td[3])}})},
  ai:{eyebrow:tx(q(ai,'.hero-eyebrow')),title:ih(q(ai,'.hero-title')),sub:ih(q(ai,'.hero-sub')),facts:facts(ai),icon:tx(abl&&abl.children[0]),label:tx(abl&&abl.children[1]),
      sub2:tx(abl&&abl.children[2]),gapsTitle:tx(q(ab,'.score-banner-context .score-label')),bullets:bullets(ai),how:card(q(ai,':scope>.finding-card')),
      tableTitle:tx(at&&at.previousElementSibling),head:qa(at,'thead th').map(tx),
-     rows:qa(at,'tbody tr').map(tr=>{const td=tr.children;return {total:tr.classList.contains('cc-total'),tone:rowTone(tr),name:tx(q(td[0],'strong'))||tx(td[0]),desc:tx(q(td[0],'div')),
-       tag:tx(td[1]),tagTone:/green/.test(td[1].innerHTML)?'green':'amber',status:tx(td[2]),fix:tx(td[3])}}),
+     rows:qa(at,'tbody tr').map(tr=>{const td=tr.children,nm=tx(q(td[0],'strong'))||tx(td[0]),stt=noEmoji(tx(td[2]));return {total:tr.classList.contains('cc-total')||/^OVERALL/i.test(nm),tone:rowTone(tr)||sigTone(stt),name:nm,desc:tx(q(td[0],'div')),
+       tag:tx(td[1]),tagTone:/green/.test(td[1].innerHTML)?'green':'amber',status:stt.toUpperCase(),fix:tx(td[3])}}),
      groups:groups(ai),close:{title:tx(q(ai,':scope>.mids-box .mids-title')),body:ih(q(ai,':scope>.mids-box .mids-body'))}},
  findings:{groups:groups(fi)},
  opportunities:{title:tx(q(op,'.section-title')),head:qa(ot,'thead th').map(tx),
@@ -355,11 +366,15 @@ def living_dhap(src_html, D, X, proof_block):
         secs.append(f'<section class="lr-ch {BANDS.get(t["id"], "")}" id="{t["id"]}" style="--c:{COLORS[t["id"]]}"><div class="lr-in"><div class="lr-node" aria-hidden="true">{i + 1:02d}</div>'
                     f'{mark}{inner}{tail}</div></section>')
     metas = "".join(re.findall(r"<meta[^>]+>", src_html[:src_html.index("</head>")]))
+    head = src_html[:src_html.index("</head>")]
+    clarity = re.search(r"<!-- Microsoft Clarity.*?</script>", head, re.S)
+    clarity = clarity.group(0) if clarity else ""
     jess = ""
     if "JESSICA" in src_html:
         a = src_html.index("<!-- ===== JESSICA"); jess = src_html[a:src_html.rindex("</body>")]
-    css = (HERE / "src/living.css").read_text(encoding="utf-8"); js = (HERE / "src/living.js").read_text(encoding="utf-8")
-    return (f'<!DOCTYPE html>\n<html lang="en">\n<head>\n{metas}\n<title>{esc(D["title"])}</title>\n<style>\n{css}</style>\n</head>\n<body>\n'
+        jess = re.sub(r"<!-- PROOF POPUPS START.*?<!-- PROOF POPUPS END -->\n?", "", jess, flags=re.S)   # the popup block is placed once, below
+    css = (HERE / "living.css").read_text(encoding="utf-8"); js = (HERE / "living.js").read_text(encoding="utf-8")
+    return (f'<!DOCTYPE html>\n<html lang="en">\n<head>\n{metas}\n<title>{esc(D["title"])}</title>\n<style>\n{css}</style>\n{clarity}\n</head>\n<body>\n'
             f'<header class="lr-top"><div class="lr-top-in"><img src="{esc(D["logo"])}" class="lr-logo" alt="CLIKdata"/><nav class="lr-nav" aria-label="Report chapters">{nav}</nav></div>'
             f'<div class="lr-progwrap"><div class="lr-prog"></div></div></header>\n'
             f'<main class="lr-main"><div class="lr-spine" aria-hidden="true"><i></i><b></b></div>\n' + "\n".join(secs) + "\n</main>\n"
@@ -369,7 +384,7 @@ def living_dhap(src_html, D, X, proof_block):
 def living_alert(src_html, proof_block):
     """Same Alert, same words: the three screens stacked into one scroll, the breadcrumb following the reader."""
     h = src_html
-    css = (HERE / "src/alert.css").read_text(encoding="utf-8"); js = (HERE / "src/alert.js").read_text(encoding="utf-8")
+    css = (HERE / "alert.css").read_text(encoding="utf-8"); js = (HERE / "alert.js").read_text(encoding="utf-8")
     crumbs = [strip(c) for c in re.findall(r'<button[^>]*class="crumb[^"]*"[^>]*>(.*?)</button>', h, re.S)]
     a = h.index("var screens=[document.getElementById('s1')"); s0 = h.rindex("<script>", 0, a); s1 = h.index("</script>", a) + len("</script>")
     h = h[:s0] + f"<script>\n{js}</script>" + h[s1:]
@@ -399,28 +414,39 @@ def extract(path):
     return data
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--evidence", required=True); ap.add_argument("--content", required=True)
-    ap.add_argument("--proof-spec"); ap.add_argument("--proof-images"); ap.add_argument("--out", required=True)
-    a = ap.parse_args(); out = pathlib.Path(a.out); out.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory() as tmp:
-        r = subprocess.run([sys.executable, str(REPO / "engine/build.py"), "--evidence", a.evidence, "--content", a.content, "--out", tmp], capture_output=True, text=True)
-        if r.returncode != 0:
-            sys.exit("engine/build.py failed:\n" + (r.stderr or r.stdout)[-2000:])
-        dhap = next(pathlib.Path(tmp).glob("*_dhap_*.html")); alert = next(pathlib.Path(tmp).glob("*_health-alert_*.html"))
-        dhap_html = dhap.read_text(encoding="utf-8"); alert_html = alert.read_text(encoding="utf-8"); D = extract(dhap)
-        slug = dhap.name.split("_dhap_")[0]
-    block = ""
-    if a.proof_spec and a.proof_images:
-        spec = json.loads(pathlib.Path(a.proof_spec).read_text(encoding="utf-8")); block = proof_popup.block(spec["keys"], a.proof_images, spec.get("rules"))
+LIVING_MARK = "<!-- LIVING REPORT v17 -->"
+BLOCK_RE = re.compile(r"<!-- PROOF POPUPS START.*?<!-- PROOF POPUPS END -->\n?", re.S)
+
+
+def convert(dhap_path, alert_path=None, evidence=None, proof_block=None):
+    """Convert the built pages in place. Returns the paths converted."""
+    dhap_path = pathlib.Path(dhap_path); done = []
+    dhap_html = dhap_path.read_text(encoding="utf-8")
+    alert_html = pathlib.Path(alert_path).read_text(encoding="utf-8") if alert_path else ""
     kbf = REPO / "knowledge-base/jessica-kb-qa.json"
     live = re.search(r'class="live-badge"[^>]*>(.*?)</span>', alert_html, re.S)
-    X = {"evidence": json.loads(pathlib.Path(a.evidence).read_text(encoding="utf-8")), "kb": json.loads(kbf.read_text(encoding="utf-8")) if kbf.exists() else None,
+    X = {"evidence": json.loads(pathlib.Path(evidence).read_text(encoding="utf-8")) if evidence else None,
+         "kb": json.loads(kbf.read_text(encoding="utf-8")) if kbf.exists() else None,
          "live": strip(live.group(1)).lstrip("●").strip() if live else ""}
-    pages = {f"{slug}_dhap_living.html": living_dhap(dhap_html, D, X, block), f"{slug}_health-alert_living.html": living_alert(alert_html, block)}
-    for name, text in pages.items():
-        (out / name).write_text(text, encoding="utf-8"); print("built:", out / name, f"({len(text) // 1024} KB)")
+    if LIVING_MARK not in dhap_html:
+        m = BLOCK_RE.search(dhap_html); block = proof_block if proof_block is not None else (m.group(0) if m else "")
+        D = extract(dhap_path)
+        dhap_path.write_text(living_dhap(dhap_html, D, X, block).replace("<body>", "<body>\n" + LIVING_MARK, 1), encoding="utf-8"); done.append(str(dhap_path))
+    if alert_path and LIVING_MARK not in alert_html:
+        m = BLOCK_RE.search(alert_html); block = proof_block if proof_block is not None else (m.group(0) if m else "")
+        pathlib.Path(alert_path).write_text(living_alert(alert_html, block).replace("<body>", "<body>\n" + LIVING_MARK, 1), encoding="utf-8"); done.append(str(alert_path))
+    return done
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("dhap"); ap.add_argument("alert", nargs="?", default="-")
+    ap.add_argument("--evidence"); ap.add_argument("--proof-spec"); ap.add_argument("--proof-images")
+    a = ap.parse_args(); block = None
+    if a.proof_spec and a.proof_images:
+        spec = json.loads(pathlib.Path(a.proof_spec).read_text(encoding="utf-8")); block = proof_popup.block(spec["keys"], a.proof_images, spec.get("rules"))
+    done = convert(a.dhap, None if a.alert == "-" else a.alert, a.evidence, block)
+    print("Living Report:", ", ".join(done) if done else "already in the Living design, nothing to do")
 
 
 if __name__ == "__main__":

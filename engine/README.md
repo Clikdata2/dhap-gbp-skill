@@ -11,10 +11,10 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 3. **Write.** Write the report wording in a content file. Copy `examples/content-example-vacaville.json` and change it. It holds only words and numbers, not page code.
 4. **Check and build.** Run one command:
    `python3 engine/check_all.py --evidence ev.json --content content.json --out OUT`
-   It runs seven checks in order and stops at the first one that fails. If all pass, both pages are built and checked.
+   It runs nine checks in order and stops at the first one that fails. If all pass, both pages are built, turned into the Living Report design (v17.0) and checked.
 5. **Review and publish** as before (SKILL.md step 8).
 
-## The seven checks (`check_all.py`)
+## The nine checks (`check_all.py`)
 
 | # | Check | What it stops |
 |---|---|---|
@@ -23,8 +23,10 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | 3 | Facts gate | Any number or phone number in the report that is not in the evidence ("never restate a number you can't source") |
 | 4 | Build | Unsafe page code, leftover placeholders, wrong counts, a changed template |
 | 5 | Repository assertions | Everything in the SKILL.md assertion suite, read fresh from SKILL.md each run |
-| 6 | Phone-width test | Pages that break at 360, 390 or 430 pixels wide |
-| 7 | Spelling | Listed for a person to check (does not stop the run) |
+| 6 | Markdown copies | Writes the `.md` copy of each page from the base build |
+| 7 | Living Report (v17.0) | Turns both pages into the Living Report design in place (`living.py`) and re-checks banned phrases, page structure, noindex and Clarity |
+| 8 | Phone-width test | Living pages that break at 360, 390 or 430 pixels wide |
+| 9 | Spelling | Listed for a person to check (does not stop the run) |
 
 ## What is in here
 
@@ -36,7 +38,8 @@ The engine never changes a rule. It reads `SKILL.md` each time it runs. If the s
 | `score.py` | Turns evidence into the 8 scores, the overall score and the status, exactly as the rubrics say |
 | `facts.py` | The facts gate |
 | `build.py` | Builds the full report and the health alert from the templates in `templates/` |
-| `check_all.py` | Runs all eight checks; the eighth writes the Markdown copies |
+| `check_all.py` | Runs all nine checks |
+| `living.py`, `living/` | The v17.0 Living Report design: converts a built (or already delivered) DHAP and Alert in place; `python3 engine/living.py DHAP.html ALERT.html --evidence ev.json` |
 | `to_markdown.py` | Writes the Markdown copy (`.md`, same name) of a built DHAP or Alert: every tab, every Alert screen, final numbers, tables as tables (v16.5) |
 | `jev.py` | Optional second opinion on post types (see below) |
 | `alert_cards.py` | Rule 7 (v15.2): picks the four Alert stat cards from the dealer's weakest areas and writes the Revenue Impact paragraph |

@@ -86,6 +86,8 @@ def desktop_check(b, path):
         groups = [("s1", "#s1 [data-proof]", None), ("s2", "#s2 [data-proof]", "2"), ("s3", "#s3 [data-proof]", "3")]
     else:
         groups = [(t, f"#{t} [data-proof]", t) for t in pg.evaluate("[...document.querySelectorAll('.tab-panel')].filter(p=>p.querySelector('[data-proof]')).map(p=>p.id)")]
+        if not groups:   # v17.0 Living Report DHAP: one scrolling page, no tabs
+            groups = [("living page", "[data-proof]", None)]
     ok = n_all = 0
     for name, sel, go in groups:
         if go and alert:

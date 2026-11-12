@@ -21,3 +21,6 @@
 @media(prefers-reduced-motion:reduce){.lv-js .lv-rv{opacity:1;transform:none;transition:none}.lv-line path{animation:none;stroke-dashoffset:0}.lv-js .kpi-tile.alarm.in{animation:none}.lv-js .score-fill{transition:none}}
 .step-teaser{font-size:1.2rem;line-height:1.5;margin-bottom:0;text-wrap:balance}
 @media(max-width:680px){.step-teaser{font-size:1rem}}
+/* older Alert templates: keep the header badge and the terminal title inside a phone screen */
+@media(max-width:680px){.header-inner{flex-wrap:wrap;gap:10px}.header-badge{white-space:normal}.term-title{min-width:0;overflow-wrap:anywhere;word-break:break-word}.term-bar{min-width:0}}
+.lv-link,.lv-ekg{max-width:100%}
