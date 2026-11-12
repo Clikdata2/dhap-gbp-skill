@@ -8,9 +8,10 @@
 @keyframes lv-trace{0%{stroke-dashoffset:1;opacity:1}70%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
 .lv-ekg{background:#0f172a;border-top:1px solid rgba(74,222,128,.18);line-height:0}
 .lv-ekg .lv-line{height:38px}
-.lv-link{position:relative;background:#0b1220;border-top:1px solid rgba(74,222,128,.3);border-bottom:1px solid rgba(74,222,128,.3);padding:18px;text-align:center;font-family:'Courier New',Courier,monospace;color:#4ade80;font-size:.8rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;overflow:hidden}
-.lv-link .lv-line{position:absolute;left:0;top:0;height:100%;opacity:.4}
-.lv-link span{position:relative;display:inline-block;background:#0b1220;padding:2px 14px;border:1px solid rgba(74,222,128,.45);border-radius:5px}
+.lv-link{position:relative;background:#0b1220;border-top:1px solid rgba(74,222,128,.3);border-bottom:1px solid rgba(74,222,128,.3);padding:36px 18px;text-align:center;font-family:'Courier New',Courier,monospace;color:#4ade80;font-size:1.1rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;overflow:hidden}
+.lv-link .lv-line{position:absolute;left:0;top:50%;transform:translateY(-50%);height:46px;opacity:.4}
+.lv-link span{position:relative;display:inline-block;background:#0b1220;padding:6px 20px;border:1px solid rgba(74,222,128,.45);border-radius:6px}
+@media(max-width:680px){.lv-link{font-size:.92rem;padding:28px 14px}}
 .lv-js .lv-rv{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
 .lv-js .lv-rv.in{opacity:1;transform:none}
 .lv-js .kpi-tile.alarm.in{animation:lv-alarm 1.2s ease var(--d,0s) 1}
