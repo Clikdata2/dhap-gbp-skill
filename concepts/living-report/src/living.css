@@ -43,11 +43,6 @@ strong,b{font-weight:700}
 .lr-dark .lr-lead em{color:rgba(255,255,255,.62)!important}
 .lr-small{font-size:.82rem;color:var(--mu);line-height:1.6}
 .red{color:#e82b39}.orange{color:#f97316}.green{color:#16a34a}
-.lr-next{display:inline-flex;align-items:center;gap:10px;margin-top:34px;padding:11px 18px;border-radius:999px;border:1px solid var(--ln);background:#fff;color:var(--ink);font-size:.82rem;font-weight:700;text-decoration:none;transition:transform .2s,box-shadow .2s,border-color .2s}
-.lr-next span{display:inline-block;color:var(--c);animation:lr-nudge 1.6s ease-in-out infinite}
-.lr-next:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,23,42,.12);border-color:#cbd5e1}
-.lr-dark .lr-next{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22);color:#fff}
-@keyframes lr-nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 /* reveal on scroll */
 .lr-js .lr-rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
 .lr-js .lr-rv.in{opacity:1;transform:none}
@@ -110,11 +105,12 @@ strong,b{font-weight:700}
 .lr-filter button i{width:9px;height:9px;border-radius:2px;background:var(--s,#94a3b8)}
 .lr-filter button:hover{border-color:#94a3b8}
 .lr-filter button.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.lr-filter button:disabled{opacity:.45;cursor:default}
+.lr-filter button:disabled:hover{border-color:var(--ln)}
 .lr-filter button em{font-style:normal;font-weight:600;opacity:.6}
 /* expandable rows: scorecard and AI signals */
 .lr-rows{display:flex;flex-direction:column;gap:8px}
-.lr-row{background:#fff;border:1px solid var(--ln);border-left:5px solid var(--s);border-radius:10px;overflow:hidden;transition:opacity .25s,box-shadow .2s}
-.lr-row.dim{opacity:.28}
+.lr-row{background:#fff;border:1px solid var(--ln);border-left:5px solid var(--s);border-radius:10px;overflow:hidden;transition:box-shadow .2s}
 .lr-row.open{box-shadow:0 8px 24px rgba(15,23,42,.08)}
 .lr-row-h{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.5fr) 70px 168px 18px;grid-template-areas:"n bar s chip chev";align-items:center;gap:14px;width:100%;padding:14px 16px;border:none;background:none;font-family:inherit;text-align:left;cursor:pointer;color:var(--ink);transition:background .15s}
 .lr-row-h:hover{background:#f8fafc}
@@ -324,7 +320,7 @@ strong,b{font-weight:700}
  .lr-js .lr-rv:not(.in) .lr-bar i{width:var(--w)}
  .lr-js .lr-rv:not(.in) .lr-opp-ar i{transform:none}
  .lr-needle,.lr-bar i,.lr-opp-ar i{transition:none}
- .lr-spine b,.lr-next span,.lr-live:before,.lr-ekg path,.lr-vcell.miss,.lr-hub-src:before,.lr-hub-wire i,.lr-hub-out span{animation:none}
+ .lr-spine b,.lr-live:before,.lr-ekg path,.lr-vcell.miss,.lr-hub-src:before,.lr-hub-wire i,.lr-hub-out span{animation:none}
  .lr-ekg path{stroke-dashoffset:0}
  .lr-hub-wire i{display:none}
 }

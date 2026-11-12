@@ -43,8 +43,8 @@ STEPS = [
      ["Initial profile setup, name, address, and phone consistency, categories, and nesting the Service and Parts profiles begin immediately."]),
     ("First weeks", "Articles, GEO-optimized posts, and photos begin publishing in the first weeks after onboarding and compound over time.",
      ["Articles, GEO-optimized posts, and photos begin publishing in the first weeks after onboarding and compound over time."]),
-    ("90 days", "CLIKsearch's commitment is go-live in 72 hours after onboarding and results within 90 days. Results vary by dealership, and nothing is guaranteed.",
-     ["CLIKsearch's commitment is go-live in 72 hours after onboarding and results within 90 days.", "Results vary by dealership, and nothing is guaranteed."]),
+    ("90 days", "CLIKsearch's commitment is go-live in 72 hours after onboarding and results within 90 days. Results vary by dealership.",
+     ["CLIKsearch's commitment is go-live in 72 hours after onboarding and results within 90 days.", "Results vary by dealership"]),
 ]
 
 EXTRACT = r"""() => {
@@ -195,13 +195,15 @@ def row_html(r, logo, i, opened):
 def ch_scorecard(D, X):
     s = D["scorecard"]; rows = [r for r in s["rows"] if not r.get("total")]; tot = next((r for r in s["rows"] if r.get("total")), None)
     low = min(range(len(rows)), key=lambda i: float(rows[i]["score"].split("/")[0])) if rows else -1
-    chips = "".join(f'<button type="button" class="t-{t}" data-f="{t}"><i></i>{esc(x)}</button>' for t, x in zip(("red", "org", "yel", "grn"), s["legend"]))
+    cnt = lambda t: sum(1 for r in rows if r["tone"] == t)
+    chips = f'<button type="button" class="active" data-f="">All <em>{len(rows)}</em></button>' + "".join(
+        f'<button type="button" class="t-{t}" data-f="{t}"{"" if cnt(t) else " disabled"}><i></i>{esc(x)} <em>{cnt(t)}</em></button>' for t, x in zip(("red", "org", "yel", "grn"), s["legend"]))
     body = "".join(row_html(r, D["pillLogo"], i, i == low) for i, r in enumerate(rows))
     total = (f'<div class="lr-total t-{tot["tone"]} lr-rv"><div><div class="lr-total-n">{esc(tot["name"])}</div><div class="lr-total-s">{esc(tot["score"])}</div></div>'
              f'<div class="lr-total-t"><span class="lr-chip">{esc(tot["status"])}</span>{tot["sub"]}</div>{pill(tot["pill"], green=True)}</div>') if tot else ""
     head = esc(s["head"][2]) if len(s["head"]) > 2 else ""
     return (f'<h2 class="lr-h2 lr-rv">{esc(s["title"])}</h2><p class="lr-small lr-rv">{s["intro"]}</p>'
-            f'<div class="lr-filter lr-rv" data-target="#lr-sc" data-mode="dim">{chips}</div>'
+            f'<div class="lr-filter lr-rv" data-target="#lr-sc">{chips}</div>'
             f'<div class="lr-tools lr-rv"><div class="lr-dlbl" style="margin:0">{head}</div>'
             f'<button type="button" class="lr-linkbtn" data-expand="#lr-sc" data-more="Open all" data-less="Close all">Open all</button></div>'
             f'<div class="lr-rows" id="lr-sc">{body}</div>{total}')
@@ -234,7 +236,7 @@ def ch_ai(D, X):
             f'<div class="lr-gcard lr-navy lr-rv" style="--sc:{dark};--d:.15s"><div class="lr-aistat"><span>{esc(a["icon"])}</span><span class="lb">{esc(a["label"])}</span>'
             f'<span class="sb">{esc(a["sub2"])}</span></div><div class="lr-dlbl">{esc(a["gapsTitle"])}</div>{bullets_html(a["bullets"])}</div></div>'
             f'{facts_html(a["facts"], light=True)}<div class="lr-cards one" style="margin-top:22px">{how}</div>'
-            f'<h3 class="lr-h3 lr-rv">{esc(a["tableTitle"])}</h3><div class="lr-filter lr-rv" data-target="#lr-ai" data-mode="hide">{chips}</div>'
+            f'<h3 class="lr-h3 lr-rv">{esc(a["tableTitle"])}</h3><div class="lr-filter lr-rv" data-target="#lr-ai">{chips}</div>'
             f'<div class="lr-rows" id="lr-ai">{body}</div>{total}{groups}{close}')
 
 
@@ -259,7 +261,7 @@ def ch_findings(D, X):
     body = "".join(f'<div class="lr-fgroup" data-k="g{i}"><h3 class="lr-h3 lr-rv">{esc(g["title"])}</h3><div class="lr-cards">'
                    + "".join(card_html(c, j * .07) for j, c in enumerate(g["cards"])) + "</div></div>" for i, g in enumerate(gs))
     return (f'<h2 class="lr-h2 lr-rv">{esc(X["label"])}</h2>{both_views(X.get("evidence"))}'
-            f'<div class="lr-filter lr-rv" data-target="#lr-fi" data-mode="hide">{chips}</div><div id="lr-fi">{body}</div>')
+            f'<div class="lr-filter lr-rv" data-target="#lr-fi">{chips}</div><div id="lr-fi">{body}</div>')
 
 
 def ch_opportunities(D, X):
@@ -347,12 +349,11 @@ def living_dhap(src_html, D, X, proof_block):
     nav = "".join(f'<button type="button" data-goto="{t["id"]}"><i>{i + 1:02d}</i>{esc(t["t"])}</button>' for i, t in enumerate(tabs))
     secs = []
     for i, t in enumerate(tabs):
-        X["label"] = t["t"]; inner = CHAPTERS[t["id"]](D, X); nxt = tabs[i + 1] if i + 1 < n else None
-        nx = f'<div><a class="lr-next lr-rv" href="#{nxt["id"]}" data-goto="{nxt["id"]}">Next: {esc(nxt["t"])} <span>&darr;</span></a></div>' if nxt else ""
+        X["label"] = t["t"]; inner = CHAPTERS[t["id"]](D, X)
         mark = "" if t["id"] in ("summary", "aivisibility") else f'<div class="lr-eyebrow lr-rv"><b>{i + 1:02d}</b> / {n:02d} · {esc(t["t"])}</div>'
         tail = ekg("#e82b39") if t["id"] == "summary" else ""
         secs.append(f'<section class="lr-ch {BANDS.get(t["id"], "")}" id="{t["id"]}" style="--c:{COLORS[t["id"]]}"><div class="lr-in"><div class="lr-node" aria-hidden="true">{i + 1:02d}</div>'
-                    f'{mark}{inner}{nx}{tail}</div></section>')
+                    f'{mark}{inner}{tail}</div></section>')
     metas = "".join(re.findall(r"<meta[^>]+>", src_html[:src_html.index("</head>")]))
     jess = ""
     if "JESSICA" in src_html:
