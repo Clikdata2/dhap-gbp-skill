@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Evidence popups (RULE K): builds the CSS + script block that makes every tile and card of a DHAP or Digital Health Alert
-open an in-page evidence popup on hover (preview) or click/tap (pinned, enlarged).
+open its evidence in a side panel (v16.8): hovering only tints the stat and shows a pointing-hand cursor; a click or tap
+slides a single-column panel in from the right over a 50% black shade; it scrolls on its own, and closing it (X, Esc,
+or a click on the shade) returns the reader to exactly where they were.
 
 Usage:
   python3 scripts/proof_popup.py spec.json images_dir > block.html      # then insert the block before </body>
@@ -43,43 +45,57 @@ def block(keys_spec, images_dir, rules=None):
         kd[k] = o
     rules = [r for r in (rules or DEFAULT_RULES) if r[0] in kd]
     css = """<style>
-.has-proof{cursor:help;transition:box-shadow .15s;}
-.has-proof:hover,.has-proof:focus{box-shadow:0 0 0 2px #3b82f6;outline:none;border-radius:6px;}
+.has-proof{cursor:pointer;transition:box-shadow .15s ease;}
+.has-proof:hover,.has-proof.pp-active{box-shadow:inset 0 0 0 9999px rgba(148,163,184,.16);}
+.has-proof:focus{outline:none;}
+.has-proof:focus-visible{outline:2px solid #3b82f6;outline-offset:2px;}
 .proof-hint{display:block;max-width:760px;margin:16px auto 6px;padding:11px 16px;background:#fef9c3;border:2px solid #f59e0b;border-left:6px solid #d97706;border-radius:10px;color:#78350f;font-size:1rem;font-weight:800;line-height:1.4;text-align:center;font-style:normal;box-shadow:0 2px 8px rgba(217,119,6,.25);}
 @media(max-width:680px){.proof-hint{font-size:.92rem;padding:10px 12px;}}
-#proof-pop{pointer-events:none;display:none;position:fixed;z-index:2147483647;background:#fff;color:#111827;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:14px 16px 12px;width:min(640px,94vw);max-height:84vh;overflow:auto;font-family:inherit;text-align:left;}
-#proof-pop.pinned{pointer-events:auto;}
-#proof-pop.pinned figure{flex-basis:280px;}
-#proof-pop.pinned img{max-height:430px;}
-#proof-pop .pp-t{font-weight:800;font-size:.98rem;margin:0 26px 4px 0;}
-#proof-pop .pp-n{font-size:.78rem;color:#374151;line-height:1.5;margin-bottom:10px;}
-#proof-pop .pp-i{display:flex;flex-wrap:wrap;gap:12px;}
-#proof-pop figure{margin:0;flex:1 1 185px;max-width:100%;}
-#proof-pop img{width:100%;height:auto;max-height:210px;object-fit:contain;background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;display:block;}
-#proof-pop figcaption{font-size:.7rem;color:#6b7280;margin-top:3px;line-height:1.4;}
-#proof-pop pre{background:#0f172a;color:#bbf7d0;border-radius:8px;padding:12px;font-size:.74rem;line-height:1.5;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:0 0 10px;}
-#proof-pop .pp-x{position:absolute;top:6px;right:10px;background:none;border:none;font-size:1.4rem;color:#6b7280;cursor:pointer;line-height:1;}
-@media(max-width:680px){#proof-pop{left:3vw!important;right:3vw;top:auto!important;bottom:12px;width:auto;max-height:78vh;}}
+#proof-shade{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2147483646;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s;}
+#proof-shade.open{opacity:1;visibility:visible;transition:opacity .25s ease;}
+#proof-pop{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);z-index:2147483647;background:#fff;color:#111827;box-shadow:-12px 0 40px rgba(0,0,0,.35);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;font-family:inherit;text-align:left;transform:translateX(100%);visibility:hidden;transition:transform .28s ease,visibility 0s linear .28s;}
+#proof-pop.open{transform:none;visibility:visible;transition:transform .28s ease;}
+#proof-pop .pp-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0f172a;color:#fff;padding:12px 16px;}
+#proof-pop .pp-k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fbbf24;}
+#proof-pop .pp-x{background:none;border:none;font-size:1.7rem;color:#e2e8f0;cursor:pointer;line-height:1;padding:0 4px;}
+#proof-pop .pp-x:hover{color:#fff;}
+#proof-pop .pp-body{padding:18px 20px 28px;}
+#proof-pop .pp-t{font-weight:800;font-size:1.08rem;line-height:1.35;margin:0 0 8px;}
+#proof-pop .pp-n{font-size:.86rem;color:#374151;line-height:1.55;margin-bottom:16px;}
+#proof-pop .pp-i{display:flex;flex-direction:column;gap:18px;}
+#proof-pop figure{margin:0;width:100%;}
+#proof-pop img{width:100%;height:auto;display:block;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;}
+#proof-pop figcaption{font-size:.78rem;color:#4b5563;margin-top:6px;line-height:1.45;}
+#proof-pop pre{background:#0f172a;color:#bbf7d0;border-radius:8px;padding:12px;font-size:.76rem;line-height:1.5;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:0 0 16px;}
+@media(max-width:680px){#proof-pop{width:92vw;}#proof-pop .pp-body{padding:16px 16px 28px;}}
+@media(prefers-reduced-motion:reduce){#proof-shade,#proof-pop,#proof-shade.open,#proof-pop.open{transition:none;}}
 </style>
-<div id="proof-pop" role="dialog" aria-label="Audit evidence"><button type="button" class="pp-x" aria-label="Close">&times;</button><div class="pp-body"></div></div>
+<div id="proof-shade" aria-hidden="true"></div>
+<div id="proof-pop" role="dialog" aria-modal="true" aria-label="Audit evidence" aria-hidden="true"><div class="pp-head"><span class="pp-k">Audit evidence</span><button type="button" class="pp-x" aria-label="Close">&times;</button></div><div class="pp-body"></div></div>
 """
     js = """<script>
 (function(){
 var IMG=%s, DATA=%s, RULES=%s;
 var SEL='.hero-fact,.kpi-tile,.t-stat';
-var pop=document.getElementById('proof-pop'), body=pop.querySelector('.pp-body'), cur=null, pinned=false, timer=null;
+var pop=document.getElementById('proof-pop'), shade=document.getElementById('proof-shade'), body=pop.querySelector('.pp-body');
+var de=document.documentElement, openEl=null, sx=0, sy=0, ovH='', ovB='';
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function fill(k){var d=DATA[k], h='<div class="pp-t">'+d.t+'</div><div class="pp-n">'+d.n+'</div>';
   if(d.c){h+='<pre>'+esc(d.c)+'</pre>';}
   if(d.i){h+='<div class="pp-i">'+d.i.map(function(x){return '<figure><img alt="" src="'+IMG[x[0]]+'"><figcaption>'+x[1]+'</figcaption></figure>';}).join('')+'</div>';}
   body.innerHTML=h;}
-function place(el){if(window.innerWidth<=680){pop.style.left='';pop.style.top='';return;}
-  var r=el.getBoundingClientRect(), w=Math.min(640,window.innerWidth*0.94), left=Math.max(8,Math.min(r.left+r.width/2-w/2,window.innerWidth-w-8));
-  pop.style.left=left+'px'; var below=r.bottom+10; pop.style.top=below+'px';
-  var ph=pop.offsetHeight; if(below+ph>window.innerHeight-8){var up=r.top-ph-10; pop.style.top=Math.max(8,up>8?up:window.innerHeight-ph-8)+'px';}}
-function show(el,k){clearTimeout(timer); if(cur!==k){fill(k);} cur=k; pop.style.display='block'; place(el);}
-function hide(){pop.style.display='none'; pop.classList.remove('pinned'); cur=null; pinned=false;}
-function later(){clearTimeout(timer); if(!pinned) timer=setTimeout(hide,60);}
+function open(el,k){
+  if(openEl){openEl.classList.remove('pp-active');}
+  else{sx=window.pageXOffset; sy=window.pageYOffset; ovH=de.style.overflow; ovB=document.body.style.overflow; de.style.overflow='hidden'; document.body.style.overflow='hidden';}
+  openEl=el; el.classList.add('pp-active'); fill(k); pop.scrollTop=0;
+  shade.classList.add('open'); pop.classList.add('open'); pop.setAttribute('aria-hidden','false');
+  try{pop.querySelector('.pp-x').focus({preventScroll:true});}catch(e){}}
+function close(){
+  if(!openEl) return;
+  var el=openEl; openEl=null; el.classList.remove('pp-active');
+  shade.classList.remove('open'); pop.classList.remove('open'); pop.setAttribute('aria-hidden','true');
+  de.style.overflow=ovH; document.body.style.overflow=ovB; window.scrollTo(sx,sy);
+  try{el.focus({preventScroll:true});}catch(e){}}
 function nobr(n){var c=n.cloneNode(true);[].forEach.call(c.querySelectorAll('br'),function(b){b.replaceWith(' ');});return c.textContent;}
 function label(el){var lb=el.querySelector('.kpi-lbl,.finding-title'); var s=nobr(lb||el); return (s||'').replace(/\\s+/g,' ').trim();}
 function tag(){
@@ -87,18 +103,14 @@ function tag(){
     var t=label(el), key=null;
     RULES.some(function(r){if(new RegExp(r[1],'i').test(t)){key=r[0];return true;}});
     if(!key) return;
-    el.classList.add('has-proof'); el.setAttribute('tabindex','0'); el.setAttribute('data-proof',key);
-    el.addEventListener('mouseenter',function(){ if(!pinned) show(el,key); });
-    el.addEventListener('mouseleave',later);
-    el.addEventListener('mousemove',function(){ if(!pinned && pop.style.display!=='block') show(el,key); });
-    el.addEventListener('focus',function(){ show(el,key); });
-    el.addEventListener('click',function(e){ e.stopPropagation(); if(pinned&&cur===key){hide();} else {pinned=true; pop.classList.add('pinned'); show(el,key);} });
+    el.classList.add('has-proof'); el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('data-proof',key);
+    el.setAttribute('aria-haspopup','dialog');
+    el.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); open(el,key); });
+    el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(el,key); } });
   });}
-pop.querySelector('.pp-x').addEventListener('click',hide);
-pop.addEventListener('click',function(e){e.stopPropagation();});
-document.addEventListener('click',hide);
-document.addEventListener('keydown',function(e){if(e.key==='Escape')hide();});
-window.addEventListener('scroll',function(){ if(!pinned) hide(); },true);
+pop.querySelector('.pp-x').addEventListener('click',close);
+shade.addEventListener('click',close);
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
 tag();
 })();
 </script>
@@ -117,7 +129,7 @@ def block_from_uris(keys_spec, image_uris, rules=None):
         return block(keys_spec, d, rules)
 
 
-HINT = '<div class="proof-hint">HOVER over any stat to see the audit screenshot behind it. Click or tap to enlarge.</div>'
+HINT = '<div class="proof-hint">CLICK or tap any stat to see the audit proof behind it.</div>'
 
 def add_to_page(html, kind, popup_block):
     """Insert the popup block before </body> and the prominent hint lines. kind: 'dhap' (hints above the Summary and AI Visibility score banners)
