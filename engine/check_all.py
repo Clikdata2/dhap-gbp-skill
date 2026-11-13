@@ -2,8 +2,9 @@
 """DHAP GBP engine — one command for every gate, in order. Stops at the first gate that fails.
   1 rules guard (scoring text unchanged)   2 evidence check   3 facts gate   4 build both pages
   5 repository assertion suite (read from SKILL.md at run time) + health-alert checklist + score consistency
-  6 phone-width probe (360/390/430, all tabs, 3 screens)   7 spelling (advisory list)
-  8 Markdown copies of the DHAP and the Alert (v16.5: seven files per dealer; engine/to_markdown.py)
+  6 Markdown copies of the DHAP and the Alert (v16.5: seven files per dealer; engine/to_markdown.py; read from the base pages)
+  7 Living Report design (v17.0): the pages are converted in place by engine/living.py, then re-checked
+  8 phone-width probe (360/390/430) on the Living pages   9 spelling (advisory list)
 A condition in the repository suite is skipped ONLY when the evidence proves the gap it asserts is absent
 (Google link present in sameAs; areaServed present); every skip is printed.
 Usage: python3 check_all.py [--repo REPO] --evidence ev.json --content content.json --out OUTDIR [--venv PATH]"""
@@ -37,6 +38,11 @@ def rule_l(D, ev, raw, rows, st):
 
 BAD_TEXT = [(r"\b[Nn]o of\b", '"no of" (write "none of")'), (r"\bundefined\b", '"undefined"'), (r"\bNaN\b", '"NaN"'),
             (r"\{[a-z_]{2,}\}", "an unfilled {placeholder}")]
+
+BAN = ['aggregateRating','AggregateRating','Review Markup','REVIEWS_UNMARKED','Markup Missing','review-rating','Review-rating','machine-readable','Schema-Invisible',
+       'review guidelines','reputation signal','excluded from schema-based rich results','invisible to Google','review-enhanced','highest-impact schema fix',
+       'Deploy aggregateRating','Reviews Out of Rich Results','Review Schema Deployed','4 cities','review gate','Review gate','Increase in Website Traffic',
+       'More Local Search Traffic','nothing is guaranteed','Nothing is guaranteed','SGE','MIDS']
 
 def text_lint(pages):
     """v16.4: wording that is broken in every case never ships (a page with any of these fails the build)."""
@@ -80,10 +86,6 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         line = blk.splitlines()[tb.tb_lineno - 1].strip() if tb else '?'
         raise AssertionError(f"{e or 'assertion failed'}  <- repository suite line {tb.tb_lineno if tb else '?'}: {line[:220]}")
     dd = lambda t: len(re.findall(r"<div[ >]", t)) - len(re.findall(r"</div>", t))
-    BAN = ['aggregateRating','AggregateRating','Review Markup','REVIEWS_UNMARKED','Markup Missing','review-rating','Review-rating','machine-readable','Schema-Invisible',
-           'review guidelines','reputation signal','excluded from schema-based rich results','invisible to Google','review-enhanced','highest-impact schema fix',
-           'Deploy aggregateRating','Reviews Out of Rich Results','Review Schema Deployed','4 cities','review gate','Review gate','Increase in Website Traffic',
-           'More Local Search Traffic','nothing is guaranteed','Nothing is guaranteed','SGE','MIDS']
     for name, t in (("DHAP", D), ("health alert", HS or "")):
         if not t: continue
         chk = t.replace("without any review markup in the structured data", "")
@@ -160,33 +162,43 @@ def main():
     D = _strip(pathlib.Path(out["dhap"]).read_text(encoding="utf-8")); HS = _strip(pathlib.Path(out["health_alert"]).read_text(encoding="utf-8")) if out["health_alert"] else None
     words = ["James Mitsubishi", "Greece, NY", "Greece NY", "Rochester", "GBP-JMGNY"] if "James" not in ev["dealer"] else []
     gate("5 repository assertions", lambda: (text_lint({"DHAP": D, "Digital Health Alert": HS}), suite(repo, D, HS, ev, c["report_id"], words))[1])
+    pages = [out["dhap"]] + ([out["health_alert"]] if out["health_alert"] else [])
+    def g6():   # Markdown copies come from the engine's base pages (tabs and screens), before the Living Report conversion
+        r = subprocess.run([py, str(ENG / "to_markdown.py"), *pages], capture_output=True, text=True)
+        if r.returncode: raise SystemExit(r.stdout + r.stderr)
+        md = {pathlib.Path(x).with_suffix(".md"): x for x in pages}
+        for m, page in md.items():
+            t = m.read_text(encoding="utf-8")
+            if page == out["dhap"]:
+                tabs = re.findall(r"(?m)^## (.+)$", t)
+                assert len(tabs) == 8, ("Markdown copy: the DHAP's 8 tabs", tabs)
+            else:
+                assert re.search(r"(?m)^## Screen 3 of 3$", t), "Markdown copy: the Alert's 3 screens"
+                assert "Computing" not in t, "Markdown copy: an Alert stat card was read mid count-up"
+            text_lint({m.name: t})
+        return ", ".join(m.name for m in md)
+    gate("6 Markdown copies (v16.5)", g6)
+    def g7():   # v17.0: the live DHAP and Alert are the Living Report pages
+        r = subprocess.run([py, str(ENG / "living.py"), out["dhap"], out["health_alert"] or "-", "--evidence", a.evidence], capture_output=True, text=True)
+        if r.returncode: raise SystemExit(r.stdout + r.stderr)
+        for x in pages:
+            t = _strip(pathlib.Path(x).read_text(encoding="utf-8"))
+            assert "<!-- LIVING REPORT v17 -->" in t, ("not converted", x)
+            for b in BAN: assert b not in t.replace("without any review markup in the structured data", ""), (x, "banned phrase", b)
+            assert len(re.findall(r"<div[ >]", t)) == len(re.findall(r"</div>", t)), (x, "div depth")
+            assert "noindex,nofollow" in t and "clarity" in t, (x, "noindex / Clarity tracking (RULE M)")
+        return r.stdout.strip()
+    gate("7 Living Report design (v17.0)", g7)
     procs = {}
     if not a.no_probe:
-        procs["6 phone-width probe"] = subprocess.Popen([py, str(ENG / "probe_mobile.py"), out["dhap"], out["health_alert"] or "-", str(pathlib.Path(a.out) / "shots")], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    procs["7 spelling (advisory)"] = subprocess.Popen([py, str(ENG / "spellcheck.py"), out["dhap"], *([out["health_alert"]] if out["health_alert"] else [])], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        procs["8 phone-width probe"] = subprocess.Popen([py, str(ENG / "probe_mobile.py"), out["dhap"], out["health_alert"] or "-", str(pathlib.Path(a.out) / "shots")], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    procs["9 spelling (advisory)"] = subprocess.Popen([py, str(ENG / "spellcheck.py"), *pages], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     t0 = time.perf_counter(); fail = False
     for name, p in procs.items():
-        o = p.communicate()[0].strip(); ok = p.returncode == 0 and "MIDS (must be 0): 0" in o if "spell" in name else p.returncode == 0
-        if "spell" in name: ok = "MIDS (must be 0): 0" in o and o.count("MIDS (must be 0): 0") == (2 if out["health_alert"] else 1)
+        o = p.communicate()[0].strip(); ok = p.returncode == 0
+        if "spell" in name: ok = "MIDS (must be 0): 0" in o and o.count("MIDS (must be 0): 0") == len(pages)
         print(f"[{'PASS' if ok else 'FAIL'}] {name}: " + " | ".join(l.strip() for l in o.splitlines()[-4:])); fail |= not ok
-    print(f"   checks 6-7 ran side by side in {time.perf_counter() - t0:.1f}s")
-    if not fail:
-        def g8():
-            pages = [out["dhap"]] + ([out["health_alert"]] if out["health_alert"] else [])
-            r = subprocess.run([py, str(ENG / "to_markdown.py"), *pages], capture_output=True, text=True)
-            if r.returncode: raise SystemExit(r.stdout + r.stderr)
-            md = {pathlib.Path(x).with_suffix(".md"): x for x in pages}
-            for m, page in md.items():
-                t = m.read_text(encoding="utf-8")
-                if page == out["dhap"]:
-                    tabs = re.findall(r"(?m)^## (.+)$", t)
-                    assert len(tabs) == 8, ("Markdown copy: the DHAP's 8 tabs", tabs)
-                else:
-                    assert re.search(r"(?m)^## Screen 3 of 3$", t), "Markdown copy: the Alert's 3 screens"
-                    assert "Computing" not in t, "Markdown copy: an Alert stat card was read mid count-up"
-                text_lint({m.name: t})
-            return ", ".join(m.name for m in md)
-        gate("8 Markdown copies (v16.5)", g8)
+    print(f"   checks 8-9 ran side by side in {time.perf_counter() - t0:.1f}s")
     if out.get("edge_warnings"): print("   EDGE WARNINGS (tell the user):", "; ".join(out["edge_warnings"]))
     print("ALL GATES PASSED" if not fail else "SOME GATES FAILED"); sys.exit(1 if fail else 0)
 

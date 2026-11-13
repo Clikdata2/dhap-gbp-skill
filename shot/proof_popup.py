@@ -133,12 +133,16 @@ def block_from_uris(keys_spec, image_uris, rules=None):
 HINT = '<div class="proof-hint">CLICK or tap any stat to see the audit proof behind it.</div>'
 
 def add_to_page(html, kind, popup_block):
-    """Insert the popup block before </body> and the prominent hint lines. kind: 'dhap' (hints above the Summary and AI Visibility score banners)
+    """Insert the popup block before </body> and the prominent hint lines. kind: 'dhap' (hints above the Summary and AI Visibility score banners;
+    a v17.0 Living Report DHAP already carries its hint lines, so only the block is inserted)
     or 'alert' (hints above the screen 2 tiles and the screen 3 stat cards). Replaces an earlier block and hints, so it can be run twice."""
     if "<!-- PROOF POPUPS START" in html:
         i = html.index("<!-- PROOF POPUPS START"); j = html.index("<!-- PROOF POPUPS END -->") + len("<!-- PROOF POPUPS END -->\n")
         html = html[:i] + html[j:]
     import re as _re
+    if kind == "dhap" and 'class="lr-main"' in html:   # v17.0 Living Report DHAP: the hint lines are already above each stat group
+        if html.count("</body>") != 1: raise ValueError("expected exactly one </body>")
+        return html.replace("</body>", popup_block.rstrip("\n") + "\n</body>", 1)
     html = _re.sub(r'<div class="proof-hint">.*?</div>', '', html, flags=_re.S)
     if kind == "dhap":
         spots = [m.start() for m in _re.finditer(r'<div class="score-banner">', html)][:2]
