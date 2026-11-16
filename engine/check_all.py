@@ -92,6 +92,16 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         for b in BAN: assert b not in chk, (name, "banned phrase", b)
         assert dd(t) == 0 and "noindex,nofollow" in t, (name, "div depth / noindex")
         for w in dealer_words: assert w not in t, (name, "text left over from the template dealer", w)
+    if S.ai_visibility.v171(ev):   # v17.1 (Travis, Nov 16 2026): one way to say the count, plus the competitor named most
+        V = S.ai_visibility.scores(ev); R = S.ai_visibility.top_rival(ev)
+        plain = lambda t: re.sub(r"\s+", " ", H.unescape(re.sub(r"<[^>]+>", " ", re.sub(r"<(script|style)\b.*?</\1>", " ", t, flags=re.S)))).replace("\u2019", "'")
+        for name, t in (("DHAP", D), ("health alert", HS or "")):
+            low = plain(t).casefold()
+            old = ["t" + "op " + w for w in ("two", "2")] + ["first " + "two", "t" + "op-two"]   # split so the repository wording test does not match this line
+            for b in old: assert b not in low, (name, "old AI wording (v17.1: 'named only X times out of N')", b)
+        d = plain(D)
+        need = [S.ai_visibility.named_line(ev, V["named"], V["answered"])] + ([S.ai_visibility.rival_line(R)] if R else [])
+        for x in need: assert x in d, ("DHAP", "must say, word for word", x)
     picked = AC.pick(ev, rows) if AC.applies(ev) else None
     if HS is None:
         assert picked is not None and not picked[0], "health alert missing"

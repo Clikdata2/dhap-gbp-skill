@@ -76,8 +76,6 @@ def run_once():
     ok("no v16.1 question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
     ok("Copilot and Perplexity are not asked from Oct 28 2026", not {"copilot", "perplexity"} & set(V.tools(n)))
     ok("a v16.1 audit passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
-    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["businesses"].append(biz[2])
-    ok("refuses: a third business on an Oct 28 2026 answer", any("at most 2" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["tool"] = "copilot"
     ok("refuses: a Copilot answer on an Oct 28 2026 audit", any("unknown tool" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["q"] = "sales_dealership"
@@ -98,13 +96,24 @@ def run_once():
     m = copy.deepcopy(n); m["audit_date"] = "2026-11-16"
     for a in m["ai_visibility"]["answers"]: a["businesses"] = a["businesses"][:1]; a["named"] = a["businesses"][0]["name"] == "Example Mitsubishi"
     ok("a v17.1 audit passes the check", not V.check(copy.deepcopy(m)), V.check(copy.deepcopy(m))[:2])
-    e = copy.deepcopy(m); e["ai_visibility"]["answers"][0]["businesses"].append(biz[2])
-    ok("refuses: a second business on a v17.1 answer", any("number one suggestion" in x for x in V.check(e)), V.check(e)[:2])
     sc171 = V.scores(m); br = V.brief(m)
     ok("v17.1 counts only answers whose number one suggestion is the dealer", sc171["named"] == sum(1 for a in m["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Mitsubishi"), sc171["named"])
     ok("v17.1 brief: 'Example Mitsubishi was named only X times out of 125'", f"was named only {sc171['named']} times out of 125" in br, br[:200])
     with tempfile.TemporaryDirectory() as t:
         wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ok("v17.1 spreadsheet: Business Suggested and Dealer Named columns", wb["ChatGPT"]["I1"].value == "Business Suggested" and wb["ChatGPT"]["K1"].value == "Dealer Named")
+    # v17.1: the competitor named most — tally of number one suggestions that are other dealerships
+    R = V.top_rival(m); want = sum(1 for a in m["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Auto Mall")
+    ok("v17.1 competitor: the dealership suggested number one most often, tallied from the answers", R and R["names"] == ["Example Auto Mall"] and R["times"] == want, R)
+    ok("v17.1 competitor: an oil-change shop is never the competitor", all(n != "Example Quick Lube" for n, _ in R["tally"]), R["tally"])
+    ok("v17.1 brief states the competitor line", f"Named most instead: Example Auto Mall was named {want} times out of 125." in br, br[:300])
+    x = copy.deepcopy(m); A = [a for a in x["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Auto Mall"]
+    for a in A[:3]: a["businesses"] = [{"name": "Example Auto", "type": "dealership"}]
+    R2 = V.top_rival(x); ok("v17.1 competitor: a short spelling joins the one longer name containing it", R2["names"] == ["Example Auto Mall"] and R2["times"] == want, R2)
+    x["ai_visibility"]["answers"].append(dict(A[0], run=99)); A[3]["businesses"] = [{"name": "Example Auto Group", "type": "dealership"}]
+    R3 = V.top_rival(x); ok("v17.1 competitor: a short name matching two longer names stays apart", "Example Auto" in dict(R3["tally"]), R3["tally"])
+    with tempfile.TemporaryDirectory() as t:
+        wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ws = wb["Summary"]
+        ok("v17.1 spreadsheet Summary: the count, the competitor, the tally", ws["A1"].value.startswith(m["dealer"] + " was named only") and "Example Auto Mall" in ws["A2"].value and ws["A5"].value == "Example Auto Mall" and ws["B5"].value == want, [ws["A1"].value, ws["A2"].value, ws["A5"].value])
     import re as _re
     root = pathlib.Path(__file__).resolve().parents[2]
     hits = [f"{f.relative_to(root)}:{i}" for f in root.rglob("*") if f.is_file() and f.suffix in (".py", ".md", ".js", ".json", ".example", ".ps1", ".sh") and "work" not in f.parts and ".git" not in f.parts

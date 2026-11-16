@@ -204,7 +204,7 @@ def ai_table(ev, c, rows):
     V = AV.scores(ev); A = ev["ai_visibility"]
     def qrow(i, d):
         q = V["questions"][i]; k = DS.band(q["score"] / 10)
-        return (f'      <tr class="cc-{k}"><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{q["named"]} of {q["answered"]}</td>'
+        return (f'      <tr class="cc-{k}"><td><strong>{AV.DEPT_LABEL[d]}</strong></td><td>&ldquo;{H.escape(AV.ask(i, A["city_st"]))}&rdquo;</td><td>{AV.count_cell(ev, q["named"], q["answered"])}</td>'
                 f'<td>{DS.bar(q["score"] / 10, k, str(q["score"]) + "/100")} {DS.chip(k, DS.LABEL[k])}</td></tr>')
     body = "\n".join(qrow(i, d) for i, d, _ in AV.questions(ev))
     k = DS.band(rows[8])
@@ -216,7 +216,7 @@ def ai_table(ev, c, rows):
     <thead><tr><th>Dept.</th><th>Question</th><th>Named</th><th>Score</th></tr></thead>
     <tbody>
 {body}
-      <tr class="cc-total cc-t-{k}"><td><strong>AI ANSWER VISIBILITY</strong></td><td>All questions, all tools</td><td>{V["named"]} of {V["answered"]}</td><td><span class="cc-big">{rows[8]:.1f}/10</span>{DS.pill(k)}<span class="cc-sub">This is the whole category: scorecard row 9, <b>{rows[8]:.1f} of 10</b> ({V["named"]} &divide; {V["answered"]} &times; 10).</span></td></tr>
+      <tr class="cc-total cc-t-{k}"><td><strong>AI ANSWER VISIBILITY</strong></td><td>All questions, all tools</td><td>{AV.count_cell(ev, V["named"], V["answered"])}</td><td><span class="cc-big">{rows[8]:.1f}/10</span>{DS.pill(k)}<span class="cc-sub">This is the whole category: scorecard row 9, <b>{rows[8]:.1f} of 10</b> ({V["named"]} &divide; {V["answered"]} &times; 10).</span></td></tr>
     </tbody>
   </table>
 {DS.legend("score")}

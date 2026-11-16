@@ -13,9 +13,9 @@ the dealer. No dealer name and no brand is added to a question.
              v16.0 audits (Oct 27 2026) keep the 7 in TOOLS_V160 asked in the browser: 490 answers.
              Each question is asked RUNS (5; 10 on v16.0) times on each tool, in a fresh chat each time.
   record     every answer word for word, every business it names with its type, and whether it names this dealer.
-             v17.1 (audits dated Nov 16 2026 or later; decided by Travis): only the answer's number one suggestion is
+             v17.1 (audits dated Nov 16 2026 or later; decided by Travis): the answer's number one suggestion is
              recorded, and the answer counts for the dealer only when that suggestion is this dealer (the answer text is
-             kept as proof). Audits dated Oct 28 to Nov 15 2026 recorded up to MAX_RECORDED_V161 businesses.
+             kept as proof).
              A tool that will not answer (sign-in wall, error, nothing within 60 seconds) is recorded as blocked with the
              reason; never retried. (v16.1: an API's rate limit or server error is retried with backoff; that is the API
              asking us to slow down, not a robot check. An ask that still fails is recorded as blocked.)
@@ -41,8 +41,6 @@ START_161 = "2026-10-28"   # v16.1: 5 tools through their APIs
 RUNS = 5         # v16.1
 RUNS_V160 = 10
 START_171 = "2026-11-16"   # v17.1: only the number one suggestion counts
-MAX_RECORDED = 1            # v17.1: the answer's number one suggestion
-MAX_RECORDED_V161 = 2       # audits dated Oct 28 to Nov 15 2026
 QUESTIONS = [   # v16.1 (id, department, question) — word for word; never add the dealer's name or a brand
     ("sales_new_family_suv", "sales", "best family SUV under 40k near {city_st}"),
     ("sales_used_midsize_suv", "sales", "used midsize SUV near {city_st}"),
@@ -71,10 +69,36 @@ DEPT_LABEL = {"sales": "Sales", "service": "Service", "parts": "Parts"}
 def applies(ev): return str(ev.get("audit_date", "")) >= START
 def v161(ev): return str(ev.get("audit_date", "")) >= START_161
 def v171(ev): return str(ev.get("audit_date", "")) >= START_171
-def max_recorded(ev): return MAX_RECORDED if v171(ev) else MAX_RECORDED_V161
 def named_line(ev, named, answered):
     """The one way the count is said, everywhere (v17.1, decided by Travis Nov 16 2026)."""
     return f"{ev.get('dealer', 'The dealer')} was named only {named} {'time' if named == 1 else 'times'} out of {answered}"
+def only(named, answered):
+    """Table and card form of the same count: 'only X times out of Y' (v17.1)."""
+    return f"only {named} {'time' if named == 1 else 'times'} out of {answered:,}"
+def count_cell(ev, named, answered): return only(named, answered) if v171(ev) else f"{named} of {answered}"
+def _key(name): return " ".join(w for w in fold(name).split() if w not in ("of", "the", "at", "inc", "llc"))
+def top_rival(ev):
+    """v17.1 (Travis, Nov 16 2026): the dealership AI suggests number one most often when it is not this dealer.
+    Each answered answer's number one suggestion is tallied (dealerships only, answers naming this dealer left out);
+    a short name joins the one longer name that contains it ('CarMax' -> 'CarMax Myrtle Beach'), never when two could match.
+    Returns {'names': [tied names], 'times', 'answered', 'tally': [(name, times), ...]} or None when no dealership was suggested."""
+    A = _answered(ev); c = collections.Counter(); spell = collections.defaultdict(collections.Counter)
+    for a in A:
+        B = a.get("businesses") or []
+        if a.get("named") or not B or B[0].get("type") != "dealership": continue
+        k = _key(B[0]["name"])
+        if k: c[k] += 1; spell[k][B[0]["name"]] += 1
+    own = {k: v.most_common(1)[0][0] for k, v in spell.items()}
+    for k in sorted(list(c), key=len):
+        longer = [o for o in c if o != k and f" {k} " in f" {o} "]
+        if len(longer) == 1: c[longer[0]] += c.pop(k)
+    if not c: return None
+    tally = sorted(((own[k], n) for k, n in c.items()), key=lambda x: (-x[1], x[0].casefold())); top = tally[0][1]
+    return {"names": [n for n, t in tally if t == top], "times": top, "answered": len(A), "tally": tally}
+def rival_line(R):
+    """'Honda North was named 12 times out of 125' (ties: 'A and B were each named ...')."""
+    who = " and ".join(R["names"]); verb = "was" if len(R["names"]) == 1 else "were each"
+    return f"{who} {verb} named {R['times']} {'time' if R['times'] == 1 else 'times'} out of {R['answered']}"
 def tools(ev): return TOOLS if v161(ev) else TOOLS_V160
 def questions(ev): return QUESTIONS if v161(ev) else QUESTIONS_V160
 def runs(ev): return RUNS if v161(ev) else RUNS_V160
@@ -111,9 +135,6 @@ def check(ev):
         B = a.get("businesses")
         if not isinstance(B, list) or not all(isinstance(b, dict) and str(b.get("name", "")).strip() and b.get("type") in TYPES for b in B):
             P.append(p + f".businesses: every business the answer names, as {{name, type}} with type one of {', '.join(TYPES)} (empty list when it names none)")
-        elif v161(ev) and len(B) > max_recorded(ev):
-            P.append(p + (".businesses: record only the answer's number one suggestion (v17.1)" if v171(ev) else
-                          f".businesses: at most {MAX_RECORDED_V161} for an audit dated Oct 28 to Nov 15 2026"))
         if not isinstance(a.get("named"), bool): P.append(p + ".named: true/false — is this dealer the answer's number one suggestion (v17.1)")
     missing = [(t, q, r) for t in TOOLS for q in ids for r in range(1, RUNS + 1) if (t, q, r) not in seen]
     if missing: P.append(f"ai_visibility: {len(missing)} of {len(TOOLS) * len(ids) * RUNS} answers not recorded (first: {missing[0]}); record each as answered or blocked")
@@ -152,7 +173,10 @@ def winners(ev, n=1):
 def brief(ev):
     A = ev.get("ai_visibility") or {}; S = scores(ev); W = winners(ev)
     out = [f"### AI visibility check ({A.get('method', '')})", "",
-           f"**{named_line(ev, S['named'], S['answered'])} — {round(10 * S['row'])}% ({S['row']:.1f}/10).**", ""]
+           f"**{named_line(ev, S['named'], S['answered'])} — {round(10 * S['row'])}% ({S['row']:.1f}/10).**"]
+    R = top_rival(ev) if v171(ev) else None
+    if R: out += ["", f"**Named most instead: {rival_line(R)}.**", ""]
+    else: out += [""]
     blocked = [a for a in A.get("answers", []) if a.get("status") == "blocked"]
     if blocked:
         by = collections.Counter(NAME[a["tool"]] for a in blocked)
@@ -175,7 +199,15 @@ def sheet(ev, path):
     A = ev.get("ai_visibility") or {}; wb = Workbook(); wb.remove(wb.active)
     cols = ["Dealer", "City & State", "Department", "Question", "Run", "When", "Status", "Answer",
             "Business Suggested" if v171(ev) else "Businesses Named", "Business Types", "Dealer Named"]
-    QUESTIONS = questions(ev)
+    QUESTIONS = questions(ev); S = scores(ev); R = top_rival(ev) if v171(ev) else None
+    if v171(ev):   # v17.1: the count and the competitor tally, straight from the number one suggestion of every answer
+        ws = wb.create_sheet("Summary")
+        ws.append([named_line(ev, S["named"], S["answered"]) + "."])
+        ws.append(["Named most instead: " + rival_line(R) + "." if R else "No other dealership was suggested number one."])
+        ws.append([]); ws.append(["Dealership suggested number one (answers naming this dealer left out)", "Times out of " + str(S["answered"])])
+        for c in ws[1] + ws[2] + ws[4]: c.font = Font(bold=True)
+        for name, n in (R or {}).get("tally", []): ws.append([name, n])
+        ws.column_dimensions["A"].width = 70; ws.column_dimensions["B"].width = 16
     for t in tools(ev):
         ws = wb.create_sheet(NAME[t]); ws.append(cols)
         for c in ws[1]: c.font = Font(bold=True)

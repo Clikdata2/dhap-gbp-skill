@@ -339,7 +339,7 @@ def row_parts(ev):
     # 9 AI Answer Visibility
     if ai_visibility.applies(ev):
         V = ai_visibility.scores(ev)
-        out.append({"parts": [("AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
+        out.append({"parts": [("AI answers whose number one suggestion is the dealer" if ai_visibility.v171(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
     return out
 
 def parts_total(entry):
