@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools on Oct 27 2026, 5 questions x 5 runs x 5 tools, top 2, from Oct 28 2026 (v16.1), row 9, the v16 listing-site rules,
+"""AI visibility check (v16.0): 7 questions x 10 runs x 7 tools on Oct 27 2026, 5 questions x 5 runs x 5 tools from Oct 28 2026 (v16.1), only the number one suggestion from Nov 16 2026 (v17.1), row 9, the v16 listing-site rules,
 the spreadsheet. Rounds: argv[1] (default 3)."""
 import copy, json, pathlib, sys, tempfile
 ENG = pathlib.Path(__file__).resolve().parent.parent; sys.path.insert(0, str(ENG))
@@ -61,7 +61,7 @@ def run_once():
     e = copy.deepcopy(ev); e["audit_date"] = "2026-10-26"; e["ai_answers"] = {"method": "x", "answers": []}
     R = {r["directory"]: r for r in D.results(e)}
     ok("before Oct 27 2026 the legal name is still compared", R["data_axle"]["status"] == "found", R["data_axle"])
-    # v16.1: 5 questions x 5 runs x 5 tools through their APIs, top 2 only, from Oct 28 2026
+    # v16.1: 5 questions x 5 runs x 5 tools through their APIs, from Oct 28 2026 (two-name rule until Nov 15 2026)
     n = copy.deepcopy(ev); n["audit_date"] = "2026-10-28"; cs = n["ai_visibility"]["city_st"]
     biz = [{"name": "Example Mitsubishi", "type": "dealership"}, {"name": "Example Auto Mall", "type": "dealership"}, {"name": "Example Quick Lube", "type": "oil_change"}]
     n["ai_visibility"]["answers"] = [
@@ -76,8 +76,6 @@ def run_once():
     ok("no v16.1 question names a dealer or a brand", all("{city_st}" in q and "Mitsubishi" not in q for _, _, q in V.QUESTIONS))
     ok("Copilot and Perplexity are not asked from Oct 28 2026", not {"copilot", "perplexity"} & set(V.tools(n)))
     ok("a v16.1 audit passes the check", not V.check(copy.deepcopy(n)), V.check(copy.deepcopy(n))[:2])
-    e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["businesses"].append(biz[2])
-    ok("refuses: a third business on a v16.1 answer", any("first 2 businesses" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["tool"] = "copilot"
     ok("refuses: a Copilot answer on an Oct 28 2026 audit", any("unknown tool" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(n); e["ai_visibility"]["answers"][0]["q"] = "sales_dealership"
@@ -86,14 +84,41 @@ def run_once():
     ok("refuses: a 6th run on an Oct 28 2026 audit", any("unknown tool / question / run" in x for x in V.check(e)), V.check(e)[:2])
     e = copy.deepcopy(ev); e["ai_visibility"]["answers"] = [a for a in ev["ai_visibility"]["answers"] if a["tool"] not in ("copilot", "perplexity")]
     ok("an Oct 27 2026 audit still needs all 7 tools", any("140 of 490" in x for x in V.check(e)), V.check(e)[-1:])
-    sc161 = V.scores(n); ok("v16.1 scores dealer-in-top-2 / answered", sc161["answered"] == 125 and sc161["named"] == sum(a["named"] for a in A161), sc161["named"])
-    T = V.winners(n, 2); ok("the top 2 are the 2 named most often", len(T[("sales_new_family_suv", "chatgpt")]) == 2 and {x[0] for x in T[("sales_new_family_suv", "chatgpt")]} <= {b["name"] for b in biz})
-    br = V.brief(n); ok("the v16.1 brief shows #1 and #2 per tool and no Copilot", "#2 named most" in br and br.count("| ChatGPT |") == 5 and "| Copilot |" not in br, br[:300])
+    sc161 = V.scores(n); ok("v16.1 scores dealer named / answered", sc161["answered"] == 125 and sc161["named"] == sum(a["named"] for a in A161), sc161["named"])
+    T = V.winners(n, 2); ok("winners(n=2) gives the 2 named most often", len(T[("sales_new_family_suv", "chatgpt")]) == 2 and {x[0] for x in T[("sales_new_family_suv", "chatgpt")]} <= {b["name"] for b in biz})
+    br = V.brief(n); ok("the brief says 'named only X times out of 125', one row per tool, no Copilot", f"was named only {sc161['named']} times out of 125" in br and br.count("| ChatGPT |") == 5 and "| Copilot |" not in br, br[:300])
     raw, rows = S.score_rows(copy.deepcopy(n)); ok("a v16.1 audit scores row 9", len(rows) == 9 and abs(rows[8] - S.r1d(sc161["row"])) < 0.06, rows)
     with tempfile.TemporaryDirectory() as t:
         from openpyxl import load_workbook
         wb = load_workbook(V.sheet(n, pathlib.Path(t) / "y.xlsx"))
-        ok("v16.1 spreadsheet: 5 tabs, 25 rows each, Top 2 column", wb.sheetnames == [V.NAME[x] for x in V.TOOLS] and all(wb[V.NAME[x]].max_row == 26 for x in V.TOOLS) and wb["ChatGPT"]["I1"].value == "Top 2 Named")
+        ok("v16.1 spreadsheet: 5 tabs, 25 rows each, Businesses Named column", wb.sheetnames == [V.NAME[x] for x in V.TOOLS] and all(wb[V.NAME[x]].max_row == 26 for x in V.TOOLS) and wb["ChatGPT"]["I1"].value == "Businesses Named")
+    # v17.1: only the number one suggestion counts, from Nov 16 2026
+    m = copy.deepcopy(n); m["audit_date"] = "2026-11-16"
+    for a in m["ai_visibility"]["answers"]: a["businesses"] = a["businesses"][:1]; a["named"] = a["businesses"][0]["name"] == "Example Mitsubishi"
+    ok("a v17.1 audit passes the check", not V.check(copy.deepcopy(m)), V.check(copy.deepcopy(m))[:2])
+    sc171 = V.scores(m); br = V.brief(m)
+    ok("v17.1 counts only answers whose number one suggestion is the dealer", sc171["named"] == sum(1 for a in m["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Mitsubishi"), sc171["named"])
+    ok("v17.1 brief: 'Example Mitsubishi was named only X times out of 125'", f"was named only {sc171['named']} times out of 125" in br, br[:200])
+    with tempfile.TemporaryDirectory() as t:
+        wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ok("v17.1 spreadsheet: Business Suggested and Dealer Named columns", wb["ChatGPT"]["I1"].value == "Business Suggested" and wb["ChatGPT"]["K1"].value == "Dealer Named")
+    # v17.1: the competitor named most — tally of number one suggestions that are other dealerships
+    R = V.top_rival(m); want = sum(1 for a in m["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Auto Mall")
+    ok("v17.1 competitor: the dealership suggested number one most often, tallied from the answers", R and R["names"] == ["Example Auto Mall"] and R["times"] == want, R)
+    ok("v17.1 competitor: an oil-change shop is never the competitor", all(n != "Example Quick Lube" for n, _ in R["tally"]), R["tally"])
+    ok("v17.1 brief states the competitor line", f"Named most instead: Example Auto Mall was named {want} times out of 125." in br, br[:300])
+    x = copy.deepcopy(m); A = [a for a in x["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Auto Mall"]
+    for a in A[:3]: a["businesses"] = [{"name": "Example Auto", "type": "dealership"}]
+    R2 = V.top_rival(x); ok("v17.1 competitor: a short spelling joins the one longer name starting with it", R2["names"] == ["Example Auto Mall"] and R2["times"] == want, R2)
+    x["ai_visibility"]["answers"].append(dict(A[0], run=99)); A[3]["businesses"] = [{"name": "Example Auto Group", "type": "dealership"}]
+    R3 = V.top_rival(x); ok("v17.1 competitor: a short name matching two longer names stays apart", "Example Auto" in dict(R3["tally"]), R3["tally"])
+    with tempfile.TemporaryDirectory() as t:
+        wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ws = wb["Summary"]
+        ok("v17.1 spreadsheet Summary: the count, the competitor, the tally", ws["A1"].value.startswith(m["dealer"] + " was named only") and "Example Auto Mall" in ws["A2"].value and ws["A5"].value == "Example Auto Mall" and ws["B5"].value == want, [ws["A1"].value, ws["A2"].value, ws["A5"].value])
+    import re as _re
+    root = pathlib.Path(__file__).resolve().parents[2]
+    hits = [f"{f.relative_to(root)}:{i}" for f in root.rglob("*") if f.is_file() and f.suffix in (".py", ".md", ".js", ".json", ".example", ".ps1", ".sh") and "work" not in f.parts and ".git" not in f.parts
+            for i, l in enumerate(f.read_text(errors="ignore").splitlines(), 1) if _re.search("\\b" + "t" + "op[ -]?(2|two)\\b|" + "t" + "op2|in their " + "t" + "op", l, _re.I)]
+    ok("v17.1: the retired two-name wording appears nowhere in the repository", not hits, hits[:5])
     # outputs
     W = V.winners(ev); ok("the winner is the business named most", W[("service_oil_change", "chatgpt")][0] == "Example Quick Lube", W[("service_oil_change", "chatgpt")])
     b = V.brief(ev); ok("the brief has one table row per tool per question", b.count("| ChatGPT |") == len(V.questions(ev)))

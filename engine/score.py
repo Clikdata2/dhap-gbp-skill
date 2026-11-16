@@ -38,12 +38,13 @@ KNOWN_RULES = {
     "15.2": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "d28d2e9830d751cc"},   # rule 8: NAP sites in two groups from saved readings (audits from Oct 25 2026; earlier audits unchanged)
     "15.3": {"OVERALL SCORE METHOD": "d7da08a51ea2ddb5", "CATEGORY RUBRICS": "cf0f56718ea5276f"},   # v15.3: NAP site-list wording matches the trimmed run; arithmetic unchanged
     "16.0": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "6ae54a3ea960afe0"},   # v16.0: row 9 AI Answer Visibility; listing sites: no phone = not agreeing, legal name skipped (audits from Oct 27 2026)
-    "16.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.1: row 9 = dealer in the top 2, 5 questions x 5 runs x 5 tools through their APIs (audits from Oct 28 2026)
-    "16.2": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.2: JEV decides the top 2; scoring text unchanged
+    "16.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.1: row 9 = 5 questions x 5 runs x 5 tools through their APIs (audits from Oct 28 2026)
+    "16.2": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.2: JEV decides which names are businesses; scoring text unchanged
     "16.3": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "d046303f9cd684f4"},   # v16.3: RULE L colour codes and point breakdowns; scoring text unchanged
     "16.4": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.4: owner photos only; Facebook with no rating dropped and rescaled
     "16.5": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.5: Markdown copies of the DHAP and Alert; scoring text unchanged
     "16.6": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "3e2fbe4d39551d48"},   # v16.6: RULE M Clarity tracking on every DHAP and Alert; scoring text unchanged
+    "17.1": {"OVERALL SCORE METHOD": "bcc8496ad38bfcfd", "CATEGORY RUBRICS": "8aea2252d5b195ca"},   # v17.1: row 9 counts an answer only when its number one suggestion is the dealer (audits from Nov 16 2026); arithmetic unchanged
 }
 ROW_NAMES = ["GBP Claimed & Verified", "Profile Completeness", "Photos & Visual Presence", "Reviews & Reputation",
              "GBP Posts & Engagement", "Google Maps / NAP Consistency", "LocalBusiness Schema", "Schema Field Completeness"]
@@ -270,6 +271,8 @@ def _dept_phones_ok(ev):
     D = ev["nap"]["dept_phones"]
     return not D or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in D)
 
+AI_PART_171 = "Times named"   # v17.1: its chip reads "Times named only X out of 125" (design.chips)
+
 def row_parts(ev):
     """RULE L (v16.3): how each row's 10 points add up, for the scorecard. One entry per row:
     {"parts": [(label, earned, most) or (label, "not scored")], "note": why a part is not scored, or None}.
@@ -338,7 +341,7 @@ def row_parts(ev):
     # 9 AI Answer Visibility
     if ai_visibility.applies(ev):
         V = ai_visibility.scores(ev)
-        out.append({"parts": [("AI answers with the dealer in the top 2" if ai_visibility.v161(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
+        out.append({"parts": [(AI_PART_171 if ai_visibility.v171(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
     return out
 
 def parts_total(entry):

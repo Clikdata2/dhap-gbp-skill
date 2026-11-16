@@ -36,6 +36,8 @@ def check(ev, content):
     if S.ai_visibility.applies(ev):   # v16.0: the AI visibility counts and scores are computed from the evidence
         V = S.ai_visibility.scores(ev)
         allowed |= {str(V["named"]), str(V["answered"]), str(round(10 * V["row"]))} | {str(q[k]) for q in V["questions"].values() for k in ("named", "answered", "score")}
+        R = S.ai_visibility.top_rival(ev) if S.ai_visibility.v171(ev) else None
+        if R: allowed |= {str(R["times"])}   # v17.1: the competitor named most
     allowed_f = set()
     for a in allowed:
         try: allowed_f.add(float(a))
