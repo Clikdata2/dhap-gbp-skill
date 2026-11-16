@@ -80,20 +80,19 @@ def _key(name): return " ".join(w for w in fold(name).split() if w not in ("of",
 def top_rival(ev):
     """v17.1 (Travis, Nov 16 2026): the dealership AI suggests number one most often when it is not this dealer.
     Each answered answer's number one suggestion is tallied (dealerships only, answers naming this dealer left out);
-    a short name joins the one longer name that contains it ('CarMax' -> 'CarMax Myrtle Beach'), never when two could match.
+    a short name joins the one longer name that starts with it ('CarMax' -> 'CarMax Myrtle Beach'), never when two could match; names differing only in spacing are one; the most-used spelling is shown.
     Returns {'names': [tied names], 'times', 'answered', 'tally': [(name, times), ...]} or None when no dealership was suggested."""
-    A = _answered(ev); c = collections.Counter(); spell = collections.defaultdict(collections.Counter)
+    A = _answered(ev); c = collections.Counter(); spell = collections.defaultdict(collections.Counter); same = {}
     for a in A:
         B = a.get("businesses") or []
         if a.get("named") or not B or B[0].get("type") != "dealership": continue
-        k = _key(B[0]["name"])
+        k = _key(B[0]["name"]); k = same.setdefault(k.replace(" ", ""), k)   # 'Auto Mall' = 'Automall'
         if k: c[k] += 1; spell[k][B[0]["name"]] += 1
-    own = {k: v.most_common(1)[0][0] for k, v in spell.items()}
     for k in sorted(list(c), key=len):
-        longer = [o for o in c if o != k and f" {k} " in f" {o} "]
-        if len(longer) == 1: c[longer[0]] += c.pop(k)
+        longer = [o for o in c if o != k and o.startswith(k + " ")]
+        if len(longer) == 1: c[longer[0]] += c.pop(k); spell[longer[0]].update(spell.pop(k))
     if not c: return None
-    tally = sorted(((own[k], n) for k, n in c.items()), key=lambda x: (-x[1], x[0].casefold())); top = tally[0][1]
+    tally = sorted(((spell[k].most_common(1)[0][0], n) for k, n in c.items()), key=lambda x: (-x[1], x[0].casefold())); top = tally[0][1]
     return {"names": [n for n, t in tally if t == top], "times": top, "answered": len(A), "tally": tally}
 def rival_line(R):
     """'Honda North was named 12 times out of 125' (ties: 'A and B were each named ...')."""

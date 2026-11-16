@@ -271,6 +271,8 @@ def _dept_phones_ok(ev):
     D = ev["nap"]["dept_phones"]
     return not D or all(_digits(x["gbp"]) == _digits(x["site"]) or (directories.applies(ev) and (directories.toll_free(x["gbp"]) or directories.toll_free(x["site"]))) for x in D)
 
+AI_PART_171 = "Times named"   # v17.1: its chip reads "Times named only X out of 125" (design.chips)
+
 def row_parts(ev):
     """RULE L (v16.3): how each row's 10 points add up, for the scorecard. One entry per row:
     {"parts": [(label, earned, most) or (label, "not scored")], "note": why a part is not scored, or None}.
@@ -339,7 +341,7 @@ def row_parts(ev):
     # 9 AI Answer Visibility
     if ai_visibility.applies(ev):
         V = ai_visibility.scores(ev)
-        out.append({"parts": [("AI answers whose number one suggestion is the dealer" if ai_visibility.v171(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
+        out.append({"parts": [(AI_PART_171 if ai_visibility.v171(ev) else "AI answers naming the dealer", V["named"], V["answered"] or 1)], "note": None})
     return out
 
 def parts_total(entry):

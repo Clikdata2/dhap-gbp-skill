@@ -83,7 +83,8 @@ def chips(parts):
         if len(p) == 2: out.append(f'<span class="cc-pt off">{esc(p[0])} <b>{esc(p[1])}</b></span>'); continue
         lab, e, m = p
         k = "full" if e >= m - 1e-9 else "zero" if e <= 1e-9 else "part"
-        out.append(f'<span class="cc-pt {k}">{esc(lab)} <b>{num(e)} / {num(m)}</b></span>')
+        val = f"only {num(e)} out of {num(m)}" if lab == S.AI_PART_171 else f"{num(e)} / {num(m)}"
+        out.append(f'<span class="cc-pt {k}">{esc(lab)} <b>{val}</b></span>')
     return '<div class="cc-pts">' + "".join(out) + "</div>"
 
 def why(i, entry, raw, ev):

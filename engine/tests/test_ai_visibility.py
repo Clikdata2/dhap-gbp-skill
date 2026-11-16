@@ -108,7 +108,7 @@ def run_once():
     ok("v17.1 brief states the competitor line", f"Named most instead: Example Auto Mall was named {want} times out of 125." in br, br[:300])
     x = copy.deepcopy(m); A = [a for a in x["ai_visibility"]["answers"] if a["businesses"][0]["name"] == "Example Auto Mall"]
     for a in A[:3]: a["businesses"] = [{"name": "Example Auto", "type": "dealership"}]
-    R2 = V.top_rival(x); ok("v17.1 competitor: a short spelling joins the one longer name containing it", R2["names"] == ["Example Auto Mall"] and R2["times"] == want, R2)
+    R2 = V.top_rival(x); ok("v17.1 competitor: a short spelling joins the one longer name starting with it", R2["names"] == ["Example Auto Mall"] and R2["times"] == want, R2)
     x["ai_visibility"]["answers"].append(dict(A[0], run=99)); A[3]["businesses"] = [{"name": "Example Auto Group", "type": "dealership"}]
     R3 = V.top_rival(x); ok("v17.1 competitor: a short name matching two longer names stays apart", "Example Auto" in dict(R3["tally"]), R3["tally"])
     with tempfile.TemporaryDirectory() as t:
