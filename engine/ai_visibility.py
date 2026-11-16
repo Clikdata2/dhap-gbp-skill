@@ -13,16 +13,17 @@ the dealer. No dealer name and no brand is added to a question.
              v16.0 audits (Oct 27 2026) keep the 7 in TOOLS_V160 asked in the browser: 490 answers.
              Each question is asked RUNS (5; 10 on v16.0) times on each tool, in a fresh chat each time.
   record     every answer word for word, every business it names with its type, and whether it names this dealer.
-             v16.1: only the TOP (2) businesses each answer names first, in the answer's order, and whether this dealer
-             is one of them (the answer text is kept as proof).
+             v17.1 (audits dated Nov 16 2026 or later; decided by Travis): only the answer's number one suggestion is
+             recorded, and the answer counts for the dealer only when that suggestion is this dealer (the answer text is
+             kept as proof). Audits dated Oct 28 to Nov 15 2026 recorded up to MAX_RECORDED_V161 businesses.
              A tool that will not answer (sign-in wall, error, nothing within 60 seconds) is recorded as blocked with the
              reason; never retried. (v16.1: an API's rate limit or server error is retried with backoff; that is the API
              asking us to slow down, not a robot check. An ask that still fails is recorded as blocked.)
-  score      per question: answers naming the dealer (v16.1: in their top 2) / answers given for that question x 100.
+  score      per question: answers naming the dealer (v17.1: as the number one suggestion) / answers given for that
+             question x 100. Said everywhere as "[Dealer] was named only X times out of 125".
              The category (scorecard row 9, "AI Answer Visibility"): answers naming the dealer / all answers given x 10
              (0..10; 10% = 1). Blocked answers are not counted on either side.
-  outputs    the rep brief gets the business named most (v16.1: the 2 named most often in the top 2) for each question
-             on each tool; the spreadsheet
+  outputs    the rep brief gets the business named most for each question on each tool; the spreadsheet
              <slug>_ai-answers_<MM-DD-YY>.xlsx has one tab per tool and one row per answer.
 Evidence: ai_visibility = {method, city_st, answers: [{tool, q, run, status: answered|blocked, asked, when,
           answer, businesses: [{name, type, brand?}], named, reason?, proof?}]}
@@ -39,7 +40,9 @@ START = "2026-10-27"
 START_161 = "2026-10-28"   # v16.1: 5 tools through their APIs
 RUNS = 5         # v16.1
 RUNS_V160 = 10
-TOP = 2          # v16.1: only the first 2 businesses each answer names are recorded and scored
+START_171 = "2026-11-16"   # v17.1: only the number one suggestion counts
+MAX_RECORDED = 1            # v17.1: the answer's number one suggestion
+MAX_RECORDED_V161 = 2       # audits dated Oct 28 to Nov 15 2026
 QUESTIONS = [   # v16.1 (id, department, question) — word for word; never add the dealer's name or a brand
     ("sales_new_family_suv", "sales", "best family SUV under 40k near {city_st}"),
     ("sales_used_midsize_suv", "sales", "used midsize SUV near {city_st}"),
@@ -67,6 +70,11 @@ DEPT_LABEL = {"sales": "Sales", "service": "Service", "parts": "Parts"}
 
 def applies(ev): return str(ev.get("audit_date", "")) >= START
 def v161(ev): return str(ev.get("audit_date", "")) >= START_161
+def v171(ev): return str(ev.get("audit_date", "")) >= START_171
+def max_recorded(ev): return MAX_RECORDED if v171(ev) else MAX_RECORDED_V161
+def named_line(ev, named, answered):
+    """The one way the count is said, everywhere (v17.1, decided by Travis Nov 16 2026)."""
+    return f"{ev.get('dealer', 'The dealer')} was named only {named} {'time' if named == 1 else 'times'} out of {answered}"
 def tools(ev): return TOOLS if v161(ev) else TOOLS_V160
 def questions(ev): return QUESTIONS if v161(ev) else QUESTIONS_V160
 def runs(ev): return RUNS if v161(ev) else RUNS_V160
@@ -103,9 +111,10 @@ def check(ev):
         B = a.get("businesses")
         if not isinstance(B, list) or not all(isinstance(b, dict) and str(b.get("name", "")).strip() and b.get("type") in TYPES for b in B):
             P.append(p + f".businesses: every business the answer names, as {{name, type}} with type one of {', '.join(TYPES)} (empty list when it names none)")
-        elif v161(ev) and len(B) > TOP:
-            P.append(p + f".businesses: v16.1 records only the first {TOP} businesses the answer names, in its order")
-        if not isinstance(a.get("named"), bool): P.append(p + ".named: true/false — does the answer name this dealer")
+        elif v161(ev) and len(B) > max_recorded(ev):
+            P.append(p + (".businesses: record only the answer's number one suggestion (v17.1)" if v171(ev) else
+                          f".businesses: at most {MAX_RECORDED_V161} for an audit dated Oct 28 to Nov 15 2026"))
+        if not isinstance(a.get("named"), bool): P.append(p + ".named: true/false — is this dealer the answer's number one suggestion (v17.1)")
     missing = [(t, q, r) for t in TOOLS for q in ids for r in range(1, RUNS + 1) if (t, q, r) not in seen]
     if missing: P.append(f"ai_visibility: {len(missing)} of {len(TOOLS) * len(ids) * RUNS} answers not recorded (first: {missing[0]}); record each as answered or blocked")
     if seen and not any(isinstance(a, dict) and a.get("status") == "answered" for a in A["answers"]): P.append("ai_visibility: no tool answered — check the API keys (run/scripts/ai_api_runner.py --check-keys) and re-run the check")
@@ -127,7 +136,7 @@ def scores(ev):
 
 def winners(ev, n=1):
     """{(q_id, tool): (name, type, times, answered)} — the business named most for that question on that tool.
-    n=2: {(q_id, tool): [(name, type, times, answered), ...]} — the 2 named most (v16.1 top 2)."""
+    n>1: {(q_id, tool): [(name, type, times, answered), ...]} — the n named most."""
     out = {}
     for i, _, _ in questions(ev):
         for t in tools(ev):
@@ -136,34 +145,21 @@ def winners(ev, n=1):
             for a in x:
                 for b in {fold(b["name"]): b for b in a.get("businesses") or []}.values():
                     c[fold(b["name"])] += 1; first.setdefault(fold(b["name"]), b)
-            top = [(first[k]["name"], first[k]["type"], times, len(x)) for k, times in sorted(c.items(), key=lambda kv: (-kv[1], kv[0]))[:n]]
-            out[(i, t)] = top if n > 1 else (top[0] if top else (None, None, 0, len(x)))
+            ranked = [(first[k]["name"], first[k]["type"], times, len(x)) for k, times in sorted(c.items(), key=lambda kv: (-kv[1], kv[0]))[:n]]
+            out[(i, t)] = ranked if n > 1 else (ranked[0] if ranked else (None, None, 0, len(x)))
     return out
 
 def brief(ev):
     A = ev.get("ai_visibility") or {}; S = scores(ev); W = winners(ev)
     out = [f"### AI visibility check ({A.get('method', '')})", "",
-           f"**{ev.get('dealer', 'The dealer')} was {'one of the top 2 named' if v161(ev) else 'named'} in {S['named']} of {S['answered']} answers — {round(10 * S['row'])}% ({S['row']:.1f}/10).**", ""]
+           f"**{named_line(ev, S['named'], S['answered'])} — {round(10 * S['row'])}% ({S['row']:.1f}/10).**", ""]
     blocked = [a for a in A.get("answers", []) if a.get("status") == "blocked"]
     if blocked:
         by = collections.Counter(NAME[a["tool"]] for a in blocked)
         out += ["Not read (blocked, not counted): " + ", ".join(f"{t} {n}" for t, n in by.items()) + ".", ""]
-    if v161(ev):
-        T = winners(ev, TOP)
-        for i, d, _ in questions(ev):
-            q = S["questions"][i]
-            out += [f"**{DEPT_LABEL[d]} — \"{ask(i, A.get('city_st', '[City, ST]'))}\"** — dealer in the top {TOP} {q['named']} of {q['answered']} ({q['score']}/100)", "",
-                    "| Tool | Dealer in top 2 | #1 named most | #2 named most |", "|---|---|---|---|"]
-            for t in tools(ev):
-                w = T[(i, t)]; dn = sum(1 for a in _answered(ev) if a["q"] == i and a["tool"] == t and a["named"])
-                n = sum(1 for a in _answered(ev) if a["q"] == i and a["tool"] == t)
-                cell = lambda k: f"{w[k][0]} ({TYPE_LABEL[w[k][1]]}, {w[k][2]} of {w[k][3]})" if len(w) > k else "—"
-                out.append(f"| {NAME[t]} | {dn} of {n} | {cell(0)} | {cell(1)} |")
-            out.append("")
-        return "\n".join(out)
     for i, d, _ in questions(ev):
         q = S["questions"][i]
-        out += [f"**{DEPT_LABEL[d]} — \"{ask(i, A.get('city_st', '[City, ST]'))}\"** — dealer named {q['named']} of {q['answered']} ({q['score']}/100)", "",
+        out += [f"**{DEPT_LABEL[d]} — \"{ask(i, A.get('city_st', '[City, ST]'))}\"** — named only {q['named']} {'time' if q['named'] == 1 else 'times'} out of {q['answered']} ({q['score']}/100)", "",
                 "| Tool | Dealer named | Named most | Type | Times |", "|---|---|---|---|---|"]
         for t in tools(ev):
             nm, ty, times, n = W[(i, t)]
@@ -178,7 +174,7 @@ def sheet(ev, path):
     from openpyxl.styles import Alignment, Font
     A = ev.get("ai_visibility") or {}; wb = Workbook(); wb.remove(wb.active)
     cols = ["Dealer", "City & State", "Department", "Question", "Run", "When", "Status", "Answer",
-            "Top 2 Named" if v161(ev) else "Businesses Named", "Business Types", "Dealer in Top 2" if v161(ev) else "Dealer Named"]
+            "Business Suggested" if v171(ev) else "Businesses Named", "Business Types", "Dealer Named"]
     QUESTIONS = questions(ev)
     for t in tools(ev):
         ws = wb.create_sheet(NAME[t]); ws.append(cols)

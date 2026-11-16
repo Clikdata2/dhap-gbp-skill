@@ -3,10 +3,11 @@
 
 Asks the 5 questions 5 times on each of the 5 tools (125 asks, v16.1), all in parallel, and saves every answer to
 <out>/dhap_ai_<tool>.json in the same record format as ai_runner.py / aicap.js, so ai_merge.py reads it unchanged.
-v16.1 keeps only the top 2: each answer is capped at OUTPUT_CAP tokens (the first names come first). v16.2: code and
-Claude Haiku list every name in the answer's order, JEV decides which are businesses, what kind and whether one is the
-dealer (--dealer), and a fixed rule checks JEV; the first 2 businesses go into "top2": [{name, type}] and the JEV
-ledger into "jev". The answer text is kept as proof.
+Each answer is capped at OUTPUT_CAP tokens (an answer's suggestions come first). v16.2: code and Claude Haiku list
+every name in the answer's order, JEV decides which are businesses, what kind and whether one is the dealer (--dealer),
+and a fixed rule checks JEV. v17.1 (decided by Travis Nov 16 2026): only the answer's number one suggestion counts; it
+goes into "suggested": [{name, type}] (empty when the answer suggests no business), "dealer_named" in the JEV ledger
+says whether it is the dealer, and the ledger goes into "jev". The answer text is kept as proof.
 
   chatgpt    OpenAI Responses API + web_search tool, approximate user location = the dealer's city
   gemini     Gemini API + Grounding with Google Search
@@ -38,14 +39,14 @@ QUESTIONS = {   # v16.1, word for word (engine/ai_visibility.py QUESTIONS)
     "service_brake_job": "brake job near {c}",
     "parts_brake_pads": "brake pads for my SUV near {c}",
 }
-TOP = 2
+SUGGESTIONS = 1   # v17.1: only the number one suggestion counts
 OUTPUT_CAP = 2500   # tokens, thinking included; an answer that comes back empty at the cap is asked once more without it
 EXTRACT_MODEL = "claude-haiku-5-5"
 TYPES = ["dealership", "oil_change", "tire_shop", "parts_store", "repair_shop", "retailer", "other"]
 TOOLS = ("chatgpt", "gemini", "google_ai", "claude", "brave")
 KEY = {"chatgpt": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY", "google_ai": "SERPAPI_API_KEY",
        "claude": "ANTHROPIC_API_KEY", "brave": "BRAVE_API_KEY"}
-MODEL_DEFAULT = {"chatgpt": "gpt-5.4-mini", "gemini": "gemini-3.8-flash", "claude": "claude-sonnet-5-5"}   # the cheaper models (Travis, Oct 27 2026): only the top 2 names count
+MODEL_DEFAULT = {"chatgpt": "gpt-5.4-mini", "gemini": "gemini-3.8-flash", "claude": "claude-sonnet-5-5"}   # the cheaper models (Travis, Oct 27 2026)
 PARALLEL = {"chatgpt": 10, "gemini": 10, "google_ai": 10, "claude": 8, "brave": 2}   # Brave's base plan: 2 requests/second
 STATES = dict(AL="Alabama", AK="Alaska", AZ="Arizona", AR="Arkansas", CA="California", CO="Colorado", CT="Connecticut",
               DE="Delaware", DC="District of Columbia", FL="Florida", GA="Georgia", HI="Hawaii", ID="Idaho", IL="Illinois",
@@ -230,7 +231,7 @@ def ask_brave(q, p, cap=None):
     return text, src, "Brave Search API, AI Grounding"
 
 
-# ---- top 2: code + Haiku find the names, JEV judges them, a fixed rule checks JEV (SKILL.md: JEV decides first) ----
+# ---- the number one suggestion: code + Haiku find the names, JEV judges them, a fixed rule checks JEV (SKILL.md: JEV decides first) ----
 def _engine():
     """engine/decide.py from the rules repository (one JEV client, model pinned there)."""
     import sys
@@ -258,7 +259,7 @@ NOT_BUSINESS = re.compile(   # the fixed rule that checks JEV: a car, a website,
     r"^(choosing|fastest|cheapest|best|budget|convenience|convenient|quick|overall|pricing|prices|coupons|deals|"
     r"specials|recommendations|independent|dealer|dealership|chains?|national chains?|local shops?|other|more)$", re.I)
 ADDRESS = re.compile(r"\(?\d{3}\)?[ .-]?\d{3}[ .-]\d{4}|^\d+\s+\S+|^(located at|location\b|address\b)|\blocation( \d+)?$|\b(ny|n\.y\.) \d{5}$", re.I)
-CHUNK = 20   # candidates per JEV request, in reading order; stop once the top 2 are found
+CHUNK = 20   # candidates per JEV request, in reading order; stop at the number one suggestion
 
 
 def looks_like_business(name):
@@ -382,10 +383,10 @@ def is_dealer_name(name, dkey):
     return all(w in dkey or w in DEALER_FILLER or w in CITY_WORDS for w in words)
 
 
-def top2(answer, dealer=None, scan=True):
-    """The first 2 businesses the answer names, in its order -> ([{name, type}], JEV ledger).
+def number_one(answer, dealer=None, scan=True):
+    """The answer's number one suggestion: the first business it names -> ([{name, type}] or [], JEV ledger).
     JEV sure (yes >= 0.7, no <= 0.3) decides; JEV unsure or unavailable -> the rule decides. A disagreement on a name
-    that could put a wrong name in the top 2 (JEV yes / rule no, or JEV unsure) is listed for a person
+    that could make a wrong name the number one suggestion (JEV yes / rule no, or JEV unsure) is listed for a person
     (ledger["review"]); JEV turning down what the rule let through is counted in ledger["overruled"]."""
     D = _engine()
     C = candidates(answer, scan)
@@ -394,7 +395,7 @@ def top2(answer, dealer=None, scan=True):
     if C and not key:
         led["reason"] = "no JEV key (DHAP_SERVICE_URL + DHAP_TEAM_CODE, or TYPESAFE_API_KEY)"
     dkey = fold(re.sub(r"\b(of|the|inc|llc)\b", " ", dealer or "", flags=re.I)).split()
-    top, dealer_hit, tok = [], False, 0.0
+    picked, dealer_hit, tok = [], False, 0.0
 
     def decide(a, qid, rule, what, name, notes):
         try:
@@ -405,7 +406,7 @@ def top2(answer, dealer=None, scan=True):
         if says == "unsure":
             notes.append(f"{name!r} {what}: JEV unsure (p={p:.2f}); the rule's {'yes' if rule else 'no'} is used")
             return rule, "rule (JEV unsure)", p
-        if says == "yes" and not rule:      # could put a wrong name in the top 2: a person checks it
+        if says == "yes" and not rule:      # could make a wrong name the number one suggestion: a person checks it
             notes.append(f"{name!r} {what}: JEV says yes, the rule says no; JEV's answer is used")
         elif says == "no" and rule:         # JEV turned down what the rule let through: kept in the record, not listed
             led["overruled"] = led.get("overruled", 0) + 1
@@ -428,36 +429,37 @@ def top2(answer, dealer=None, scan=True):
                 next((k for k, rx in TYPE_RULE if re.search(rx, c["name"], re.I)), "other")
             row = {"name": c["name"], "pos": c["pos"], "p": p, "rule": rule, "is_business": is_biz, "by": by, "type": typ}
             dup = is_biz and any(f" {base(c['name'])} " in f" {base(x['name'])} " or f" {base(x['name'])} " in f" {base(c['name'])} "
-                                 for x in top)   # the same business named again, alone or inside a combined name
+                                 for x in picked)   # the same business named again, alone or inside a combined name
             row["counted"] = bool(is_biz and not dup)
             if row["counted"]:
-                top.append({"name": c["name"], "type": typ})
+                picked.append({"name": c["name"], "type": typ})
                 if dealer:
                     drule = is_dealer_name(c["name"], dkey)
                     row["dealer"], row["dealer_by"], row["dealer_p"] = decide(a, f"dealer_{i}", drule, f"is {dealer}", c["name"], notes)
                     if row["dealer"] and not has_dealer_words(c["name"], dkey):   # v16.4: a group or partial name is never the dealer, even on JEV's yes
                         row["dealer"], row["dealer_by"] = False, "rule (name lacks a word of the dealer's name)"
                     dealer_hit |= row["dealer"]
-            led["review"] += notes          # only names read up to the 2nd business: these decide the top 2
+            led["review"] += notes          # only names read up to the number one suggestion: these decide it
             led["candidates"].append(row)
-            if len(top) == TOP:
+            if len(picked) == SUGGESTIONS:
                 break
-        if len(top) == TOP:
+        if len(picked) == SUGGESTIONS:
             break
     use(jev_input_tokens=tok)
     led["cost_usd"] = round(tok * D.PRICE_PER_M_INPUT / 1e6, 8)
     if led["status"] != "ok":
         led["review"].append(f"JEV did not run ({led.get('reason')}); every answer came from the rule")
     if dealer:
-        led["dealer"], led["dealer_in_top2"] = dealer, dealer_hit
-    return top, led
+        led["dealer"], led["dealer_named"] = dealer, dealer_hit
+    return picked, led
 
 
 ASK = {"chatgpt": ask_chatgpt, "gemini": ask_gemini, "google_ai": ask_google_ai, "claude": ask_claude, "brave": ask_brave}
 
 
 def reextract(out, tools, dealer=None):
-    """Pull the top 2 again from saved answers (after an extraction fix). Re-asks nothing; only Claude Haiku is called."""
+    """Pull the number one suggestion again from saved answers (after an extraction fix or a rule change). Re-asks nothing;
+    only Claude Haiku and JEV are called."""
     t0, lock = time.time(), threading.Lock()
     for t in tools:
         f = out / f"dhap_ai_{t}.json"
@@ -467,9 +469,9 @@ def reextract(out, tools, dealer=None):
         def one(rec):
             _u.d = {}
             try:
-                rec["top2"], rec["jev"] = top2(rec["answer"], dealer); rec.pop("top2_error", None)
+                rec["suggested"], rec["jev"] = number_one(rec["answer"], dealer); rec.pop("suggested_error", None)
             except Exception as e:
-                rec.pop("top2", None); rec["top2_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+                rec.pop("suggested", None); rec["suggested_error"] = f"{type(e).__name__}: {str(e)[:200]}"
             with lock:
                 u = rec.setdefault("usage", {})
                 u["reextract_input_tokens"] = u.get("reextract_input_tokens", 0) + _u.d.get("extract_input_tokens", 0)
@@ -478,7 +480,7 @@ def reextract(out, tools, dealer=None):
         with cf.ThreadPoolExecutor(10) as ex:
             list(ex.map(one, [r for r in recs if r.get("status") == "answered"]))
         f.write_text(json.dumps(recs, indent=1, ensure_ascii=False))
-        print(t, sum("top2" in r for r in recs), "re-pulled,", sum("top2_error" in r for r in recs), "errors", flush=True)
+        print(t, sum("suggested" in r for r in recs), "re-pulled,", sum("suggested_error" in r for r in recs), "errors", flush=True)
     print(f"re-pulled in {time.time() - t0:.0f}s")
 
 
@@ -494,9 +496,9 @@ def main():
     ap.add_argument("--tools", default=",".join(TOOLS))
     ap.add_argument("--questions", default=",".join(QUESTIONS))
     ap.add_argument("--runs", default="1-5")
-    ap.add_argument("--dealer", help='the dealership\'s name, e.g. "James Mitsubishi" (JEV checks whether each top-2 name is this dealer)')
+    ap.add_argument("--dealer", help='the dealership\'s name, e.g. "James Mitsubishi" (JEV checks whether the number one suggestion is this dealer)')
     ap.add_argument("--check-keys", action="store_true")
-    ap.add_argument("--reextract", action="store_true", help="pull the top 2 again from the answers already saved in --out (asks nothing)")
+    ap.add_argument("--reextract", action="store_true", help="pull the number one suggestion again from the answers already saved in --out (asks nothing)")
     a = ap.parse_args()
     load_keys()
     tools = [t for t in a.tools.split(",") if t]
@@ -543,9 +545,9 @@ def main():
                 raise Blocked("empty or near-empty answer")
             rec.update(status="answered", answer=text.strip(), complete=True, via=via, sources=[s for s in src if s][:40])
             try:
-                rec["top2"], rec["jev"] = top2(rec["answer"], a.dealer)
+                rec["suggested"], rec["jev"] = number_one(rec["answer"], a.dealer)
             except Exception as e:   # ai_merge.py falls back to its own name list; the answer is still saved
-                rec["top2_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+                rec["suggested_error"] = f"{type(e).__name__}: {str(e)[:200]}"
         except Blocked as e:
             rec.update(status="blocked", reason=str(e), via=f"{t} API")
         except KeyError as e:
@@ -555,7 +557,7 @@ def main():
         with lock:
             recs[t][:] = [x for x in recs[t] if (x["q"], x["run"]) != (q, run)] + [rec]   # a re-ask replaces the blocked record
             (out / f"dhap_ai_{t}.json").write_text(json.dumps(recs[t], indent=1, ensure_ascii=False))
-            print(t, q, run, rec["status"], " | ".join(b["name"] for b in rec.get("top2", [])), rec.get("reason", "")[:80], flush=True)
+            print(t, q, run, rec["status"], " | ".join(b["name"] for b in rec.get("suggested", [])), rec.get("reason", "")[:80], flush=True)
 
     jobs = [(t, q, r) for t in tools for q in a.questions.split(",") for r in parse_runs(a.runs) if (t, q, r) not in done]
     pools = {t: cf.ThreadPoolExecutor(PARALLEL[t]) for t in tools}
