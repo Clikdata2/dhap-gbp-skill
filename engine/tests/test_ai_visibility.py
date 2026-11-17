@@ -101,6 +101,8 @@ def run_once():
     ok("v17.1 brief: 'Example Mitsubishi was named only X times out of 125'", f"was named only {sc171['named']} times out of 125" in br, br[:200])
     T = V.summary_title(m); R0 = V.top_rival(m)
     ok("v17.2 Summary title: competitor and dealer counts", T == f"AI Local Search Named {' and '.join(R0['names'])} {R0['times']} {'time' if R0['times'] == 1 else 'times'} out of 125 searches and {m['dealer']} {sc171['named']} {'time' if sc171['named'] == 1 else 'times'}", T)
+    ok("v17.3 method note is the approved wording and leaks nothing", V.method_note(m).startswith("On ") and "CLIKdata\u2019s proprietary AI search audit" in V.method_note(m) and not V.method_leaks(V.method_note(m)), V.method_note(m))
+    ok("v17.3 method_leaks finds API detail", V.method_leaks("Asked through the official APIs, five fresh asks") == ["official api", "fresh ask"], V.method_leaks("Asked through the official APIs, five fresh asks"))
     ok("'only' never stands before 0", V.named_line(m, 0, 125).endswith("was named 0 times out of 125") and V.only(0, 125) == "0 times out of 125" and V.only(3, 125) == "only 3 times out of 125", V.named_line(m, 0, 125))
     with tempfile.TemporaryDirectory() as t:
         wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ok("v17.1 spreadsheet: Business Suggested and Dealer Named columns", wb["ChatGPT"]["I1"].value == "Business Suggested" and wb["ChatGPT"]["K1"].value == "Dealer Named")

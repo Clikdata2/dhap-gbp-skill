@@ -106,6 +106,24 @@ def summary_title(ev):
     if not R: return None
     V = scores(ev); t = lambda n: "time" if n == 1 else "times"
     return f"AI Local Search Named {' and '.join(R['names'])} {R['times']} {t(R['times'])} out of {V['answered']} searches and {ev.get('dealer', 'The dealer')} {V['named']} {t(V['named'])}"
+LLM_NAMES = "ChatGPT, Gemini, Google AI, Claude and Brave"
+# v17.3 (Travis, Nov 16 2026): client pages never explain how the AI audit is run (no APIs, search add-ons, SerpApi, run counts,
+# how questions are worded or how answers are counted). The internal files (rep brief, audit evidence, spreadsheet) keep the detail.
+CLIENT_METHOD_BANNED = ["official api", "serpapi", "grounding", "web search", "fresh ask", "times each",
+                        "without naming", "never your name", "no question named", "5 runs", "five runs", "number one suggestion",
+                        "city and state only", "only the city and state", "only your city and state"]
+def method_note(ev):
+    """The approved wording for the AI evidence popups (Travis, Nov 16 2026)."""
+    A = ev.get("ai_visibility") or {}; d = str(ev.get("audit_date", ""))
+    try:
+        import datetime as _dt; when = _dt.date.fromisoformat(d).strftime("%B %-d, %Y")
+    except Exception: when = d
+    return (f"On {when}, using CLIKdata\u2019s proprietary AI search audit, we ran local search questions in {A.get('city_st', 'the dealership\u2019s city')} "
+            f"through the 5 major LLMs used by today\u2019s shoppers: {LLM_NAMES}. The following control questions give an accurate account of how often "
+            "this dealership was suggested. This is data from the API answers, not a screenshot; every answer is in the AI answers spreadsheet.")
+def method_leaks(text):
+    """Banned method phrases found in client-facing text (lower-cased search)."""
+    low = str(text).casefold(); return [b for b in CLIENT_METHOD_BANNED if b in low]
 def tools(ev): return TOOLS if v161(ev) else TOOLS_V160
 def questions(ev): return QUESTIONS if v161(ev) else QUESTIONS_V160
 def runs(ev): return RUNS if v161(ev) else RUNS_V160

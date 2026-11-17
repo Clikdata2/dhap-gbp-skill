@@ -211,7 +211,7 @@ def ai_table(ev, c, rows):
     tools = ", ".join(AV.NAME[t] for t in AV.tools(ev))
     return f'''
   <div class="section-title">How Often AI Names {c["dealer"]} &mdash; Shopper Questions Near {H.escape(A["city_st"])}</div>
-  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">We asked {len(AV.tools(ev))} AI tools ({tools}) the questions shoppers ask, {AV.runs(ev)} times each, with only your city and state &mdash; never your name or brand.{' An answer counts only when its number one suggestion is you.' if AV.v171(ev) else ''} AI answers change by person, place and time.</p>
+  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">Using CLIKdata&rsquo;s proprietary AI search audit, we ran local search questions in {H.escape(A["city_st"])} through the {len(AV.tools(ev))} major LLMs used by today&rsquo;s shoppers ({tools}). These control questions show how often each one suggested {c["dealer"]}. AI answers change by person, place and time.</p>
   <table class="score-table">
     <thead><tr><th>Dept.</th><th>Question</th><th>Named</th><th>Score</th></tr></thead>
     <tbody>
