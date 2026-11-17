@@ -77,6 +77,12 @@ def only(named, answered):
     """Table and card form of the same count: 'only X times out of Y' (v17.1)."""
     return f"{ONLY(named)}{named} {'time' if named == 1 else 'times'} out of {answered:,}"
 def count_cell(ev, named, answered): return only(named, answered) if v171(ev) else f"{named} of {answered}"
+def plain_name(name):
+    """A business name without what an AI answer adds after it (v17.3, Travis Nov 16 2026): a parenthetical note
+    ('Puente Hills Auto Center (Right in City of Industry - Gale Ave off the 60 Fwy)' -> 'Puente Hills Auto Center') or a dash clause."""
+    n = re.sub(r"\s*[(\[].*$", "", str(name or ""))
+    n = re.split(r"\s+[\u2013\u2014]\s+", n)[0]
+    return n.strip(" ,;:-") or str(name or "").strip()
 def _key(name): return " ".join(w for w in fold(name).split() if w not in ("of", "the", "at", "inc", "llc"))
 def top_rival(ev):
     """v17.1 (Travis, Nov 16 2026): the dealership AI suggests number one most often when it is not this dealer.
@@ -87,8 +93,9 @@ def top_rival(ev):
     for a in A:
         B = a.get("businesses") or []
         if a.get("named") or not B or B[0].get("type") != "dealership": continue
-        k = _key(B[0]["name"]); k = same.setdefault(k.replace(" ", ""), k)   # 'Auto Mall' = 'Automall'
-        if k: c[k] += 1; spell[k][B[0]["name"]] += 1
+        nm = plain_name(B[0]["name"])   # v17.3: an added note after the name is not part of it
+        k = _key(nm); k = same.setdefault(k.replace(" ", ""), k)   # 'Auto Mall' = 'Automall'
+        if k: c[k] += 1; spell[k][nm] += 1
     for k in sorted(list(c), key=len):
         longer = [o for o in c if o != k and o.startswith(k + " ")]
         if len(longer) == 1: c[longer[0]] += c.pop(k); spell[longer[0]].update(spell.pop(k))
