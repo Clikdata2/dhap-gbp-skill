@@ -102,6 +102,9 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         d = plain(D)
         need = [S.ai_visibility.named_line(ev, V["named"], V["answered"])] + ([S.ai_visibility.rival_line(R)] if R else [])
         for x in need: assert x in d, ("DHAP", "must say, word for word", x)
+        T = S.ai_visibility.summary_title(ev)   # v17.2 (Travis, Nov 16 2026): the Summary title
+        if T: assert T.casefold() in d.casefold(), ("DHAP", "Summary title must read, word for word", T)
+        assert not re.search(r"\bonly 0\b", d, re.I), ("DHAP", "'only' never stands before 0")
     picked = AC.pick(ev, rows) if AC.applies(ev) else None
     if HS is None:
         assert picked is not None and not picked[0], "health alert missing"
