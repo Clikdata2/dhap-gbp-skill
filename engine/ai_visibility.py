@@ -99,6 +99,13 @@ def rival_line(R):
     """'Honda North was named 12 times out of 125' (ties: 'A and B were each named ...')."""
     who = " and ".join(R["names"]); verb = "was" if len(R["names"]) == 1 else "were each"
     return f"{who} {verb} named {R['times']} {'time' if R['times'] == 1 else 'times'} out of {R['answered']}"
+def summary_title(ev):
+    """The DHAP Summary title (v17.2, decided by Travis Nov 16 2026): 'AI Local Search Named [Competitor] Y times out of 125 searches and
+    [Dealer] X times'. None when no other dealership was suggested number one."""
+    R = top_rival(ev)
+    if not R: return None
+    V = scores(ev); t = lambda n: "time" if n == 1 else "times"
+    return f"AI Local Search Named {' and '.join(R['names'])} {R['times']} {t(R['times'])} out of {V['answered']} searches and {ev.get('dealer', 'The dealer')} {V['named']} {t(V['named'])}"
 def tools(ev): return TOOLS if v161(ev) else TOOLS_V160
 def questions(ev): return QUESTIONS if v161(ev) else QUESTIONS_V160
 def runs(ev): return RUNS if v161(ev) else RUNS_V160

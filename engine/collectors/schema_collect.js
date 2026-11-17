@@ -42,7 +42,7 @@ async function dhapSchema(paths) {
   async function getDoc(path) {
     if (!path) return null;
     try {
-      const r = await fetch(path, { credentials: 'include' });
+      const r = await fetch(path, { credentials: 'include', headers: { 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Upgrade-Insecure-Requests': '1' } });   // v17.2: the browser's normal page-request headers (some dealer sites answer 403 without them)
       if (!r.ok) return { status: r.status };
       return new DOMParser().parseFromString(await r.text(), 'text/html');
     } catch (e) { return (path === '/' || path === location.pathname) ? document : { status: 'ERR' }; }
