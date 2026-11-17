@@ -211,7 +211,7 @@ def ai_table(ev, c, rows):
     tools = ", ".join(AV.NAME[t] for t in AV.tools(ev))
     return f'''
   <div class="section-title">How Often AI Names {c["dealer"]} &mdash; Shopper Questions Near {H.escape(A["city_st"])}</div>
-  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">We asked {len(AV.tools(ev))} AI tools ({tools}) the questions shoppers ask, {AV.runs(ev)} times each, with only your city and state &mdash; never your name or brand.{' An answer counts only when its number one suggestion is you.' if AV.v171(ev) else ''} AI answers change by person, place and time.</p>
+  <p style="font-size:.85rem;color:#4b5563;margin:-4px 0 12px;">Using CLIKdata&rsquo;s proprietary AI search audit, we ran local search questions in {H.escape(A["city_st"])} through the {len(AV.tools(ev))} major LLMs used by today&rsquo;s shoppers ({tools}). These control questions show how often each one suggested {c["dealer"]}. AI answers change by person, place and time.</p>
   <table class="score-table">
     <thead><tr><th>Dept.</th><th>Question</th><th>Named</th><th>Score</th></tr></thead>
     <tbody>
@@ -223,6 +223,7 @@ def ai_table(ev, c, rows):
 '''
 
 def build_dhap(tpl, c, ev, sc):
+    AUDITED = str(ev.get("audit_date", "")) >= "2026-11-16"   # v17.3: from Nov 16 2026 the competitor lines come from the AI audit, so no "not directly audited" note
     rows, ovr, st = sc["rows"], sc["overall"], sc["status"]; date = sc["date_long"]; fill = round(ovr * 10)
     s = c["summary"]
     bullets = "".join(dot(b[0], b[1], b[2], last=(i == len(s["bullets"]) - 1)) for i, b in enumerate(s["bullets"]))
@@ -232,7 +233,7 @@ def build_dhap(tpl, c, ev, sc):
     <img src="{MITS_LOGO}" alt="Mitsubishi Motors" style="position:absolute;top:24px;right:28px;height:68px;object-fit:contain;opacity:.92;"/><div class="hero-eyebrow">GBP &amp; Local Presence Audit · {c["city_st"]} · {c["month_year"]}</div>
     <div class="hero-title">{c["dealer"]}<br/>{s["title"]}</div>
     <div class="hero-sub">
-      {s["context"]} — but <strong style="color:#e82b39;">{s["red"]}</strong> {s["consequence"]} Meanwhile, <strong style="color:#f97316;">{s["orange"]}</strong> <em style="color:#6b7280;">(Competitor GBP activity in {c["city_st"]} not directly audited — industry pattern.)</em> CLIKsearch closes every gap — fully managed, 24/7.
+      {s["context"]} — but <strong style="color:#e82b39;">{s["red"].rstrip(". ")}{"." if s["consequence"].startswith("mean ") else ""}</strong> {("Together, these gaps " + s["consequence"]) if s["consequence"].startswith("mean ") else s["consequence"]} Meanwhile, <strong style="color:#f97316;">{s["orange"]}</strong>{"" if AUDITED else f' <em style="color:#6b7280;">(Competitor GBP activity in {c["city_st"]} not directly audited — industry pattern.)</em>'} CLIKsearch closes every gap — fully managed, 24/7.
     </div>
     <div class="hero-fact-strip">
       {"".join(fact(f) for f in s["facts"])}
@@ -285,7 +286,8 @@ def build_dhap(tpl, c, ev, sc):
     kg = A["key_gaps"]
     kgh = "\n".join("          " + dot(g[0], g[1], g[2], last=(i == len(kg) - 1)) for i, g in enumerate(kg))
     badge_emoji = {"CRITICAL": "&#128308;", "MAJOR": "&#128992;", "PARTIAL": "&#128993;", "STRONG": "&#128994;"}.get(A["badge"], "&#128992;")
-    secs = "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
+    # v17.3 (Travis, Nov 16 2026): from Nov 16 2026 the AI tab no longer repeats the gap and strength cards; Findings holds them once
+    secs = "" if AUDITED else "".join(f'\n  <div class="section-title">{sec["title"]}</div>\n\n' + "".join(card(x, date) for x in sec["cards"]) for sec in A["sections"])
     nap_ai, nap_net = nap_tables(ev, date, rows)
     aiv = f'''<!-- AI VISIBILITY SCORE TAB -->
 <div id="aivisibility" class="tab-panel">
@@ -335,6 +337,7 @@ def build_dhap(tpl, c, ev, sc):
             "body": "GBP posts happen &mdash; but they stay on GBP. No other GBP service distributes that content further. CLIKsearch does: in addition to every GBP post, the same content is simultaneously distributed to Facebook, Instagram, Threads, LinkedIn, Pinterest, and Bluesky &mdash; each version written and formatted for that platform&rsquo;s audience. Your GBP posts don&rsquo;t stop &mdash; they get amplified across 6 more channels. This is a force multiplier no other GBP service includes &mdash; creating 6&times; the engagement signals, social citations, and entity authority with every single post."}
     F = '<!-- FINDINGS TAB -->\n<div id="findings" class="tab-panel">\n'
     for sec in c["findings"]:
+        if AUDITED and "Working" in sec["title"]: continue   # v17.3: what's working is said once, in the Summary
         cards = sec["cards"] + ([OMNI] if sec.get("add_omni_social") else [])
         F += f'  <div class="section-title">{sec["title"]}</div>\n' + "".join(card(x, date) for x in cards) + "\n"
     if "No Cross-Platform Social Distribution" not in F: raise Bad("findings: one section must set add_omni_social: true (RULE G card)")
@@ -365,7 +368,7 @@ def build_dhap(tpl, c, ev, sc):
     b = h.index('<div class="finding-card major" style="border-left-color:#f97316;">', a)
     w = c["why_card"]
     h = h[:a] + (f'<div class="finding-card major" style="border-left-color:#e82b39;">\n    <div class="finding-header"><span class="finding-icon">{w["icon"]}</span><span class="finding-title">{w["title"]}</span></div>\n'
-                 f'    <div class="finding-body">{w["body"]} <em style="color:#6b7280;">(Specific competitor activity in this market not directly audited.)</em></div>\n  </div>\n  ') + h[b:]
+                 f'    <div class="finding-body">{w["body"]}{"" if AUDITED else ' <em style="color:#6b7280;">(Specific competitor activity in this market not directly audited.)</em>'}</div>\n  </div>\n  ') + h[b:]
     # template text fixes (documented in the run skill): typo, and the KB-aligned reimbursement wording
     h = h.replace("Averages from active active CLIKsearch", "Averages from active CLIKsearch")
     h = h.replace("MiDS reimbursement can bring net dealer cost to $0. Get optimized and syndicated in 72 hours.",

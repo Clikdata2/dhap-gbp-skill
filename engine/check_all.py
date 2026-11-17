@@ -105,6 +105,10 @@ def suite(repo, D, HS, ev, report_id, dealer_words):
         T = S.ai_visibility.summary_title(ev)   # v17.2 (Travis, Nov 16 2026): the Summary title
         if T: assert T.casefold() in d.casefold(), ("DHAP", "Summary title must read, word for word", T)
         assert not re.search(r"\bonly 0\b", d, re.I), ("DHAP", "'only' never stands before 0")
+        if str(ev.get("audit_date", "")) >= "2026-11-16":   # v17.3 (Travis, Nov 16 2026): client pages never explain how the AI audit is run
+            for name, t in (("DHAP", D), ("health alert", HS or "")):
+                leaks = S.ai_visibility.method_leaks(H.unescape(t))
+                assert not leaks, (name, "client page explains the AI audit method (v17.3)", leaks)
     picked = AC.pick(ev, rows) if AC.applies(ev) else None
     if HS is None:
         assert picked is not None and not picked[0], "health alert missing"

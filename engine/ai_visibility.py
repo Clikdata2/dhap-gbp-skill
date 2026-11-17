@@ -77,6 +77,12 @@ def only(named, answered):
     """Table and card form of the same count: 'only X times out of Y' (v17.1)."""
     return f"{ONLY(named)}{named} {'time' if named == 1 else 'times'} out of {answered:,}"
 def count_cell(ev, named, answered): return only(named, answered) if v171(ev) else f"{named} of {answered}"
+def plain_name(name):
+    """A business name without what an AI answer adds after it (v17.3, Travis Nov 16 2026): a parenthetical note
+    ('Puente Hills Auto Center (Right in City of Industry - Gale Ave off the 60 Fwy)' -> 'Puente Hills Auto Center') or a dash clause."""
+    n = re.sub(r"\s*[(\[].*$", "", str(name or ""))
+    n = re.split(r"\s+[\u2013\u2014]\s+", n)[0]
+    return n.strip(" ,;:-") or str(name or "").strip()
 def _key(name): return " ".join(w for w in fold(name).split() if w not in ("of", "the", "at", "inc", "llc"))
 def top_rival(ev):
     """v17.1 (Travis, Nov 16 2026): the dealership AI suggests number one most often when it is not this dealer.
@@ -87,8 +93,9 @@ def top_rival(ev):
     for a in A:
         B = a.get("businesses") or []
         if a.get("named") or not B or B[0].get("type") != "dealership": continue
-        k = _key(B[0]["name"]); k = same.setdefault(k.replace(" ", ""), k)   # 'Auto Mall' = 'Automall'
-        if k: c[k] += 1; spell[k][B[0]["name"]] += 1
+        nm = plain_name(B[0]["name"])   # v17.3: an added note after the name is not part of it
+        k = _key(nm); k = same.setdefault(k.replace(" ", ""), k)   # 'Auto Mall' = 'Automall'
+        if k: c[k] += 1; spell[k][nm] += 1
     for k in sorted(list(c), key=len):
         longer = [o for o in c if o != k and o.startswith(k + " ")]
         if len(longer) == 1: c[longer[0]] += c.pop(k); spell[longer[0]].update(spell.pop(k))
@@ -106,6 +113,36 @@ def summary_title(ev):
     if not R: return None
     V = scores(ev); t = lambda n: "time" if n == 1 else "times"
     return f"AI Local Search Named {' and '.join(R['names'])} {R['times']} {t(R['times'])} out of {V['answered']} searches and {ev.get('dealer', 'The dealer')} {V['named']} {t(V['named'])}"
+LLM_NAMES = "ChatGPT, Gemini, Google AI, Claude and Brave"
+# v17.3 (Travis, Nov 16 2026): client pages never explain how the AI audit is run (no APIs, search add-ons, SerpApi, run counts,
+# how questions are worded or how answers are counted). The internal files (rep brief, audit evidence, spreadsheet) keep the detail.
+CLIENT_METHOD_BANNED = ["official api", "serpapi", "grounding", "web search", "fresh ask", "times each",
+                        "without naming", "never your name", "no question named", "5 runs", "five runs", "number one suggestion",
+                        "city and state only", "only the city and state", "only your city and state"]
+def method_note(ev):
+    """The approved wording for the AI evidence popups (Travis, Nov 16 2026)."""
+    A = ev.get("ai_visibility") or {}; d = str(ev.get("audit_date", ""))
+    try:
+        import datetime as _dt; when = _dt.date.fromisoformat(d).strftime("%B %-d, %Y")
+    except Exception: when = d
+    return (f"On {when}, using CLIKdata\u2019s proprietary AI search audit, we ran local search questions in {A.get('city_st', 'the dealership\u2019s city')} "
+            f"through the 5 major LLMs used by today\u2019s shoppers: {LLM_NAMES}. The following control questions give an accurate account of how often "
+            "this dealership was suggested. This is data from the API answers, not a screenshot; every answer is in the AI answers spreadsheet.")
+def rival_note(ev):
+    """The approved wording for the competitor evidence popup (Travis, Nov 17 2026): it speaks about the list of dealerships."""
+    R = top_rival(ev); A = ev.get("ai_visibility") or {}; d = str(ev.get("audit_date", ""))
+    if not R: return method_note(ev)
+    try:
+        import datetime as _dt; when = _dt.date.fromisoformat(d).strftime("%B %-d, %Y")
+    except Exception: when = d
+    who = " and ".join(R["names"])
+    return (f"On {when}, CLIKdata\u2019s proprietary AI search audit ran the same local search questions in {A.get('city_st', 'the dealership\u2019s city')} "
+            f"through the 5 major LLMs used by today\u2019s shoppers: {LLM_NAMES}. Below are the dealerships these AI tools suggested to shoppers instead of "
+            f"{ev.get('dealer', 'the dealership')}, and how often each one was suggested. {who} {'was' if len(R['names']) == 1 else 'were'} suggested most. "
+            "This is data from the API answers, not a screenshot; every answer is in the AI answers spreadsheet.")
+def method_leaks(text):
+    """Banned method phrases found in client-facing text (lower-cased search)."""
+    low = str(text).casefold(); return [b for b in CLIENT_METHOD_BANNED if b in low]
 def tools(ev): return TOOLS if v161(ev) else TOOLS_V160
 def questions(ev): return QUESTIONS if v161(ev) else QUESTIONS_V160
 def runs(ev): return RUNS if v161(ev) else RUNS_V160
