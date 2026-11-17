@@ -128,6 +128,18 @@ def method_note(ev):
     return (f"On {when}, using CLIKdata\u2019s proprietary AI search audit, we ran local search questions in {A.get('city_st', 'the dealership\u2019s city')} "
             f"through the 5 major LLMs used by today\u2019s shoppers: {LLM_NAMES}. The following control questions give an accurate account of how often "
             "this dealership was suggested. This is data from the API answers, not a screenshot; every answer is in the AI answers spreadsheet.")
+def rival_note(ev):
+    """The approved wording for the competitor evidence popup (Travis, Nov 17 2026): it speaks about the list of dealerships."""
+    R = top_rival(ev); A = ev.get("ai_visibility") or {}; d = str(ev.get("audit_date", ""))
+    if not R: return method_note(ev)
+    try:
+        import datetime as _dt; when = _dt.date.fromisoformat(d).strftime("%B %-d, %Y")
+    except Exception: when = d
+    who = " and ".join(R["names"])
+    return (f"On {when}, CLIKdata\u2019s proprietary AI search audit ran the same local search questions in {A.get('city_st', 'the dealership\u2019s city')} "
+            f"through the 5 major LLMs used by today\u2019s shoppers: {LLM_NAMES}. Below are the dealerships these AI tools suggested to shoppers instead of "
+            f"{ev.get('dealer', 'the dealership')}, and how often each one was suggested. {who} {'was' if len(R['names']) == 1 else 'were'} suggested most. "
+            "This is data from the API answers, not a screenshot; every answer is in the AI answers spreadsheet.")
 def method_leaks(text):
     """Banned method phrases found in client-facing text (lower-cased search)."""
     low = str(text).casefold(); return [b for b in CLIENT_METHOD_BANNED if b in low]

@@ -104,6 +104,7 @@ def run_once():
     ok("v17.3 method note is the approved wording and leaks nothing", V.method_note(m).startswith("On ") and "CLIKdata\u2019s proprietary AI search audit" in V.method_note(m) and not V.method_leaks(V.method_note(m)), V.method_note(m))
     ok("v17.3 method_leaks finds API detail", V.method_leaks("Asked through the official APIs, five fresh asks") == ["official api", "fresh ask"], V.method_leaks("Asked through the official APIs, five fresh asks"))
     ok("v17.3 plain_name drops a note the answer adds after the name", V.plain_name("Puente Hills Auto Center (Right in City of Industry - Gale Ave off the 60 Fwy)") == "Puente Hills Auto Center" and V.plain_name("Crown Mitsubishi - Washington") == "Crown Mitsubishi - Washington", V.plain_name("Puente Hills Auto Center (Right in City of I"))
+    ok("v17.3 competitor popup note speaks of the list, not 'this dealership'", "instead of " + m["dealer"] in V.rival_note(m) and "this dealership" not in V.rival_note(m) and not V.method_leaks(V.rival_note(m)), V.rival_note(m))
     ok("'only' never stands before 0", V.named_line(m, 0, 125).endswith("was named 0 times out of 125") and V.only(0, 125) == "0 times out of 125" and V.only(3, 125) == "only 3 times out of 125", V.named_line(m, 0, 125))
     with tempfile.TemporaryDirectory() as t:
         wb = load_workbook(V.sheet(m, pathlib.Path(t) / "z.xlsx")); ok("v17.1 spreadsheet: Business Suggested and Dealer Named columns", wb["ChatGPT"]["I1"].value == "Business Suggested" and wb["ChatGPT"]["K1"].value == "Dealer Named")
